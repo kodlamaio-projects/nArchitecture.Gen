@@ -1,0 +1,1 @@
+public DbSet<{{ entity.name | string.pascalcase }}> {{ entity.name | string.pascalcase | string.plural }} { get; set; }

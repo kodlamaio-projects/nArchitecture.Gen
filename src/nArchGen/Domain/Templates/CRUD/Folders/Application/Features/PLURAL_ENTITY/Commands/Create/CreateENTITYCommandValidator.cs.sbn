@@ -1,0 +1,11 @@
+﻿using FluentValidation;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Create;
+
+public class Create{{ entity.name | string.pascalcase }}CommandValidator : AbstractValidator<Create{{ entity.name | string.pascalcase }}Command>
+{
+    public Create{{ entity.name | string.pascalcase }}CommandValidator()
+    {%{{}%}{{ for propertyItem in entity.properties }}
+        RuleFor(c => c.{{ propertyItem.name | string.pascalcase }}).NotEmpty();{{ end }}
+    }
+}

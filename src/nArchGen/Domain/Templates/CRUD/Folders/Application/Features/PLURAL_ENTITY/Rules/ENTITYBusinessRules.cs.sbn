@@ -1,0 +1,25 @@
+﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+using Application.Services.Repositories;
+using Core.Application.Rules;
+using Core.CrossCuttingConcerns.Exceptions.Types;
+using Core.Persistence.Paging;
+using Domain.Entities;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
+
+public class {{ entity.name | string.pascalcase }}BusinessRules : BaseBusinessRules
+{
+    private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
+
+    public {{ entity.name | string.pascalcase }}BusinessRules(I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository)
+    {
+        _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
+    }
+
+    public async Task {{ entity.name | string.pascalcase }}IdShouldExistWhenSelected(int id)
+    {
+        {{ entity.name | string.pascalcase }}? result = await _{{ entity.name | string.camelcase }}Repository.GetAsync(predicate: b => b.Id == id, enableTracking: false);
+        if (result == null)
+            throw new BusinessException({{ entity.name | string.pascalcase | string.plural }}Messages.{{ entity.name | string.pascalcase }}NotExists);
+    }
+}

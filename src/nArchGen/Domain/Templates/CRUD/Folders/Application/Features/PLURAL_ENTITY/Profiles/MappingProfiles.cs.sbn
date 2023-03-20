@@ -1,0 +1,27 @@
+﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Create;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
+using AutoMapper;
+using Core.Application.Responses;
+using Domain.Entities;
+using Core.Persistence.Paging;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Profiles;
+
+public class MappingProfiles : Profile
+{
+    public MappingProfiles()
+    {
+        CreateMap<{{ entity.name | string.pascalcase }}, Create{{ entity.name | string.pascalcase }}Command>().ReverseMap();
+        CreateMap<{{ entity.name | string.pascalcase }}, Created{{ entity.name | string.pascalcase }}Response>().ReverseMap();
+        CreateMap<{{ entity.name | string.pascalcase }}, Update{{ entity.name | string.pascalcase }}Command>().ReverseMap();
+        CreateMap<{{ entity.name | string.pascalcase }}, Updated{{ entity.name | string.pascalcase }}Response>().ReverseMap();
+        CreateMap<{{ entity.name | string.pascalcase }}, Delete{{ entity.name | string.pascalcase }}Command>().ReverseMap();
+        CreateMap<{{ entity.name | string.pascalcase }}, Deleted{{ entity.name | string.pascalcase }}Response>().ReverseMap();
+        CreateMap<{{ entity.name | string.pascalcase }}, GetById{{ entity.name | string.pascalcase }}Response>().ReverseMap();
+        CreateMap<{{ entity.name | string.pascalcase }}, GetList{{ entity.name | string.pascalcase }}ListItemDto>().ReverseMap();
+        CreateMap<IPaginate<{{ entity.name | string.pascalcase }}>, GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>().ReverseMap();
+    }
+}

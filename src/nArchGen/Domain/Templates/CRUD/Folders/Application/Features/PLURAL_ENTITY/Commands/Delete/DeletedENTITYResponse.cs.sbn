@@ -1,0 +1,8 @@
+﻿using Core.Application.Responses;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
+
+public class Deleted{{ entity.name | string.pascalcase }}Response : IResponse
+{
+    public int Id { get; set; }
+}

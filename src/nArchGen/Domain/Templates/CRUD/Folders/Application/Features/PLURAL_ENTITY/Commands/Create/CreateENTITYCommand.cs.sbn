@@ -1,0 +1,49 @@
+﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
+using Application.Services.Repositories;
+using AutoMapper;
+using Domain.Entities;{{ if is_secured_operation_used }}
+using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
+using Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
+using Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
+using Core.Application.Pipelines.Transaction;{{ end }}
+using MediatR;
+using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Create;
+
+public class Create{{ entity.name | string.pascalcase }}Command : IRequest<Created{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_transaction_used }}, ITransactionalRequest{{ end }}
+{%{{}%}{{ for propertyItem in entity.properties }}
+    public {{ propertyItem.type_name }} {{ propertyItem.name | string.pascalcase }} { get; set; }{{ end }}{{ if is_secured_operation_used }}
+
+    public string[] Roles => new[] { Admin, Write, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Create };{{ end }}{{ if is_caching_used }}
+
+    public bool BypassCache { get; }
+    public string? CacheKey { get; }
+    public string CacheGroupKey => "Get{{ entity.name | string.pascalcase | string.plural }}";{{ end }}
+
+    public class Create{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Create{{ entity.name | string.pascalcase }}Command, Created{{ entity.name | string.pascalcase }}Response>
+    {
+        private readonly IMapper _mapper;
+        private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
+        private readonly {{ entity.name | string.pascalcase }}BusinessRules _{{ entity.name | string.camelcase }}BusinessRules;
+
+        public Create{{ entity.name | string.pascalcase }}CommandHandler(IMapper mapper, I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository,
+                                         {{ entity.name | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
+        {
+            _mapper = mapper;
+            _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
+            _{{ entity.name | string.camelcase }}BusinessRules = {{ entity.name | string.camelcase }}BusinessRules;
+        }
+
+        public async Task<Created{{ entity.name | string.pascalcase }}Response> Handle(Create{{ entity.name | string.pascalcase }}Command request, CancellationToken cancellationToken)
+        {
+            {{ entity.name | string.pascalcase }} mapped{{ entity.name | string.pascalcase }} = _mapper.Map<{{ entity.name | string.pascalcase }}>(request);
+
+            _{{ entity.name | string.camelcase }}Repository.Add(mapped{{ entity.name | string.pascalcase }});
+
+            Created{{ entity.name | string.pascalcase }}Response response = _mapper.Map<Created{{ entity.name | string.pascalcase }}Response>(mapped{{ entity.name | string.pascalcase }});
+            return response;
+        }
+    }
+}

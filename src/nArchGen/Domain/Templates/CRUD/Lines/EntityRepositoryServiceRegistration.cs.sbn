@@ -1,0 +1,1 @@
+services.AddScoped<I{{ entity.name | string.pascalcase }}Repository, {{ entity.name | string.pascalcase }}Repository>();

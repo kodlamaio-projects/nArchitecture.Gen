@@ -1,0 +1,13 @@
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+
+public static class {{ entity.name | string.pascalcase | string.plural }}OperationClaims
+{
+    public const string Admin = "{{ entity.name | string.pascalcase | string.plural }}.Admin";
+
+    public const string Read = "{{ entity.name | string.pascalcase | string.plural }}.Read";
+    public const string Write = "{{ entity.name | string.pascalcase | string.plural }}.Write";
+
+    public const string Create = "{{ entity.name | string.pascalcase | string.plural }}.Create";
+    public const string Update = "{{ entity.name | string.pascalcase | string.plural }}.Update";
+    public const string Delete = "{{ entity.name | string.pascalcase | string.plural }}.Delete";
+}

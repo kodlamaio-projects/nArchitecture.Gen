@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Folder Include="Templates\Crud\Folders\" />
+		<Folder Include="Templates\CRUD\Lines\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ContentWithTargetPath Include="Templates\**">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>Templates\%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
+		</ContentWithTargetPath>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\corePackages\Core.CodeGen\Core.CodeGen.csproj" />
+	</ItemGroup>
+
+</Project>

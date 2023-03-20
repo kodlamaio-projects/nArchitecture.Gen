@@ -1,0 +1,5 @@
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+
+public static class {{ entity.name | string.pascalcase | string.plural }}BusinessMessages
+{
+}

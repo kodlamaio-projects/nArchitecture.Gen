@@ -1,0 +1,16 @@
+﻿using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Persistence.EntityConfigurations;
+
+public class {{ entity.name | string.pascalcase }}Configuration : IEntityTypeConfiguration<{{ entity.name | string.pascalcase }}>
+{
+    public void Configure(EntityTypeBuilder<{{ entity.name | string.pascalcase }}> builder)
+    {
+        builder.ToTable("{{ entity.name | string.pascalcase | string.plural }}");
+
+        builder.Property(p => p.Id).HasColumnName("Id");{{ for propertyItem in entity.properties }}
+        builder.Property(p => p.{{ propertyItem.name }}).HasColumnName("{{ propertyItem.name }}");{{ end }}
+    }
+}

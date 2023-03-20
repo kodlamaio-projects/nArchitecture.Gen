@@ -1,0 +1,54 @@
+﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Create;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
+using Core.Application.Requests;
+using Core.Application.Responses;
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebAPI.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class {{ entity.name | string.pascalcase | string.plural }}Controller : BaseController
+{
+    [HttpPost]
+    public async Task<IActionResult> Add([FromBody] Create{{ entity.name | string.pascalcase }}Command create{{ entity.name | string.pascalcase }}Command)
+    {
+        Created{{ entity.name | string.pascalcase }}Response response = await Mediator.Send(create{{ entity.name | string.pascalcase }}Command);
+
+        return Created(uri: "", response);
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] Update{{ entity.name | string.pascalcase }}Command update{{ entity.name | string.pascalcase }}Command)
+    {
+        Updated{{ entity.name | string.pascalcase }}Response response = await Mediator.Send(update{{ entity.name | string.pascalcase }}Command);
+
+        return Ok(response);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete([FromRoute] int id)
+    {
+        Deleted{{ entity.name | string.pascalcase }}Response response = await Mediator.Send(new Delete{{ entity.name | string.pascalcase }}Command { Id = id });
+
+        return Ok(response);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById([FromRoute] int id)
+    {
+        GetById{{ entity.name | string.pascalcase }}Response response = await Mediator.Send(new GetById{{ entity.name | string.pascalcase }}Query { Id = id });
+        return Ok(response);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetList([FromQuery] PageRequest pageRequest)
+    {
+        GetList{{ entity.name | string.pascalcase }}Query getList{{ entity.name | string.pascalcase }}Query = new() { PageRequest = pageRequest };
+        GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto> response = await Mediator.Send(getList{{ entity.name | string.pascalcase }}Query);
+        return Ok(response);
+    }
+}

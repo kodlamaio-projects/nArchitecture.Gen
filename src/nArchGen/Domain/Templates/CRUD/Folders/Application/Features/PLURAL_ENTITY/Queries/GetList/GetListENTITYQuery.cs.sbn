@@ -1,0 +1,46 @@
+﻿using Application.Services.Repositories;
+using AutoMapper;
+using Domain.Entities;{{ if is_secured_operation_used }}
+using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
+using Core.Application.Pipelines.Caching;{{ end }}
+using Core.Application.Requests;
+using Core.Application.Responses;
+using Core.Persistence.Paging;
+using MediatR;
+using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
+
+public class GetList{{ entity.name | string.pascalcase }}Query : IRequest<GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICachableRequest{{ end }}
+{
+    public PageRequest PageRequest { get; set; }{{ if is_secured_operation_used }}
+
+    public string[] Roles => new[] { Admin, Read };{{ end }}{{ if is_caching_used }}
+
+    public bool BypassCache { get; }
+    public string CacheKey => $"GetList{{ entity.name | string.pascalcase | string.plural }}({PageRequest.Page},{PageRequest.PageSize})";
+    public string CacheGroupKey => "Get{{ entity.name | string.pascalcase | string.plural }}";
+    public TimeSpan? SlidingExpiration { get; }{{ end }}
+
+    public class GetList{{ entity.name | string.pascalcase }}QueryHandler : IRequestHandler<GetList{{ entity.name | string.pascalcase }}Query, GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>
+    {
+        private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
+        private readonly IMapper _mapper;
+
+        public GetList{{ entity.name | string.pascalcase }}QueryHandler(I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository, IMapper mapper)
+        {
+            _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
+            _mapper = mapper;
+        }
+
+        public async Task<GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>> Handle(GetList{{ entity.name | string.pascalcase }}Query request,
+                                                                   CancellationToken cancellationToken)
+        {
+            IPaginate<{{ entity.name | string.pascalcase }}> {{ entity.name | string.camelcase | string.plural }} = await _{{ entity.name | string.camelcase }}Repository.GetListAsync(index: request.PageRequest.Page,
+                                                                          size: request.PageRequest.PageSize);
+
+            GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto> response = _mapper.Map<GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>({{ entity.name | string.camelcase | string.plural }});
+            return response;
+        }
+    }
+}

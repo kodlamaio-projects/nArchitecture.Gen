@@ -1,0 +1,49 @@
+﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
+using Application.Services.Repositories;
+using AutoMapper;
+using Domain.Entities;{{ if is_secured_operation_used }}
+using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
+using Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
+using Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
+using Core.Application.Pipelines.Transaction;{{ end }}
+using MediatR;
+using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
+
+public class Delete{{ entity.name | string.pascalcase }}Command : IRequest<Deleted{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_transaction_used }}, ITransactionalRequest{{ end }}
+{
+    public int Id { get; set; }{{ if is_secured_operation_used }}
+
+    public string[] Roles => new[] { Admin, Write, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Delete };{{ end }}{{ if is_caching_used }}
+
+    public bool BypassCache { get; }
+    public string? CacheKey { get; }
+    public string CacheGroupKey => "Get{{ entity.name | string.pascalcase | string.plural }}";{{ end }}
+
+    public class Delete{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Delete{{ entity.name | string.pascalcase }}Command, Deleted{{ entity.name | string.pascalcase }}Response>
+    {
+        private readonly IMapper _mapper;
+        private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
+        private readonly {{ entity.name | string.pascalcase }}BusinessRules _{{ entity.name | string.camelcase }}BusinessRules;
+
+        public Delete{{ entity.name | string.pascalcase }}CommandHandler(IMapper mapper, I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository,
+                                         {{ entity.name | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
+        {
+            _mapper = mapper;
+            _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
+            _{{ entity.name | string.camelcase }}BusinessRules = {{ entity.name | string.camelcase }}BusinessRules;
+        }
+
+        public async Task<Deleted{{ entity.name | string.pascalcase }}Response> Handle(Delete{{ entity.name | string.pascalcase }}Command request, CancellationToken cancellationToken)
+        {
+            {{ entity.name | string.pascalcase }} {{ entity.name | string.camelcase }} = _{{ entity.name | string.camelcase }}Repository.Get(b => b.Id == request.Id);
+
+            _{{ entity.name | string.camelcase }}Repository.Delete({{ entity.name | string.camelcase }});
+
+            Deleted{{ entity.name | string.pascalcase }}Response response = _mapper.Map<Deleted{{ entity.name | string.pascalcase }}Response>({{ entity.name | string.camelcase }});
+            return response;
+        }
+    }
+}

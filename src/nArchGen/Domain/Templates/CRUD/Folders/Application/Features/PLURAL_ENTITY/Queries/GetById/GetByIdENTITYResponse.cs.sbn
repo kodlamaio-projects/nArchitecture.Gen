@@ -1,0 +1,9 @@
+﻿using Core.Application.Responses;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
+
+public class GetById{{ entity.name | string.pascalcase }}Response : IResponse
+{
+    public int Id { get; set; }{{ for propertyItem in entity.properties }}
+    public {{ propertyItem.type_name }} {{ propertyItem.name | string.pascalcase }} { get; set; }{{ end }}
+}

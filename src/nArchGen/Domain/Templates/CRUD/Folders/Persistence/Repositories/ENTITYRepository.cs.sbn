@@ -1,0 +1,13 @@
+﻿using Application.Services.Repositories;
+using Domain.Entities;
+using Core.Persistence.Repositories;
+using Persistence.Contexts;
+
+namespace Persistence.Repositories;
+
+public class {{ entity.name | string.pascalcase }}Repository : EfRepositoryBase<{{ entity.name | string.pascalcase }}, {{ db_context_name }}>, I{{ entity.name | string.pascalcase }}Repository
+{
+    public {{ entity.name | string.pascalcase }}Repository({{ db_context_name }} context) : base(context)
+    {
+    }
+}

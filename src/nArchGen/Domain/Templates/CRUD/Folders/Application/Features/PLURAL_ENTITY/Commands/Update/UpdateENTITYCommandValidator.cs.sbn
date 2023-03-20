@@ -1,0 +1,12 @@
+﻿using FluentValidation;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
+
+public class Update{{ entity.name | string.pascalcase }}CommandValidator : AbstractValidator<Update{{ entity.name | string.pascalcase }}Command>
+{
+    public Update{{ entity.name | string.pascalcase }}CommandValidator()
+    {
+        RuleFor(c => c.Id).NotEmpty();{{ for propertyItem in entity.properties }}
+        RuleFor(c => c.{{ propertyItem.name | string.pascalcase }}).NotEmpty();{{ end }}
+    }
+}

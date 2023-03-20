@@ -1,0 +1,9 @@
+﻿using Core.Application.Dtos;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
+
+public class GetList{{ entity.name | string.pascalcase }}ListItemDto : IDto
+{
+    public int Id { get; set; }{{ for propertyItem in entity.properties }}
+    public {{ propertyItem.type_name }} {{ propertyItem.name | string.pascalcase }} { get; set; }{{ end }}
+}
