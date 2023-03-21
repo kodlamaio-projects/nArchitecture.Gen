@@ -1,28 +1,19 @@
-﻿using System.Runtime.CompilerServices;
-using Core.CodeGen.Code;
+﻿using Core.CodeGen.Code;
 using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
-using Core.CodeGen.TemplateEngine;
-using Domain.Constants;
-using Domain.ValueObjects;
 using MediatR;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Application.Features.Create.Commands.New;
 
 public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
 {
-    public NewProjectData NewProjectData { get; set; }
+    public string ProjectName { get; set; }
 
     public class CreateNewProjectCommandHandler
         : IStreamRequestHandler<CreateNewProjectCommand, CreatedNewProjectResponse>
     {
-        ITemplateEngine _templateEngine;
-
-        public CreateNewProjectCommandHandler(ITemplateEngine templateEngine)
-        {
-            _templateEngine = templateEngine;
-        }
-
         public async IAsyncEnumerable<CreatedNewProjectResponse> Handle(
             CreateNewProjectCommand request,
             [EnumeratorCancellation] CancellationToken cancellationToken
@@ -31,61 +22,117 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             CreatedNewProjectResponse response = new();
             List<string> newFilePaths = new();
 
-            response.OutputMessage =
-                "Starter Project Repository: https://github.com/kodlamaio-projects/nArchitecture.RentACarProject";
             response.CurrentStatusMessage = "Cloning starter project and core packages...";
             yield return response;
             response.OutputMessage = null;
-            newFilePaths.AddRange(
-                await generateFolderCodes(
-                    templateDir: @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.NewProject}\",
-                    request.NewProjectData
-                )
-            );
-            response.LastOperationMessage = "Starter project has been cloned.";
+            await cloneCorePackagesAndStarterProject();
+            response.LastOperationMessage =
+                "Starter project has been cloned from 'https://github.com/kodlamaio-projects/nArchitecture'.";
 
-            response.CurrentStatusMessage = "Initializing git repository...";
+            response.CurrentStatusMessage = "Renaming project...";
+            yield return response;
+            await renameProject(request.ProjectName);
+            response.LastOperationMessage =
+                $"Project has been renamed with {request.ProjectName.ToPascalCase()}.";
+            DirectoryHelper.DeleteDirectory($"{Environment.CurrentDirectory}/.git");
+            ICollection<string> newFiles = DirectoryHelper.GetFilesInDirectoryTree(
+                Environment.CurrentDirectory,
+                searchPattern: "*"
+            );
+
+            response.CurrentStatusMessage = "Initializing git repository with submodules...";
             yield return response;
             await initializeGitRepository();
             response.LastOperationMessage = "Git repository has been initialized.";
 
             response.CurrentStatusMessage = "Completed.";
-            response.NewFilePathsResult = newFilePaths;
+            response.NewFilePathsResult = newFiles;
             response.OutputMessage =
-                "Run 'Add-Migration Initial' and 'Update-Database' commands on Persistence layer.";
+                $":warning: Check the configuration that has name 'appsettings.json' in 'src/{request.ProjectName.ToCamelCase()}'.";
+            response.OutputMessage =
+                ":warning: Run 'Update-Database' nuget command on the Persistence layer to apply initial migration.";
             yield return response;
         }
 
-        private async Task<ICollection<string>> generateFolderCodes(
-            string templateDir,
-            NewProjectData newProjectData
-        )
+        private async Task cloneCorePackagesAndStarterProject()
         {
-            var templateFilePaths = DirectoryHelper
-                .GetFilesInDirectoryTree(templateDir, searchPattern: $"*")
-                .ToList();
-            Dictionary<string, string> replacePathVariable =
-                new()
-                {
-                    { "PROJECT_NAME_C", "{{ project_name | string.camelcase }}" },
-                    { "PROJECT_NAME", "{{ project_name | string.pascalcase }}" }
-                };
-            ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
-                templateFilePaths,
-                templateDir,
-                replacePathVariable,
-                outputDir: $"{Environment.CurrentDirectory}/",
-                newProjectData
+            await GitCommandHelper.RunAsync(
+                "clone https://github.com/kodlamaio-projects/nArchitecture.git ."
             );
-            return newRenderedFilePaths;
+        }
+
+        private async Task renameProject(string projectName)
+        {
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/NArchitecture.sln",
+                search: "NArchitecture",
+                projectName: projectName.ToPascalCase()
+            );
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/NArchitecture.sln.DotSettings",
+                search: "NArchitecture",
+                projectName: projectName.ToPascalCase()
+            );
+            
+            string projectPath = $"{Environment.CurrentDirectory}/src/{projectName.ToCamelCase()}";
+            Directory.Move(
+                sourceDirName: $"{Environment.CurrentDirectory}/src/starterProject",
+                projectPath
+            );
+
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/{projectName.ToPascalCase()}.sln",
+                search: "starterProject",
+                projectName: projectName.ToCamelCase()
+            );
+
+
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/tests/Application.Tests/Application.Tests.csproj",
+                search: "starterProject",
+                projectName: projectName.ToCamelCase()
+            );
+
+            await replaceFileContentWithProjectName(
+                path: $"{projectPath}/WebAPI/appsettings.json",
+                search: "StarterProject",
+                projectName: projectName.ToPascalCase()
+            );
+            await replaceFileContentWithProjectName(
+                path: $"{projectPath}/WebAPI/appsettings.json",
+                search: "starterProject",
+                projectName: projectName.ToCamelCase()
+            );
+
+            async Task replaceFileContentWithProjectName(
+                string path,
+                string search,
+                string projectName
+            )
+            {
+                if (path.Contains(search))
+                {
+                    string newPath = path.Replace(search, projectName);
+                    Directory.Move(path, newPath);
+                    path = newPath;
+                }
+
+                string fileContent = await File.ReadAllTextAsync(path);
+                fileContent = fileContent.Replace(search, projectName);
+                await File.WriteAllTextAsync(path, fileContent);
+            }
         }
 
         private async Task initializeGitRepository()
         {
             await GitCommandHelper.RunAsync("init");
             await GitCommandHelper.RunAsync("branch -m master main");
+            Directory.Delete($"{Environment.CurrentDirectory}/src/corePackages/");
+            await GitCommandHelper.RunAsync(
+                "submodule add https://github.com/kodlamaio-projects/DotNetCore.CorePackages src/corePackages"
+            );
             await GitCommandHelper.CommitChangesAsync(
-                "chore: initial commit from nArchitecture-cli"
+                "chore: initial commit from nArchitecture.Gen"
             );
         }
     }

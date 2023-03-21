@@ -18,8 +18,7 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
     {
         settings.CheckProjectNameArgument();
 
-        CreateNewProjectCommand request =
-            new() { NewProjectData = new() { ProjectName = settings.ProjectName! } };
+        CreateNewProjectCommand request = new() { ProjectName = settings.ProjectName! };
 
         IAsyncEnumerable<CreatedNewProjectResponse> resultsStream = _mediator.CreateStream(request);
 
@@ -34,9 +33,6 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
                     await foreach (var result in resultsStream)
                     {
                         ctx.Status(result.CurrentStatusMessage);
-
-                        if (result.OutputMessage is not null)
-                            AnsiConsole.MarkupLine(result.OutputMessage);
 
                         if (result.LastOperationMessage is not null)
                             AnsiConsole.MarkupLine(
@@ -53,6 +49,9 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
                                         .LeafColor(Color.Blue)
                                 );
                         }
+
+                        if (result.OutputMessage is not null)
+                            AnsiConsole.MarkupLine(result.OutputMessage);
                     }
                 }
             );
