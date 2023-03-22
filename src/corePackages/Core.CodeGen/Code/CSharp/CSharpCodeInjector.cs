@@ -205,4 +205,27 @@ public static class CSharpCodeInjector
             break;
         }
     }
+
+    public static async Task AddUsingToFile(string filePath, IEnumerable<string> usingLines)
+    {
+        List<string> fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+
+        IEnumerable<string> usingLinesToAdd = usingLines.Where(
+            usingLine => !fileContent.Contains(usingLine)
+        );
+
+        Regex usingRegex = new(@"^using\s+.*;$");
+        int indexToAdd = 0;
+        for (int i = 0; i < fileContent.Count; ++i)
+        {
+            string fileLine = fileContent[i];
+            if (usingRegex.IsMatch(fileLine))
+                continue;
+            indexToAdd = i;
+            break;
+        }
+
+        fileContent.InsertRange(indexToAdd, usingLinesToAdd);
+        await System.IO.File.WriteAllLinesAsync(filePath, fileContent);
+    }
 }

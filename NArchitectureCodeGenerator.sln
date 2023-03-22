@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleUI", "src\nArchGen\ConsoleUI\ConsoleUI.csproj", "{3190D2E2-A998-4902-BA00-12527D096080}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleUI", "src\nArchGen\ConsoleUI\ConsoleUI.csproj", "{3190D2E2-A998-4902-BA00-12527D096080}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "src\nArchGen\Domain\Domain.csproj", "{7019292A-FA52-4F1C-8B61-034DB0351108}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Domain", "src\nArchGen\Domain\Domain.csproj", "{7019292A-FA52-4F1C-8B61-034DB0351108}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "src\nArchGen\Application\Application.csproj", "{C7A81371-265B-4071-9102-1A428D3E9AC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Application", "src\nArchGen\Application\Application.csproj", "{C7A81371-265B-4071-9102-1A428D3E9AC9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{23D9664A-8B49-4136-BA2A-0D6FE18355E0}"
 EndProject
@@ -15,13 +15,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "corePackages", "corePackage
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nArchGen", "nArchGen", "{C8BDEA36-B8E2-432D-B8D3-18C45F2D8C5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.CodeGen", "src\corePackages\Core.CodeGen\Core.CodeGen.csproj", "{218EF074-05BD-424B-AA94-39168B176191}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.CodeGen", "src\corePackages\Core.CodeGen\Core.CodeGen.csproj", "{218EF074-05BD-424B-AA94-39168B176191}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Application", "src\corePackages\Core.Application\Core.Application.csproj", "{ABAE025D-8DB7-4BEC-9B84-6E279246C6EA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Application", "src\corePackages\Core.Application\Core.Application.csproj", "{ABAE025D-8DB7-4BEC-9B84-6E279246C6EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.CrossCuttingConcers", "src\corePackages\Core.CrossCuttingConcers\Core.CrossCuttingConcers.csproj", "{DAA1FFAA-74C7-48AE-A372-C8136F8E99B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.CrossCuttingConcerns", "src\corePackages\Core.CrossCuttingConcers\Core.CrossCuttingConcerns.csproj", "{DAA1FFAA-74C7-48AE-A372-C8136F8E99B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.ConsoleUI", "src\corePackages\Core.ConsoleUI\Core.ConsoleUI.csproj", "{92C3F668-A726-49AA-8652-B479588BD68F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.ConsoleUI", "src\corePackages\Core.ConsoleUI\Core.ConsoleUI.csproj", "{92C3F668-A726-49AA-8652-B479588BD68F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
