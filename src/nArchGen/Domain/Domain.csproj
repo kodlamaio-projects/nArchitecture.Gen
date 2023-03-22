@@ -8,7 +8,6 @@
 
 	<ItemGroup>
 		<Folder Include="Templates\Crud\Folders\" />
-		<Folder Include="Templates\CRUD\Lines\" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Application.Features.Generate.Rules;
 using Core.CodeGen.TemplateEngine;
 using Core.CodeGen.TemplateEngine.Scriban;
 using MediatR;
@@ -14,6 +15,8 @@ public static class ApplicationServiceRegistration
 
         services.AddSingleton<ITemplateRenderer, ScribanTemplateRenderer>();
         services.AddSingleton<ITemplateEngine, TemplateEngine>();
+
+        services.AddSingleton<GenerateBusinessRules>();
 
         return services;
     }

@@ -5,6 +5,7 @@ using Domain.Constants;
 using Domain.ValueObjects;
 using MediatR;
 using System.Runtime.CompilerServices;
+using Application.Features.Generate.Rules;
 
 namespace Application.Features.Generate.Commands.Crud;
 
@@ -17,10 +18,15 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
         : IStreamRequestHandler<GenerateCrudCommand, GeneratedCrudResponse>
     {
         private readonly ITemplateEngine _templateEngine;
+        private readonly GenerateBusinessRules _businessRules;
 
-        public GenerateCrudCommandHandler(ITemplateEngine templateEngine)
+        public GenerateCrudCommandHandler(
+            ITemplateEngine templateEngine,
+            GenerateBusinessRules businessRules
+        )
         {
             _templateEngine = templateEngine;
+            _businessRules = businessRules;
         }
 
         public async IAsyncEnumerable<GeneratedCrudResponse> Handle(
@@ -28,6 +34,10 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             [EnumeratorCancellation] CancellationToken cancellationToken
         )
         {
+            await _businessRules.EntityClassShouldBeInhreitEntityBaseClass(
+                request.CrudTemplateData.Entity.Name
+            );
+
             GeneratedCrudResponse response = new();
             List<string> newFilePaths = new();
             List<string> updatedFilePaths = new();
@@ -74,18 +84,28 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
         {
             string contextFilePath =
                 @$"{Environment.CurrentDirectory}\Persistence\Contexts\{crudTemplateData.DbContextName}.cs";
+
+            string[] entityNameSpaceUsingTemplate = await File.ReadAllLinesAsync(
+                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityNameSpaceUsing.cs.sbn"
+            );
+            await CSharpCodeInjector.AddUsingToFile(contextFilePath, entityNameSpaceUsingTemplate);
+
             string dbSetPropertyTemplateCodeLine = await File.ReadAllTextAsync(
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityBaseContextProperty.cs.sbn"
+                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityContextProperty.cs.sbn"
             );
             string dbSetPropertyCodeLine = await _templateEngine.RenderAsync(
                 dbSetPropertyTemplateCodeLine,
                 crudTemplateData
             );
-
-            await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(
-                contextFilePath,
-                codeLines: new[] { dbSetPropertyCodeLine }
+            bool isExists = (await File.ReadAllLinesAsync(contextFilePath)).Any(
+                line => line.Contains(dbSetPropertyCodeLine)
             );
+            if (!isExists)
+                await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(
+                    contextFilePath,
+                    codeLines: new[] { dbSetPropertyCodeLine }
+                );
+
             return contextFilePath;
         }
 
