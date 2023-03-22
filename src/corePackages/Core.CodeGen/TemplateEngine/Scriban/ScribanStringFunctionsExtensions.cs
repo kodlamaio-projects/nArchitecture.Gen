@@ -18,4 +18,7 @@ public class ScribanStringFunctionsExtensions : StringFunctions
     public static string Plural(string input) => input.ToPlural();
 
     public static string Singular(string input) => input.ToSingular();
+
+    public static string Words(string input) =>
+        string.Join(separator: ' ', value: input.GetWords());
 }
