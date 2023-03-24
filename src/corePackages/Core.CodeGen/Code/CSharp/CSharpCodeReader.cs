@@ -1,5 +1,6 @@
-﻿using System.Text.RegularExpressions;
-using Core.CodeGen.Code.CSharp.ValueObjects;
+﻿using Core.CodeGen.Code.CSharp.ValueObjects;
+using Core.CodeGen.File;
+using System.Text.RegularExpressions;
 
 namespace Core.CodeGen.Code.CSharp;
 
@@ -44,29 +45,77 @@ public static class CSharpCodeReader
         return genericArguments.Select(genericArgument => genericArgument.Trim()).ToArray();
     }
 
-    public static async Task<ICollection<PropertyInfo>> ReadClassPropertiesAsync(string filePath)
+    public static async Task<ICollection<PropertyInfo>> ReadClassPropertiesAsync(
+        string filePath,
+        string projectPath
+    )
     {
         string fileContent = await System.IO.File.ReadAllTextAsync(filePath);
-        const string pattern =
-            @"(public|protected|internal|protected internal|private protected|private)?\s+(const|static)?\s*(\w+)\s+(\w+)\s*\{[^}]+\}";
+        Regex propertyRegex =
+            new(
+                @"(public|protected|internal|protected internal|private protected|private)?\s+(const|static)?\s*(\w+)\s+(\w+)\s*\{[^}]+\}"
+            );
+        Regex builtInTypeRegex =
+            new(
+                pattern: @"^(bool|byte|sbyte|char|decimal|double|float|int|uint|long|ulong|object|short|ushort|string)$",
+                options: RegexOptions.IgnoreCase
+            );
 
-        MatchCollection matches = Regex.Matches(fileContent, pattern);
+        MatchCollection matches = propertyRegex.Matches(fileContent);
         List<PropertyInfo> result = new();
         foreach (Match match in matches)
         {
             string accessModifier = match.Groups[1].Value.Trim();
+            string typeName = match.Groups[3].Value;
+            string name = match.Groups[4].Value;
+            string? nameSpace = null;
+            if (!builtInTypeRegex.IsMatch(typeName))
+            {
+                ICollection<string> potentialPropertyTypeFilePaths =
+                    DirectoryHelper.GetFilesInDirectoryTree(
+                        projectPath,
+                        searchPattern: $"{typeName}.cs"
+                    );
+                ICollection<string> usingNameSpacesInFile = await ReadUsingNameSpacesAsync(
+                    filePath
+                );
+                foreach (string potentialPropertyTypeFilePath in potentialPropertyTypeFilePaths)
+                {
+                    string potentialPropertyNameSpace =
+                        $"{potentialPropertyTypeFilePath.Replace(projectPath, string.Empty).Replace('\\', '.').Replace($".{typeName}.cs", string.Empty).Substring(1)}";
+                    if (!usingNameSpacesInFile.Contains(potentialPropertyNameSpace))
+                        continue;
+                    nameSpace = potentialPropertyNameSpace;
+                    break;
+                }
+            }
+
             PropertyInfo propertyInfo =
                 new()
                 {
                     AccessModifier = string.IsNullOrEmpty(accessModifier)
                         ? "private"
                         : accessModifier,
-                    TypeName = match.Groups[3].Value,
-                    Name = match.Groups[4].Value
+                    TypeName = typeName,
+                    Name = name,
+                    NameSpace = nameSpace
                 };
             result.Add(propertyInfo);
         }
 
         return result;
+    }
+
+    public static async Task<ICollection<string>> ReadUsingNameSpacesAsync(string filePath)
+    {
+        ICollection<string> fileContent = await System.IO.File.ReadAllLinesAsync(filePath);
+        Regex usingRegex = new("^using\\s+(.+);");
+
+        ICollection<string> usingNameSpaces = fileContent
+            .Where(line => usingRegex.IsMatch(line))
+            .Select(usingNameSpace => usingRegex.Match(usingNameSpace).Groups[1].Value)
+            .ToList();
+
+        return usingNameSpaces;
     }
 }
