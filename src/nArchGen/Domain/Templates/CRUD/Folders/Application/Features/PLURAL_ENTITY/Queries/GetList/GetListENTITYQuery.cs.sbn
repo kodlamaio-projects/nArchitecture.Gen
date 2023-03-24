@@ -1,4 +1,5 @@
-﻿using Application.Services.Repositories;
+﻿{{ if is_secured_operation_used }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+{{ end }}using Application.Services.Repositories;
 using AutoMapper;
 using Domain.Entities;{{ if is_secured_operation_used }}
 using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
@@ -6,8 +7,8 @@ using Core.Application.Pipelines.Caching;{{ end }}
 using Core.Application.Requests;
 using Core.Application.Responses;
 using Core.Persistence.Paging;
-using MediatR;
-using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;
+using MediatR;{{ if is_secured_operation_used }}
+using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 
 namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
 

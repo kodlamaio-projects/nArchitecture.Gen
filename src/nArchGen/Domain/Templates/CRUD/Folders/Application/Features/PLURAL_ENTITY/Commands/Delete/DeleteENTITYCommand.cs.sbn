@@ -1,4 +1,5 @@
-﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+﻿{{ if is_secured_operation_used }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+{{ end }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
 using Application.Services.Repositories;
 using AutoMapper;
@@ -7,8 +8,8 @@ using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
 using Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
 using Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
 using Core.Application.Pipelines.Transaction;{{ end }}
-using MediatR;
-using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;
+using MediatR;{{ if is_secured_operation_used }}
+using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 
 namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
 
