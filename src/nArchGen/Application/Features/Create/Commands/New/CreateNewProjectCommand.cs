@@ -3,7 +3,6 @@ using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
 using MediatR;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Application.Features.Create.Commands.New;
 
@@ -73,7 +72,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 search: "NArchitecture",
                 projectName: projectName.ToPascalCase()
             );
-            
+
             string projectPath = $"{Environment.CurrentDirectory}/src/{projectName.ToCamelCase()}";
             Directory.Move(
                 sourceDirName: $"{Environment.CurrentDirectory}/src/starterProject",
@@ -85,7 +84,6 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 search: "starterProject",
                 projectName: projectName.ToCamelCase()
             );
-
 
             await replaceFileContentWithProjectName(
                 path: $"{Environment.CurrentDirectory}/tests/Application.Tests/Application.Tests.csproj",
@@ -129,7 +127,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             await GitCommandHelper.RunAsync("branch -m master main");
             Directory.Delete($"{Environment.CurrentDirectory}/src/corePackages/");
             await GitCommandHelper.RunAsync(
-                "submodule add https://github.com/kodlamaio-projects/DotNetCore.CorePackages src/corePackages"
+                "submodule add https://github.com/kodlamaio-projects/nArchitecture.Core src/corePackages"
             );
             await GitCommandHelper.CommitChangesAsync(
                 "chore: initial commit from nArchitecture.Gen"
