@@ -25,8 +25,10 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
 
         ICollection<PropertyInfo> entityProperties =
             await CSharpCodeReader.ReadClassPropertiesAsync(
-                @$"{Environment.CurrentDirectory}\Domain\Entities\{settings.EntityName}.cs"
+                filePath: @$"{Environment.CurrentDirectory}\Domain\Entities\{settings.EntityName}.cs",
+                projectPath: Environment.CurrentDirectory
             );
+
         GenerateCrudCommand generateCrudCommand =
             new()
             {
