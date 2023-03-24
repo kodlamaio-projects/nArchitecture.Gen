@@ -53,7 +53,7 @@ public static class CSharpCodeReader
         string fileContent = await System.IO.File.ReadAllTextAsync(filePath);
         Regex propertyRegex =
             new(
-                @"(public|protected|internal|protected internal|private protected|private)?\s+(const|static)?\s*(\w+)\s+(\w+)\s*\{[^}]+\}"
+                @"(public|protected|internal|protected internal|private protected|private)?\s+(?:const|static)?\s*((?:\w\.?)+\??)\s+(\w+)\s*\{[^}]+\}"
             );
         Regex builtInTypeRegex =
             new(
@@ -66,8 +66,9 @@ public static class CSharpCodeReader
         foreach (Match match in matches)
         {
             string accessModifier = match.Groups[1].Value.Trim();
-            string typeName = match.Groups[3].Value;
-            string name = match.Groups[4].Value;
+            string type = match.Groups[2].Value;
+            string typeName = type.Replace("?", string.Empty);
+            string name = match.Groups[3].Value;
             string? nameSpace = null;
             if (!builtInTypeRegex.IsMatch(typeName))
             {
@@ -96,7 +97,7 @@ public static class CSharpCodeReader
                     AccessModifier = string.IsNullOrEmpty(accessModifier)
                         ? "private"
                         : accessModifier,
-                    TypeName = typeName,
+                    Type = type,
                     Name = name,
                     NameSpace = nameSpace
                 };

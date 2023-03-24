@@ -15,7 +15,7 @@ namespace Application.Features.{{ entity.name | string.pascalcase | string.plura
 
 public class Create{{ entity.name | string.pascalcase }}Command : IRequest<Created{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_transaction_used }}, ITransactionalRequest{{ end }}
 {%{{}%}{{ for propertyItem in entity.properties }}
-    public {{ propertyItem.type_name }} {{ propertyItem.name | string.pascalcase }} { get; set; }{{ end }}{{ if is_secured_operation_used }}
+    public {{ propertyItem.type }} {{ propertyItem.name | string.pascalcase }} { get; set; }{{ end }}{{ if is_secured_operation_used }}
 
     public string[] Roles => new[] { Admin, Write, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Create };{{ end }}{{ if is_caching_used }}
 
