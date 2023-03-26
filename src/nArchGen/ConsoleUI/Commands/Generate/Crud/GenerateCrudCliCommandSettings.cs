@@ -1,4 +1,6 @@
-﻿using Spectre.Console;
+﻿using Core.CodeGen.Code;
+using Core.CrossCuttingConcerns.Exceptions;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace ConsoleUI.Commands.Generate.Crud;
@@ -13,6 +15,9 @@ public partial class GenerateCrudCliCommand
         [CommandArgument(position: 1, template: "[DBContextName]")]
         public string? DbContextName { get; set; }
 
+        [CommandOption("-p|--project")]
+        public string? ProjectName { get; set; }
+
         [CommandOption("-c|--caching")]
         public bool IsCachingUsed { get; set; }
 
@@ -25,6 +30,11 @@ public partial class GenerateCrudCliCommand
         [CommandOption("-s|--secured")]
         public bool IsSecuredOperationUsed { get; set; }
 
+        public string ProjectPath =>
+            ProjectName != null
+                ? $@"{Environment.CurrentDirectory}\src\{ProjectName.ToCamelCase()}"
+                : Environment.CurrentDirectory;
+
         public void CheckEntityArgument()
         {
             if (EntityName is not null)
@@ -33,25 +43,21 @@ public partial class GenerateCrudCliCommand
                 return;
             }
 
-            if (EntityName is null)
-            {
-                string[] entities = Directory
-                    .GetFiles(path: "Domain\\Entities")
-                    .Select(Path.GetFileNameWithoutExtension)
-                    .ToArray()!;
-                if (entities.Length == 0)
-                {
-                    AnsiConsole.MarkupLine("[red]No entities found in Domain\\Entities[/]");
-                    return;
-                }
-
-                EntityName = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("What's your [green]entity[/]?")
-                        .PageSize(10)
-                        .AddChoices(entities)
+            string[] entities = Directory
+                .GetFiles(path: @$"src\{ProjectName!.ToCamelCase()}\Domain\Entities")
+                .Select(Path.GetFileNameWithoutExtension)
+                .ToArray()!;
+            if (entities.Length == 0)
+                throw new BusinessException(
+                    $"No entities found in \"{ProjectPath}\\Domain\\Entities\""
                 );
-            }
+
+            EntityName = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("What's your [green]entity[/]?")
+                    .PageSize(10)
+                    .AddChoices(entities)
+            );
         }
 
         public void CheckDbContextArgument()
@@ -64,27 +70,21 @@ public partial class GenerateCrudCliCommand
                 return;
             }
 
-            if (DbContextName is null)
-            {
-                string[] dbContexts = Directory
-                    .GetFiles(path: @$"{Environment.CurrentDirectory}\Persistence\Contexts")
-                    .Select(Path.GetFileNameWithoutExtension)
-                    .ToArray()!;
-                if (dbContexts.Length == 0)
-                {
-                    AnsiConsole.MarkupLine(
-                        @"[red]No DbContexts found in 'Persistence\Contexts'[/]"
-                    );
-                    return;
-                }
-
-                DbContextName = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title("What's your [green]DbContext[/]?")
-                        .PageSize(5)
-                        .AddChoices(dbContexts)
+            string[] dbContexts = Directory
+                .GetFiles(path: @$"{ProjectPath}\Persistence\Contexts")
+                .Select(Path.GetFileNameWithoutExtension)
+                .ToArray()!;
+            if (dbContexts.Length == 0)
+                throw new BusinessException(
+                    $"No DbContexts found in \"{ProjectPath}\\Persistence\\Contexts\""
                 );
-            }
+
+            DbContextName = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("What's your [green]DbContext[/]?")
+                    .PageSize(5)
+                    .AddChoices(dbContexts)
+            );
         }
 
         public void CheckMechanismOptions()
@@ -144,6 +144,40 @@ public partial class GenerateCrudCliCommand
                             break;
                     }
                 });
+        }
+
+        public void CheckProjectName()
+        {
+            if (ProjectName != null)
+            {
+                if (!Directory.Exists(ProjectPath))
+                    throw new BusinessException("Project not found");
+                AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
+                return;
+            }
+
+            string[] layerFolders = new[] { "Application", "Domain", "Persistence", "WebAPI" };
+            if (
+                layerFolders.All(
+                    folder => Directory.Exists($"{Environment.CurrentDirectory}/{folder}")
+                )
+            )
+                return;
+
+            string[] projects = Directory
+                .GetDirectories($"{Environment.CurrentDirectory}/src")
+                .Select(Path.GetFileName)
+                .Where(project => project != "corePackages")
+                .ToArray()!;
+            if (projects.Length == 0)
+                throw new BusinessException("No projects found in src");
+
+            ProjectName = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("What's your [green]project[/] in [blue]src[/] folder?")
+                    .PageSize(10)
+                    .AddChoices(projects)
+            );
         }
     }
 }

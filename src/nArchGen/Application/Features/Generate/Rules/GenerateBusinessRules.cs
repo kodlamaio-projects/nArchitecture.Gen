@@ -8,10 +8,10 @@ namespace Application.Features.Generate.Rules;
 
 public class GenerateBusinessRules
 {
-    public async Task EntityClassShouldBeInhreitEntityBaseClass(string entityName)
+    public async Task EntityClassShouldBeInhreitEntityBaseClass(string projectPath, string entityName)
     {
         string[] fileContent = await File.ReadAllLinesAsync(
-            $"{Environment.CurrentDirectory}/Domain/Entities/{entityName}.cs"
+            $"{projectPath}/Domain/Entities/{entityName}.cs"
         );
 
         string entityBaseClassNameSpaceUsingTemplate = await File.ReadAllTextAsync(

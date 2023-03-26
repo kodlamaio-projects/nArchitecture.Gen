@@ -19,14 +19,15 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
+        settings.CheckProjectName();
         settings.CheckEntityArgument();
         settings.CheckDbContextArgument();
         settings.CheckMechanismOptions();
 
         ICollection<PropertyInfo> entityProperties =
             await CSharpCodeReader.ReadClassPropertiesAsync(
-                filePath: @$"{Environment.CurrentDirectory}\Domain\Entities\{settings.EntityName}.cs",
-                projectPath: Environment.CurrentDirectory
+                filePath: @$"{settings.ProjectPath}\Domain\Entities\{settings.EntityName}.cs",
+                settings.ProjectPath
             );
 
         GenerateCrudCommand generateCrudCommand =
@@ -46,7 +47,8 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                     IsTransactionUsed = settings.IsTransactionUsed,
                     IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
                     DbContextName = settings.DbContextName!
-                }
+                },
+                ProjectPath = settings.ProjectPath
             };
 
         IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(

@@ -11,6 +11,7 @@ namespace Application.Features.Generate.Commands.Crud;
 
 public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
 {
+    public string ProjectPath { get; set; }
     public CrudTemplateData CrudTemplateData { get; set; }
     public string DbContextName { get; set; }
 
@@ -35,6 +36,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
         )
         {
             await _businessRules.EntityClassShouldBeInhreitEntityBaseClass(
+                request.ProjectPath,
                 request.CrudTemplateData.Entity.Name
             );
 
@@ -45,33 +47,33 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             response.CurrentStatusMessage =
                 $"Adding {request.CrudTemplateData.Entity.Name} entity to BaseContext.";
             yield return response;
-            updatedFilePaths.Add(await injectEntityToContext(request.CrudTemplateData));
+            updatedFilePaths.Add(await injectEntityToContext(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage =
                 $"{request.CrudTemplateData.Entity.Name} has been added to BaseContext.";
 
             response.CurrentStatusMessage = "Generating Persistence layer codes...";
             yield return response;
-            newFilePaths.AddRange(await generatePersistenceCodes(request.CrudTemplateData));
+            newFilePaths.AddRange(await generatePersistenceCodes(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Persistence layer codes have been generated.";
 
             response.CurrentStatusMessage = "Adding feature operation claims as seed...";
             yield return response;
-            updatedFilePaths.Add(await injectFeatureOperationClaims(request.CrudTemplateData));
+            updatedFilePaths.Add(await injectFeatureOperationClaims(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Feature operation claims have been added.";
 
             response.CurrentStatusMessage = "Generating Application layer codes...";
             yield return response;
-            newFilePaths.AddRange(await generateApplicationCodes(request.CrudTemplateData));
+            newFilePaths.AddRange(await generateApplicationCodes(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Application layer codes have been generated.";
 
             response.CurrentStatusMessage = "Adding service registrations...";
             yield return response;
-            updatedFilePaths.AddRange(await injectServiceRegistrations(request.CrudTemplateData));
+            updatedFilePaths.AddRange(await injectServiceRegistrations(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Service registrations have been added.";
 
             response.CurrentStatusMessage = "Generating WebAPI layer codes...";
             yield return response;
-            newFilePaths.AddRange(await generateWebApiCodes(request.CrudTemplateData));
+            newFilePaths.AddRange(await generateWebApiCodes(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "WebAPI layer codes have been generated.";
 
             response.CurrentStatusMessage = "Completed.";
@@ -80,10 +82,10 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             yield return response;
         }
 
-        private async Task<string> injectEntityToContext(CrudTemplateData crudTemplateData)
+        private async Task<string> injectEntityToContext(string projectPath, CrudTemplateData crudTemplateData)
         {
             string contextFilePath =
-                @$"{Environment.CurrentDirectory}\Persistence\Contexts\{crudTemplateData.DbContextName}.cs";
+                @$"{projectPath}\Persistence\Contexts\{crudTemplateData.DbContextName}.cs";
 
             string[] entityNameSpaceUsingTemplate = await File.ReadAllLinesAsync(
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityNameSpaceUsing.cs.sbn"
@@ -109,23 +111,23 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             return contextFilePath;
         }
 
-        private async Task<ICollection<string>> generatePersistenceCodes(
-            CrudTemplateData crudTemplateData
+        private async Task<ICollection<string>> generatePersistenceCodes(string projectPath,
+                                                                         CrudTemplateData crudTemplateData
         )
         {
             string templateDir =
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Folders\Persistence";
             return await generateFolderCodes(
                 templateDir,
-                outputDir: $@"{Environment.CurrentDirectory}\Persistence",
+                outputDir: $@"{projectPath}\Persistence",
                 crudTemplateData
             );
         }
 
-        private async Task<string> injectFeatureOperationClaims(CrudTemplateData crudTemplateData)
+        private async Task<string> injectFeatureOperationClaims(string projectPath, CrudTemplateData crudTemplateData)
         {
             string operationClaimConfigurationFilePath =
-                @$"{Environment.CurrentDirectory}\Persistence\EntityConfigurations\OperationClaimConfiguration.cs";
+                @$"{projectPath}\Persistence\EntityConfigurations\OperationClaimConfiguration.cs";
             string[] seedTemplateCodeLines = await File.ReadAllLinesAsync(
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityFeatureOperationClaimSeeds.cs.sbn"
             );
@@ -149,28 +151,28 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             return operationClaimConfigurationFilePath;
         }
 
-        private async Task<ICollection<string>> generateApplicationCodes(
-            CrudTemplateData crudTemplateData
+        private async Task<ICollection<string>> generateApplicationCodes(string projectPath,
+                                                                         CrudTemplateData crudTemplateData
         )
         {
             string templateDir =
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Folders\Application";
             return await generateFolderCodes(
                 templateDir,
-                outputDir: $@"{Environment.CurrentDirectory}\Application",
+                outputDir: $@"{projectPath}\Application",
                 crudTemplateData
             );
         }
 
-        private async Task<ICollection<string>> generateWebApiCodes(
-            CrudTemplateData crudTemplateData
+        private async Task<ICollection<string>> generateWebApiCodes(string projectPath,
+                                                                    CrudTemplateData crudTemplateData
         )
         {
             string templateDir =
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Folders\WebAPI";
             return await generateFolderCodes(
                 templateDir,
-                outputDir: $@"{Environment.CurrentDirectory}\WebAPI",
+                outputDir: $@"{projectPath}\WebAPI",
                 crudTemplateData
             );
         }
@@ -203,12 +205,12 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             return newRenderedFilePaths;
         }
 
-        private async Task<ICollection<string>> injectServiceRegistrations(
-            CrudTemplateData crudTemplateData
+        private async Task<ICollection<string>> injectServiceRegistrations(string projectPath,
+                                                                           CrudTemplateData crudTemplateData
         )
         {
             string persistenceServiceRegistrationFilePath =
-                @$"{Environment.CurrentDirectory}\Persistence\PersistenceServiceRegistration.cs";
+                @$"{projectPath}\Persistence\PersistenceServiceRegistration.cs";
             string persistenceServiceRegistrationTemplateCodeLine = await File.ReadAllTextAsync(
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityRepositoryServiceRegistration.cs.sbn"
             );
