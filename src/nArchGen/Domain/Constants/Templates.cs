@@ -6,5 +6,7 @@ public static class Templates
     {
         public const string Root = @"Templates";
         public const string Crud = @$"{Root}\CRUD";
+        public const string Command = @$"{Root}\Command";
+        public const string Query = @$"{Root}\Query";
     }
 }

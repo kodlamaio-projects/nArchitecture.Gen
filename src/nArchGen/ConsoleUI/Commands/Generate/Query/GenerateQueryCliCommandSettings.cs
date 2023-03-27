@@ -3,17 +3,17 @@ using Core.CrossCuttingConcerns.Exceptions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace ConsoleUI.Commands.Generate.Crud;
+namespace ConsoleUI.Commands.Generate.Query;
 
-public partial class GenerateCrudCliCommand
+public partial class GenerateQueryCliCommand
 {
     public class Settings : CommandSettings
     {
-        [CommandArgument(position: 0, template: "[EntityName]")]
-        public string? EntityName { get; set; }
+        [CommandArgument(position: 0, template: "[QueryName]")]
+        public string? QueryName { get; set; }
 
-        [CommandArgument(position: 1, template: "[DBContextName]")]
-        public string? DbContextName { get; set; }
+        [CommandArgument(position: 0, template: "[FeatureName]")]
+        public string? FeatureName { get; set; }
 
         [CommandOption("-p|--project")]
         public string? ProjectName { get; set; }
@@ -24,9 +24,6 @@ public partial class GenerateCrudCliCommand
         [CommandOption("-l|--logging")]
         public bool IsLoggingUsed { get; set; }
 
-        [CommandOption("-t|--transaction")]
-        public bool IsTransactionUsed { get; set; }
-
         [CommandOption("-s|--secured")]
         public bool IsSecuredOperationUsed { get; set; }
 
@@ -35,12 +32,52 @@ public partial class GenerateCrudCliCommand
                 ? $@"{Environment.CurrentDirectory}\src\{ProjectName.ToCamelCase()}"
                 : Environment.CurrentDirectory;
 
+        public void CheckQueryName()
+        {
+            if (QueryName is not null)
+            {
+                AnsiConsole.MarkupLine($"[green]Query[/] name is [blue]{QueryName}[/].");
+                return;
+            }
+
+            QueryName = AnsiConsole.Prompt(
+                new TextPrompt<string>("[blue]What is [green]new query name[/]?[/]")
+            );
+        }
+
+        public void CheckFeatureName()
+        {
+            if (FeatureName is not null)
+            {
+                AnsiConsole.MarkupLine(
+                    $"[green]Feature[/] name that the query will be in is [blue]{FeatureName}[/]."
+                );
+                return;
+            }
+
+            string?[] features = Directory
+                .GetDirectories($"{ProjectPath}/Application/Features")
+                .Select(Path.GetFileName)
+                .ToArray()!;
+            if (features.Length == 0)
+                throw new BusinessException(
+                    $"No feature found in \"{ProjectPath}/Application/Features\"."
+                );
+
+            FeatureName = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[blue]Which is [green]feature name[/] that the command will be in?[/]")
+                    .PageSize(10)
+                    .AddChoices(features)
+            );
+        }
+
         public void CheckProjectName()
         {
             if (ProjectName != null)
             {
                 if (!Directory.Exists(ProjectPath))
-                    throw new BusinessException($"Project not found in \"{ProjectPath}\".");
+                    throw new BusinessException("Project not found");
                 AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
                 return;
             }
@@ -75,58 +112,6 @@ public partial class GenerateCrudCliCommand
             );
         }
 
-        public void CheckEntityArgument()
-        {
-            if (EntityName is not null)
-            {
-                AnsiConsole.MarkupLine($"Selected [green]entity[/] is [blue]{EntityName}[/].");
-                return;
-            }
-
-            string[] entities = Directory
-                .GetFiles(path: @$"{ProjectPath}\Domain\Entities")
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToArray()!;
-            if (entities.Length == 0)
-                throw new BusinessException(
-                    $"No entities found in \"{ProjectPath}\\Domain\\Entities\""
-                );
-
-            EntityName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]entity[/]?")
-                    .PageSize(10)
-                    .AddChoices(entities)
-            );
-        }
-
-        public void CheckDbContextArgument()
-        {
-            if (DbContextName is not null)
-            {
-                AnsiConsole.MarkupLine(
-                    $"Selected [green]DbContext[/] is [blue]{DbContextName}[/]."
-                );
-                return;
-            }
-
-            string[] dbContexts = Directory
-                .GetFiles(path: @$"{ProjectPath}\Persistence\Contexts")
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToArray()!;
-            if (dbContexts.Length == 0)
-                throw new BusinessException(
-                    $"No DbContexts found in \"{ProjectPath}\\Persistence\\Contexts\""
-                );
-
-            DbContextName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]DbContext[/]?")
-                    .PageSize(5)
-                    .AddChoices(dbContexts)
-            );
-        }
-
         public void CheckMechanismOptions()
         {
             List<string> mechanismsToPrompt = new();
@@ -139,10 +124,6 @@ public partial class GenerateCrudCliCommand
                 AnsiConsole.MarkupLine("[green]Logging[/] is used.");
             else
                 mechanismsToPrompt.Add("Logging");
-            if (IsTransactionUsed)
-                AnsiConsole.MarkupLine("[green]Transaction[/] is used.");
-            else
-                mechanismsToPrompt.Add("Transaction");
             if (IsSecuredOperationUsed)
                 AnsiConsole.MarkupLine("[green]SecuredOperation[/] is used.");
             else
@@ -175,9 +156,6 @@ public partial class GenerateCrudCliCommand
                             break;
                         case "Logging":
                             IsLoggingUsed = true;
-                            break;
-                        case "Transaction":
-                            IsTransactionUsed = true;
                             break;
                         case "Secured Operation":
                             IsSecuredOperationUsed = true;

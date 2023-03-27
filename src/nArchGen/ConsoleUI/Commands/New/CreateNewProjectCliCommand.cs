@@ -30,7 +30,7 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
                 status: "Creating...",
                 action: async ctx =>
                 {
-                    await foreach (var result in resultsStream)
+                    await foreach (CreatedNewProjectResponse result in resultsStream)
                     {
                         ctx.Status(result.CurrentStatusMessage);
 

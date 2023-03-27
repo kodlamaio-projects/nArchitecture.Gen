@@ -1,0 +1,1 @@
+public const string {{ query_name }} = "{{ feature_name | string.pascalcase }}.{{ query_name | string.pascalcase }}";

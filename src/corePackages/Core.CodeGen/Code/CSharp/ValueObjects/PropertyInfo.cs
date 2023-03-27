@@ -7,9 +7,7 @@ public class PropertyInfo
     public string AccessModifier { get; set; }
     public string? NameSpace { get; set; }
 
-    public PropertyInfo()
-    {
-    }
+    public PropertyInfo() { }
 
     public PropertyInfo(string name, string type, string accessModifier, string? nameSpace = null)
     {

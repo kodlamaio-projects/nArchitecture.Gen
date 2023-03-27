@@ -3,17 +3,17 @@ using Core.CrossCuttingConcerns.Exceptions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace ConsoleUI.Commands.Generate.Crud;
+namespace ConsoleUI.Commands.Generate.Command;
 
-public partial class GenerateCrudCliCommand
+public partial class GenerateCommandCliCommand
 {
     public class Settings : CommandSettings
     {
-        [CommandArgument(position: 0, template: "[EntityName]")]
-        public string? EntityName { get; set; }
+        [CommandArgument(position: 0, template: "[CommandName]")]
+        public string? CommandName { get; set; }
 
-        [CommandArgument(position: 1, template: "[DBContextName]")]
-        public string? DbContextName { get; set; }
+        [CommandArgument(position: 0, template: "[FeatureName]")]
+        public string? FeatureName { get; set; }
 
         [CommandOption("-p|--project")]
         public string? ProjectName { get; set; }
@@ -30,17 +30,60 @@ public partial class GenerateCrudCliCommand
         [CommandOption("-s|--secured")]
         public bool IsSecuredOperationUsed { get; set; }
 
+        [CommandOption("-e|--endpoint-method")]
+        public string? EndPointMethod { get; set; }
+
         public string ProjectPath =>
             ProjectName != null
                 ? $@"{Environment.CurrentDirectory}\src\{ProjectName.ToCamelCase()}"
                 : Environment.CurrentDirectory;
+
+        public void CheckCommandName()
+        {
+            if (CommandName is not null)
+            {
+                AnsiConsole.MarkupLine($"[green]Command[/] name is [blue]{CommandName}[/].");
+                return;
+            }
+
+            CommandName = AnsiConsole.Prompt(
+                new TextPrompt<string>("[blue]What is [green]new command name[/]?[/]")
+            );
+        }
+
+        public void CheckFeatureName()
+        {
+            if (FeatureName is not null)
+            {
+                AnsiConsole.MarkupLine(
+                    $"[green]Feature[/] name that the command will be in is [blue]{FeatureName}[/]."
+                );
+                return;
+            }
+
+            string?[] features = Directory
+                .GetDirectories($"{ProjectPath}/Application/Features")
+                .Select(Path.GetFileName)
+                .ToArray()!;
+            if (features.Length == 0)
+                throw new BusinessException(
+                    $"No feature found in \"{ProjectPath}/Application/Features\"."
+                );
+
+            FeatureName = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[blue]Which is [green]feature name[/] that the command will be in?[/]")
+                    .PageSize(10)
+                    .AddChoices(features)
+            );
+        }
 
         public void CheckProjectName()
         {
             if (ProjectName != null)
             {
                 if (!Directory.Exists(ProjectPath))
-                    throw new BusinessException($"Project not found in \"{ProjectPath}\".");
+                    throw new BusinessException("Project not found");
                 AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
                 return;
             }
@@ -72,58 +115,6 @@ public partial class GenerateCrudCliCommand
                     .Title("What's your [green]project[/] in [blue]src[/] folder?")
                     .PageSize(10)
                     .AddChoices(projects)
-            );
-        }
-
-        public void CheckEntityArgument()
-        {
-            if (EntityName is not null)
-            {
-                AnsiConsole.MarkupLine($"Selected [green]entity[/] is [blue]{EntityName}[/].");
-                return;
-            }
-
-            string[] entities = Directory
-                .GetFiles(path: @$"{ProjectPath}\Domain\Entities")
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToArray()!;
-            if (entities.Length == 0)
-                throw new BusinessException(
-                    $"No entities found in \"{ProjectPath}\\Domain\\Entities\""
-                );
-
-            EntityName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]entity[/]?")
-                    .PageSize(10)
-                    .AddChoices(entities)
-            );
-        }
-
-        public void CheckDbContextArgument()
-        {
-            if (DbContextName is not null)
-            {
-                AnsiConsole.MarkupLine(
-                    $"Selected [green]DbContext[/] is [blue]{DbContextName}[/]."
-                );
-                return;
-            }
-
-            string[] dbContexts = Directory
-                .GetFiles(path: @$"{ProjectPath}\Persistence\Contexts")
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToArray()!;
-            if (dbContexts.Length == 0)
-                throw new BusinessException(
-                    $"No DbContexts found in \"{ProjectPath}\\Persistence\\Contexts\""
-                );
-
-            DbContextName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]DbContext[/]?")
-                    .PageSize(5)
-                    .AddChoices(dbContexts)
             );
         }
 
@@ -184,6 +175,22 @@ public partial class GenerateCrudCliCommand
                             break;
                     }
                 });
+        }
+
+        public void CheckEndPointMethod()
+        {
+            if (EndPointMethod != null)
+            {
+                AnsiConsole.MarkupLine($"[green]{EndPointMethod}[/] is used in endpoint method.");
+                return;
+            }
+
+            EndPointMethod = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Which is [green]endpoint method[/]?")
+                    .PageSize(5)
+                    .AddChoices(new List<string> { "Post", "Put", "Delete" })
+            );
         }
     }
 }

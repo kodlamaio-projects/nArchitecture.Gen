@@ -1,0 +1,7 @@
+
+[Http{{ end_point_method }}("{{ command_name | string.pascalcase }}")]
+public async Task<IActionResult> {{ command_name | string.pascalcase }}([FromBody] {{ command_name | string.pascalcase }}Command {{ command_name | string.camelcase }}Command)
+{
+    {{ command_name | string.pascalcase }}Response response = await Mediator.Send({{ command_name | string.camelcase }}Command);
+    return Ok(response);
+}

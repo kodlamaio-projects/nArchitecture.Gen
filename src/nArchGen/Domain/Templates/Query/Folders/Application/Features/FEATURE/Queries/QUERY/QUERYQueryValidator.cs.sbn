@@ -1,0 +1,8 @@
+using FluentValidation;
+
+namespace Application.Features.{{ feature_name }}.Queries.{{ query_name | string.pascalcase }};
+
+public class {{ query_name | string.pascalcase }}QueryValidator : AbstractValidator<{{ query_name | string.pascalcase }}Query>
+{
+    public {{ query_name | string.pascalcase }}QueryValidator() { }
+}

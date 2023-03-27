@@ -102,7 +102,7 @@ public static class CSharpCodeInjector
     {
         string[] fileContent = await System.IO.File.ReadAllLinesAsync(filePath);
         const string propertyStartRegex =
-            @"(public|protected|internal|protected internal|private protected|private)?\s+(const|static)?\s*(\w+(<.*>)?)\s+(\w+)\s*\{[^}]+\}";
+            @"(public|protected|internal|protected internal|private protected|private)?\s*(?:const|static)?\s+(\w+(<.*>)?)\s+(\w+)\s*(?:\{.*\}|=.+;)";
 
         int indexToAdd = -1;
         for (int i = 0; i < fileContent.Length; ++i)
@@ -162,7 +162,7 @@ public static class CSharpCodeInjector
     {
         List<string> fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
         string regionStartRegex = @$"^\s*#region\s*{regionName}\s*";
-        const string regionEndRegex = @"^\s*#endregion\s*";
+        const string regionEndRegex = @"^\s*#endregion\s*.*";
 
         bool isInRegion = false;
         int indexToAdd;
@@ -227,5 +227,75 @@ public static class CSharpCodeInjector
 
         fileContent.InsertRange(indexToAdd, usingLinesToAdd);
         await System.IO.File.WriteAllLinesAsync(filePath, fileContent);
+    }
+
+    public static async Task AddMethodToClass(string filePath, string className, string[] codeLines)
+    {
+        List<string> fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        Regex classStartRegex =
+            new(
+                @$"((public|protected|internal|protected internal|private protected|private)\s+)?(static\s+)?\s+\b{className}"
+            );
+        Regex scopeBlockStartRegex = new(@"\{");
+        Regex scopeBlockEndRegex = new(@"\}");
+
+        int classStartIndex = -1;
+        int classEndIndex = -1;
+        for (int i = 0; i < fileContent.Count; ++i)
+        {
+            string fileLine = fileContent[i];
+
+            Match methodStart = classStartRegex.Match(input: fileLine);
+            if (!methodStart.Success)
+                continue;
+
+            classStartIndex = i;
+            if (!scopeBlockStartRegex.Match(fileLine).Success)
+                for (int j = classStartIndex + 1; j < fileContent.Count; ++j)
+                {
+                    if (!scopeBlockStartRegex.Match(fileContent[j]).Success)
+                        continue;
+                    classStartIndex = j;
+                    break;
+                }
+        }
+
+        int curlyBracketCountInMethod = 1;
+        for (int i = classStartIndex + 1; i < fileContent.Count; ++i)
+        {
+            if (scopeBlockStartRegex.Match(input: fileContent[i]).Success)
+                ++curlyBracketCountInMethod;
+            if (scopeBlockEndRegex.Match(input: fileContent[i]).Success)
+                --curlyBracketCountInMethod;
+            if (curlyBracketCountInMethod != 0)
+                continue;
+
+            classEndIndex = i;
+            break;
+        }
+        if (classStartIndex == -1 || classEndIndex == -1)
+            throw new Exception($"{className} not found in \"{filePath}\".");
+
+        ICollection<string> classContent = fileContent
+            .Skip(classStartIndex + 1)
+            .Take(classEndIndex - 1 - classStartIndex)
+            .ToArray();
+
+        int minimumSpaceCountInClass;
+        if (classContent.Count < 2)
+            minimumSpaceCountInClass =
+                fileContent[classStartIndex].TakeWhile(char.IsWhiteSpace).Count() * 2;
+        else
+            minimumSpaceCountInClass = classContent
+                .Where(line => !string.IsNullOrEmpty(line))
+                .Min(line => line.TakeWhile(char.IsWhiteSpace).Count());
+
+        fileContent.InsertRange(
+            classEndIndex,
+            collection: codeLines.Select(
+                line => new string(c: ' ', minimumSpaceCountInClass) + line
+            )
+        );
+        await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
     }
 }

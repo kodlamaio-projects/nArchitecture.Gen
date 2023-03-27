@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ConsoleUI": {
+      "commandName": "Project",
+      "commandLineArgs": "generate command"
+    }
+  }
+}

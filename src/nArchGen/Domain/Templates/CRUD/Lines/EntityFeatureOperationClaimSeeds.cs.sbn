@@ -1,8 +1,10 @@
-#region {{ entity.name | string.pascalcase | string.plural }}OperationClaims
+#region {{ entity.name | string.pascalcase | string.plural }}
 
 seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Admin" });
+
 seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Read" });
 seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Write" });
+
 seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Add" });
 seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Update" });
 seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Delete" });

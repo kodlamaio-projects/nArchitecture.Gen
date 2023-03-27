@@ -1,0 +1,1 @@
+using Application.Features.{{ feature_name }}.Queries.{{ query_name }};

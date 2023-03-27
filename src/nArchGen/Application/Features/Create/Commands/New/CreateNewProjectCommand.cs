@@ -1,8 +1,8 @@
-﻿using Core.CodeGen.Code;
+﻿using System.Runtime.CompilerServices;
+using Core.CodeGen.Code;
 using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
 using MediatR;
-using System.Runtime.CompilerServices;
 
 namespace Application.Features.Create.Commands.New;
 

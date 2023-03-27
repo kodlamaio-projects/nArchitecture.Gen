@@ -1,0 +1,39 @@
+{{ if is_secured_operation_used }}using Application.Features.{{ feature_name | string.plural }}.Constants;
+{{ end }}using Application.Features.{{ feature_name }}.Rules;
+using AutoMapper;{{ if is_secured_operation_used }}
+using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
+using Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
+using Core.Application.Pipelines.Logging;{{ end }}
+using MediatR;{{ if is_secured_operation_used }}
+using static Application.Features.{{ feature_name | string.plural }}.Constants.{{ feature_name | string.plural }}OperationClaims;{{ end }}
+
+namespace Application.Features.{{ feature_name }}.Queries.{{ query_name | string.pascalcase }};
+
+public class {{ query_name | string.pascalcase }}Query : IRequest<{{ query_name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}
+{%{{}%}{{ if is_secured_operation_used }}
+
+    public string[] Roles => new[] { Admin, Read, {{ feature_name | string.pascalcase }}OperationClaims.{{ query_name }} };{{ end }}{{ if is_caching_used }}
+
+    public bool BypassCache { get; }
+    public string CacheKey => $"{{ query_name }}";
+    public string CacheGroupKey => "Get{{ feature_name | string.pascalcase }}";
+    public TimeSpan? SlidingExpiration { get; }{{ end }}
+    
+    public class {{ query_name | string.pascalcase }}QueryHandler : IRequestHandler<{{ query_name | string.pascalcase }}Query, {{ query_name | string.pascalcase }}Response>
+    {
+        private readonly IMapper _mapper;
+        private readonly {{ feature_name | string.pascalcase | string.singular }}BusinessRules _{{ feature_name | string.camelcase | string.singular }}BusinessRules;
+
+        public {{ query_name | string.pascalcase }}QueryHandler(IMapper mapper, {{ feature_name | string.pascalcase | string.singular }}BusinessRules {{ feature_name | string.camelcase | string.singular }}BusinessRules)
+        {
+            _mapper = mapper;
+            _{{ feature_name | string.camelcase | string.singular }}BusinessRules = {{ feature_name | string.camelcase | string.singular }}BusinessRules;
+        }
+
+        public async Task<{{ query_name | string.pascalcase }}Response> Handle({{ query_name | string.pascalcase }}Query request, CancellationToken cancellationToken)
+        {
+            {{ query_name | string.pascalcase }}Response response = _mapper.Map<{{ query_name | string.pascalcase }}Response>(null);
+            return response;
+        }
+    }
+}

@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using Application;
+using ConsoleUI.Commands.Generate.Command;
 using ConsoleUI.Commands.Generate.Crud;
+using ConsoleUI.Commands.Generate.Query;
 using ConsoleUI.Commands.New;
 using Core.ConsoleUI.IoC.SpectreConsoleCli;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,10 +33,19 @@ app.Configure(config =>
         action: config =>
         {
             config.SetDescription("Generate project elements");
+
             config
                 .AddCommand<GenerateCrudCliCommand>(name: "crud")
                 .WithDescription(description: "Generate CRUD operations for new entity")
-                .WithExample(args: new[] { "generate", "crud", "User" });
+                .WithExample(args: new[] { "generate", "crud", "User", "BaseDbContext" });
+            config
+                .AddCommand<GenerateCommandCliCommand>(name: "command")
+                .WithDescription(description: "Generate new command for a feature")
+                .WithExample(args: new[] { "generate", "command", "SyncUser", "Users" });
+            config
+                .AddCommand<GenerateQueryCliCommand>(name: "query")
+                .WithDescription(description: "Generate new query for a feature")
+                .WithExample(args: new[] { "generate", "query", "GetUserByEmail", "Users" });
         }
     );
 

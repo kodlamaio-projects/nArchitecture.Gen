@@ -1,0 +1,8 @@
+using FluentValidation;
+
+namespace Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
+
+public class {{ command_name | string.pascalcase }}CommandValidator : AbstractValidator<{{ command_name | string.pascalcase }}Command>
+{
+    public {{ command_name | string.pascalcase }}CommandValidator() { }
+}

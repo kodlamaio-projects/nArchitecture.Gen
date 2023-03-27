@@ -1,0 +1,5 @@
+using Core.Application.Responses;
+
+namespace Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
+
+public class {{ command_name | string.pascalcase }}Response : IResponse { }

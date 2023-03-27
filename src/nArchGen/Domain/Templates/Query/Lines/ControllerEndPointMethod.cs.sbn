@@ -1,0 +1,7 @@
+
+[HttpGet("{{ query_name | string.pascalcase }}")]
+public async Task<IActionResult> {{ query_name | string.pascalcase }}([FromQuery] {{ query_name | string.pascalcase }}Query {{ query_name | string.camelcase }}Query)
+{
+    {{ query_name | string.pascalcase }}Response response = await Mediator.Send({{ query_name | string.camelcase }}Query);
+    return Ok(response);
+}

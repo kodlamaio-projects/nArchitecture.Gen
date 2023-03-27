@@ -1,6 +1,6 @@
-﻿using Core.CodeGen.Code.CSharp.ValueObjects;
+﻿using System.Text.RegularExpressions;
+using Core.CodeGen.Code.CSharp.ValueObjects;
 using Core.CodeGen.File;
-using System.Text.RegularExpressions;
 
 namespace Core.CodeGen.Code.CSharp;
 
@@ -58,7 +58,7 @@ public static class CSharpCodeReader
         Regex builtInTypeRegex =
             new(
                 pattern: @"^(bool|byte|sbyte|char|decimal|double|float|int|uint|long|ulong|object|short|ushort|string)$",
-                options: RegexOptions.IgnoreCase
+                RegexOptions.IgnoreCase
             );
 
         MatchCollection matches = propertyRegex.Matches(fileContent);
@@ -67,7 +67,7 @@ public static class CSharpCodeReader
         {
             string accessModifier = match.Groups[1].Value.Trim();
             string type = match.Groups[2].Value;
-            string typeName = type.Replace("?", string.Empty);
+            string typeName = type.Replace(oldValue: "?", string.Empty);
             string name = match.Groups[3].Value;
             string? nameSpace = null;
             if (!builtInTypeRegex.IsMatch(typeName))
@@ -83,7 +83,7 @@ public static class CSharpCodeReader
                 foreach (string potentialPropertyTypeFilePath in potentialPropertyTypeFilePaths)
                 {
                     string potentialPropertyNameSpace =
-                        $"{potentialPropertyTypeFilePath.Replace(projectPath, string.Empty).Replace('\\', '.').Replace($".{typeName}.cs", string.Empty).Substring(1)}";
+                        $"{potentialPropertyTypeFilePath.Replace(projectPath, string.Empty).Replace(oldChar: '\\', newChar: '.').Replace(oldValue: $".{typeName}.cs", string.Empty).Substring(1)}";
                     if (!usingNameSpacesInFile.Contains(potentialPropertyNameSpace))
                         continue;
                     nameSpace = potentialPropertyNameSpace;
