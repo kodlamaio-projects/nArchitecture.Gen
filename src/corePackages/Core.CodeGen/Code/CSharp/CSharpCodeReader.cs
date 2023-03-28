@@ -82,8 +82,16 @@ public static class CSharpCodeReader
                 );
                 foreach (string potentialPropertyTypeFilePath in potentialPropertyTypeFilePaths)
                 {
-                    string potentialPropertyNameSpace =
-                        $"{potentialPropertyTypeFilePath.Replace(projectPath, string.Empty).Replace(oldChar: '\\', newChar: '.').Replace(oldValue: $".{typeName}.cs", string.Empty).Substring(1)}";
+                    string potentialPropertyNameSpace = string.Join(
+                        separator: '.',
+                        values: potentialPropertyTypeFilePath
+                                .Replace(projectPath, string.Empty)
+                                .Replace(oldChar: '\\', newChar: '.')
+                                .Replace(oldValue: $".{typeName}.cs", string.Empty)
+                                .Substring(1)
+                                .Split('.')
+                                .Select(part => char.ToUpper(part[0]) + part[1..])
+                    );
                     if (!usingNameSpacesInFile.Contains(potentialPropertyNameSpace))
                         continue;
                     nameSpace = potentialPropertyNameSpace;
