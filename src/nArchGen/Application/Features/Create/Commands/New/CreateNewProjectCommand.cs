@@ -24,7 +24,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             response.CurrentStatusMessage = "Cloning starter project and core packages...";
             yield return response;
             response.OutputMessage = null;
-            await cloneCorePackagesAndStarterProject();
+            await cloneCorePackagesAndStarterProject(request.ProjectName);
             response.LastOperationMessage =
                 "Starter project has been cloned from 'https://github.com/kodlamaio-projects/nArchitecture'.";
 
@@ -33,15 +33,17 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             await renameProject(request.ProjectName);
             response.LastOperationMessage =
                 $"Project has been renamed with {request.ProjectName.ToPascalCase()}.";
-            DirectoryHelper.DeleteDirectory($"{Environment.CurrentDirectory}/.git");
+            DirectoryHelper.DeleteDirectory(
+                $"{Environment.CurrentDirectory}/{request.ProjectName}/.git"
+            );
             ICollection<string> newFiles = DirectoryHelper.GetFilesInDirectoryTree(
-                Environment.CurrentDirectory,
+                root: $"{Environment.CurrentDirectory}/{request.ProjectName}",
                 searchPattern: "*"
             );
 
             response.CurrentStatusMessage = "Initializing git repository with submodules...";
             yield return response;
-            await initializeGitRepository();
+            await initializeGitRepository(request.ProjectName);
             response.LastOperationMessage = "Git repository has been initialized.";
 
             response.CurrentStatusMessage = "Completed.";
@@ -53,15 +55,17 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             yield return response;
         }
 
-        private async Task cloneCorePackagesAndStarterProject()
+        private async Task cloneCorePackagesAndStarterProject(string projectName)
         {
             await GitCommandHelper.RunAsync(
-                "clone https://github.com/kodlamaio-projects/nArchitecture.git ."
+                $"clone https://github.com/kodlamaio-projects/nArchitecture.git ./{projectName}"
             );
         }
 
         private async Task renameProject(string projectName)
         {
+            Directory.SetCurrentDirectory($"./{projectName}");
+
             await replaceFileContentWithProjectName(
                 path: $"{Environment.CurrentDirectory}/NArchitecture.sln",
                 search: "NArchitecture",
@@ -102,6 +106,8 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 projectName: projectName.ToCamelCase()
             );
 
+            Directory.SetCurrentDirectory("../");
+
             async Task replaceFileContentWithProjectName(
                 string path,
                 string search,
@@ -121,17 +127,19 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             }
         }
 
-        private async Task initializeGitRepository()
+        private async Task initializeGitRepository(string projectName)
         {
-            await GitCommandHelper.RunAsync("init");
-            await GitCommandHelper.RunAsync("branch -m master main");
+            Directory.SetCurrentDirectory($"./{projectName}");
+            await GitCommandHelper.RunAsync($"init");
+            await GitCommandHelper.RunAsync($"branch -m master main");
             Directory.Delete($"{Environment.CurrentDirectory}/src/corePackages/");
             await GitCommandHelper.RunAsync(
-                "submodule add https://github.com/kodlamaio-projects/nArchitecture.Core src/corePackages"
+                "submodule add https://github.com/kodlamaio-projects/nArchitecture.Core ./src/corePackages"
             );
             await GitCommandHelper.CommitChangesAsync(
                 "chore: initial commit from nArchitecture.Gen"
             );
+            Directory.SetCurrentDirectory("../");
         }
     }
 }
