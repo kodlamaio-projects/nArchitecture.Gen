@@ -24,12 +24,12 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
         settings.CheckDbContextArgument();
         settings.CheckMechanismOptions();
 
+        string entityPath = @$"{settings.ProjectPath}\Domain\Entities\{settings.EntityName}.cs";
         ICollection<PropertyInfo> entityProperties =
-            await CSharpCodeReader.ReadClassPropertiesAsync(
-                filePath: @$"{settings.ProjectPath}\Domain\Entities\{settings.EntityName}.cs",
-                settings.ProjectPath
-            );
-
+            await CSharpCodeReader.ReadClassPropertiesAsync(entityPath, settings.ProjectPath);
+        string entityIdType = (
+            await CSharpCodeReader.ReadBaseClassGenericArgumentsAsync(entityPath)
+        ).First();
         GenerateCrudCommand generateCrudCommand =
             new()
             {
@@ -38,6 +38,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                     Entity = new Entity
                     {
                         Name = settings.EntityName!,
+                        IdType = entityIdType,
                         Properties = entityProperties
                             .Where(property => property.AccessModifier == "public")
                             .ToArray()

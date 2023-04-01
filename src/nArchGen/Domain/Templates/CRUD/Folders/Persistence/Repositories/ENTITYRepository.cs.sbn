@@ -5,7 +5,7 @@ using Persistence.Contexts;
 
 namespace Persistence.Repositories;
 
-public class {{ entity.name | string.pascalcase }}Repository : EfRepositoryBase<{{ entity.name | string.pascalcase }}, {{ db_context_name }}>, I{{ entity.name | string.pascalcase }}Repository
+public class {{ entity.name | string.pascalcase }}Repository : EfRepositoryBase<{{ entity.name | string.pascalcase }}, {{ entity.id_type }}, {{ db_context_name }}>, I{{ entity.name | string.pascalcase }}Repository
 {
     public {{ entity.name | string.pascalcase }}Repository({{ db_context_name }} context) : base(context)
     {

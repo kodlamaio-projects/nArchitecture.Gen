@@ -5,6 +5,6 @@ namespace Application.Features.{{ entity.name | string.pascalcase | string.plura
 
 public class GetById{{ entity.name | string.pascalcase }}Response : IResponse
 {
-    public int Id { get; set; }{{ for propertyItem in entity.properties }}
+    public {{ entity.id_type }} Id { get; set; }{{ for propertyItem in entity.properties }}
     public {{ propertyItem.type }} {{ propertyItem.name | string.pascalcase }} { get; set; }{{ end }}
 }
