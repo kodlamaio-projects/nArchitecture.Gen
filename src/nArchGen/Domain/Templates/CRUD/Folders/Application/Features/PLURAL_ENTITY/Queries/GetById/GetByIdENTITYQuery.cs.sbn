@@ -11,7 +11,7 @@ namespace Application.Features.{{ entity.name | string.pascalcase | string.plura
 
 public class GetById{{ entity.name | string.pascalcase }}Query : IRequest<GetById{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}
 {
-    public int Id { get; set; }{{ if is_secured_operation_used }}
+    public {{ entity.id_type }} Id { get; set; }{{ if is_secured_operation_used }}
 
     public string[] Roles => new[] { Admin, Read };{{ end }}
 

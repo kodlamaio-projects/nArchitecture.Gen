@@ -4,5 +4,5 @@ namespace Application.Features.{{ entity.name | string.pascalcase | string.plura
 
 public class Deleted{{ entity.name | string.pascalcase }}Response : IResponse
 {
-    public int Id { get; set; }
+    public {{ entity.id_type }} Id { get; set; }
 }
