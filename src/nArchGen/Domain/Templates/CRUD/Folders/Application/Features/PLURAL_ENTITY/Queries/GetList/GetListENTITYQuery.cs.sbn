@@ -34,11 +34,13 @@ public class GetList{{ entity.name | string.pascalcase }}Query : IRequest<GetLis
             _mapper = mapper;
         }
 
-        public async Task<GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>> Handle(GetList{{ entity.name | string.pascalcase }}Query request,
-                                                                   CancellationToken cancellationToken)
+        public async Task<GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>> Handle(GetList{{ entity.name | string.pascalcase }}Query request, CancellationToken cancellationToken)
         {
-            IPaginate<{{ entity.name | string.pascalcase }}> {{ entity.name | string.camelcase | string.plural }} = await _{{ entity.name | string.camelcase }}Repository.GetListAsync(index: request.PageRequest.Page,
-                                                                          size: request.PageRequest.PageSize);
+            IPaginate<{{ entity.name | string.pascalcase }}> {{ entity.name | string.camelcase | string.plural }} = await _{{ entity.name | string.camelcase }}Repository.GetListAsync(
+                index: request.PageRequest.Page,
+                size: request.PageRequest.PageSize, 
+                cancellationToken: cancellationToken
+            );
 
             GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto> response = _mapper.Map<GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>({{ entity.name | string.camelcase | string.plural }});
             return response;
