@@ -39,11 +39,11 @@ public class Create{{ entity.name | string.pascalcase }}Command : IRequest<Creat
 
         public async Task<Created{{ entity.name | string.pascalcase }}Response> Handle(Create{{ entity.name | string.pascalcase }}Command request, CancellationToken cancellationToken)
         {
-            {{ entity.name | string.pascalcase }} mapped{{ entity.name | string.pascalcase }} = _mapper.Map<{{ entity.name | string.pascalcase }}>(request);
+            {{ entity.name | string.pascalcase }} {{ entity.name | string.camelcase }} = _mapper.Map<{{ entity.name | string.pascalcase }}>(request);
 
-            _{{ entity.name | string.camelcase }}Repository.Add(mapped{{ entity.name | string.pascalcase }});
+            await _{{ entity.name | string.camelcase }}Repository.AddAsync({{ entity.name | string.camelcase }});
 
-            Created{{ entity.name | string.pascalcase }}Response response = _mapper.Map<Created{{ entity.name | string.pascalcase }}Response>(mapped{{ entity.name | string.pascalcase }});
+            Created{{ entity.name | string.pascalcase }}Response response = _mapper.Map<Created{{ entity.name | string.pascalcase }}Response>({{ entity.name | string.camelcase }});
             return response;
         }
     }
