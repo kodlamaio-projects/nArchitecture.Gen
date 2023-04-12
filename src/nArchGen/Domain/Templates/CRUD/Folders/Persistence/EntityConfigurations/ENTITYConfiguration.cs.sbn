@@ -8,9 +8,14 @@ public class {{ entity.name | string.pascalcase }}Configuration : IEntityTypeCon
 {
     public void Configure(EntityTypeBuilder<{{ entity.name | string.pascalcase }}> builder)
     {
-        builder.ToTable("{{ entity.name | string.pascalcase | string.plural }}");
+        builder.ToTable("{{ entity.name | string.pascalcase | string.plural }}").HasKey({{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id);
 
-        builder.Property(p => p.Id).HasColumnName("Id");{{ for propertyItem in entity.properties }}
-        builder.Property(p => p.{{ propertyItem.name }}).HasColumnName("{{ propertyItem.name }}");{{ end }}
+        builder.Property({{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id).HasColumnName("Id").IsRequired();{{ for propertyItem in entity.properties }}
+        builder.Property({{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.{{ propertyItem.name }}).HasColumnName("{{ propertyItem.name }}");{{ end }}
+        builder.Property({{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.CreatedDate).HasColumnName("CreatedDate").IsRequired();
+        builder.Property({{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.UpdatedDate).HasColumnName("UpdatedDate");
+        builder.Property({{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.DeletedDate).HasColumnName("DeletedDate");
+
+        builder.HasQueryFilter({{ entity.name | string.abbreviation }} => !{{ entity.name | string.abbreviation }}.DeletedDate.HasValue);
     }
 }
