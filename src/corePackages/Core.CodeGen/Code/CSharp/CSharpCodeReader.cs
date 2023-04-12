@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
 using Core.CodeGen.Code.CSharp.ValueObjects;
 using Core.CodeGen.File;
 
@@ -85,12 +86,16 @@ public static class CSharpCodeReader
                     string potentialPropertyNameSpace = string.Join(
                         separator: '.',
                         values: potentialPropertyTypeFilePath
-                                .Replace(projectPath, string.Empty)
-                                .Replace(oldChar: '\\', newChar: '.')
-                                .Replace(oldValue: $".{typeName}.cs", string.Empty)
-                                .Substring(1)
-                                .Split('.')
-                                .Select(part => char.ToUpper(part[0]) + part[1..])
+                            .Replace(projectPath, string.Empty)
+                            .Replace(oldChar: '\\', newChar: '.')
+                            .Replace(oldValue: $".{typeName}.cs", string.Empty)
+                            .Substring(1)
+                            .Split('.')
+                            .Select(
+                                part =>
+                                    char.ToUpper(part[0], CultureInfo.GetCultureInfo("en-EN"))
+                                    + part[1..]
+                            )
                     );
                     if (!usingNameSpacesInFile.Contains(potentialPropertyNameSpace))
                         continue;

@@ -91,9 +91,7 @@ public static class CSharpCodeInjector
 
         fileContent.InsertRange(
             methodEndIndex,
-            collection: codeLines.Select(
-                line => new string(c: ' ', minimumSpaceCountInMethod) + line
-            )
+            collection: codeLines.Select(line => new string(' ', minimumSpaceCountInMethod) + line)
         );
         await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
     }
@@ -146,9 +144,7 @@ public static class CSharpCodeInjector
         List<string> updatedFileContent = new(fileContent);
         updatedFileContent.InsertRange(
             index: indexToAdd + 1,
-            collection: codeLines.Select(
-                line => new string(c: ' ', propertySpaceCountInClass) + line
-            )
+            collection: codeLines.Select(line => new string(' ', propertySpaceCountInClass) + line)
         );
 
         await System.IO.File.WriteAllLinesAsync(filePath, contents: updatedFileContent.ToArray());
@@ -198,7 +194,7 @@ public static class CSharpCodeInjector
             fileContent.InsertRange(
                 index: indexToAdd - 1,
                 collection: linesToAdd.Select(
-                    line => new string(c: ' ', minimumSpaceCountInRegion) + line
+                    line => new string(' ', minimumSpaceCountInRegion) + line
                 )
             );
             await System.IO.File.WriteAllLinesAsync(filePath, fileContent);
@@ -292,9 +288,7 @@ public static class CSharpCodeInjector
 
         fileContent.InsertRange(
             classEndIndex,
-            collection: codeLines.Select(
-                line => new string(c: ' ', minimumSpaceCountInClass) + line
-            )
+            collection: codeLines.Select(line => new string(' ', minimumSpaceCountInClass) + line)
         );
         await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
     }
