@@ -40,11 +40,11 @@ public class Update{{ entity.name | string.pascalcase }}Command : IRequest<Updat
 
         public async Task<Updated{{ entity.name | string.pascalcase }}Response> Handle(Update{{ entity.name | string.pascalcase }}Command request, CancellationToken cancellationToken)
         {
-            {{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }} = await _{{ entity.name | string.camelcase }}Repository.GetAsync({{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id == request.Id, cancellationToken: cancellationToken);
+            {{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }} = await _{{ entity.name | string.camelcase }}Repository.GetAsync(predicate: {{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id == request.Id, cancellationToken: cancellationToken);
             await _{{ entity.name | string.camelcase }}BusinessRules.{{ entity.name | string.pascalcase }}ShouldExistWhenSelected({{ entity.name | string.camelcase }});
             {{ entity.name | string.camelcase }} = _mapper.Map(request, {{ entity.name | string.camelcase }});
 
-            await _{{ entity.name | string.camelcase }}Repository.UpdateAsync({{ entity.name | string.camelcase }});
+            await _{{ entity.name | string.camelcase }}Repository.UpdateAsync({{ entity.name | string.camelcase }}!);
 
             Updated{{ entity.name | string.pascalcase }}Response response = _mapper.Map<Updated{{ entity.name | string.pascalcase }}Response>({{ entity.name | string.camelcase }});
             return response;

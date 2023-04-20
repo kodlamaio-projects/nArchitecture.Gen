@@ -39,7 +39,7 @@ public class Delete{{ entity.name | string.pascalcase }}Command : IRequest<Delet
 
         public async Task<Deleted{{ entity.name | string.pascalcase }}Response> Handle(Delete{{ entity.name | string.pascalcase }}Command request, CancellationToken cancellationToken)
         {
-            {{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }} = await _{{ entity.name | string.camelcase }}Repository.GetAsync({{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id == request.Id, cancellationToken: cancellationToken);
+            {{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }} = await _{{ entity.name | string.camelcase }}Repository.GetAsync(predicate: {{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id == request.Id, cancellationToken: cancellationToken);
             await _{{ entity.name | string.camelcase }}BusinessRules.{{ entity.name | string.pascalcase }}ShouldExistWhenSelected({{ entity.name | string.camelcase }});
 
             await _{{ entity.name | string.camelcase }}Repository.DeleteAsync({{ entity.name | string.camelcase }}!);
