@@ -1,0 +1,30 @@
+﻿using Core.Persistence.Paging;
+using Domain.Entities;
+using Microsoft.EntityFrameworkCore.Query;
+using System.Linq.Expressions;
+
+namespace Application.Services.{{ entity.name | string.pascalcase | string.plural }};
+
+public interface I{{ entity.name | string.pascalcase | string.plural }}Service
+{
+    Task<{{ entity.name | string.pascalcase }}?> GetAsync(
+        Expression<Func<{{ entity.name | string.pascalcase }}, bool>> predicate,
+        Func<IQueryable<{{ entity.name | string.pascalcase }}>, IIncludableQueryable<{{ entity.name | string.pascalcase }}, object>>? include = null,
+        bool withDeleted = false,
+        bool enableTracking = true,
+        CancellationToken cancellationToken = default
+    );
+    Task<IPaginate<{{ entity.name | string.pascalcase }}>?> GetListAsync(
+        Expression<Func<{{ entity.name | string.pascalcase }}, bool>>? predicate = null,
+        Func<IQueryable<{{ entity.name | string.pascalcase }}>, IOrderedQueryable<{{ entity.name | string.pascalcase }}>>? orderBy = null,
+        Func<IQueryable<{{ entity.name | string.pascalcase }}>, IIncludableQueryable<{{ entity.name | string.pascalcase }}, object>>? include = null,
+        int index = 0,
+        int size = 10,
+        bool withDeleted = false,
+        bool enableTracking = true,
+        CancellationToken cancellationToken = default
+    );
+    Task<{{ entity.name | string.pascalcase }}> AddAsync({{ entity.name | string.pascalcase }} {{ entity.name | string.camelcase }});
+    Task<{{ entity.name | string.pascalcase }}> UpdateAsync({{ entity.name | string.pascalcase }} {{ entity.name | string.camelcase }});
+    Task<{{ entity.name | string.pascalcase }}> DeleteAsync({{ entity.name | string.pascalcase }} {{ entity.name | string.camelcase }}, bool permanent = false);
+}

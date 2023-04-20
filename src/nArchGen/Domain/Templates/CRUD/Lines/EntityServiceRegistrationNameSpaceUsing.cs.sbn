@@ -1,0 +1,1 @@
+using Application.Services.{{ entity.name | string.pascalcase | string.plural }};

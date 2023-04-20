@@ -1,0 +1,77 @@
+﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
+using Application.Services.Repositories;
+using Core.Persistence.Paging;
+using Domain.Entities;
+using Microsoft.EntityFrameworkCore.Query;
+using System.Linq.Expressions;
+
+namespace Application.Services.{{ entity.name | string.pascalcase | string.plural }};
+
+public class {{ entity.name | string.pascalcase | string.plural }}Manager : I{{ entity.name | string.pascalcase | string.plural }}Service
+{
+    private readonly I{{ entity.name | string.camelcase | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
+    private readonly {{ entity.name | string.camelcase | string.pascalcase }}BusinessRules _{{ entity.name | string.camelcase }}BusinessRules;
+
+    public {{ entity.name | string.pascalcase | string.plural }}Manager(I{{ entity.name | string.camelcase | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository, {{ entity.name | string.camelcase | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
+    {
+        _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
+        _{{ entity.name | string.camelcase }}BusinessRules = {{ entity.name | string.camelcase }}BusinessRules;
+    }
+
+    public async Task<{{ entity.name | string.camelcase | string.pascalcase }}?> GetAsync(
+        Expression<Func<{{ entity.name | string.camelcase | string.pascalcase }}, bool>> predicate,
+        Func<IQueryable<{{ entity.name | string.camelcase | string.pascalcase }}>, IIncludableQueryable<{{ entity.name | string.camelcase | string.pascalcase }}, object>>? include = null,
+        bool withDeleted = false,
+        bool enableTracking = true,
+        CancellationToken cancellationToken = default
+    )
+    {
+        {{ entity.name | string.camelcase | string.pascalcase }}? {{ entity.name | string.camelcase }} = await _{{ entity.name | string.camelcase }}Repository.GetAsync(predicate, include, withDeleted, enableTracking, cancellationToken);
+        return {{ entity.name | string.camelcase }};
+    }
+
+    public async Task<IPaginate<{{ entity.name | string.camelcase | string.pascalcase }}>?> GetListAsync(
+        Expression<Func<{{ entity.name | string.camelcase | string.pascalcase }}, bool>>? predicate = null,
+        Func<IQueryable<{{ entity.name | string.camelcase | string.pascalcase }}>, IOrderedQueryable<{{ entity.name | string.camelcase | string.pascalcase }}>>? orderBy = null,
+        Func<IQueryable<{{ entity.name | string.camelcase | string.pascalcase }}>, IIncludableQueryable<{{ entity.name | string.camelcase | string.pascalcase }}, object>>? include = null,
+        int index = 0,
+        int size = 10,
+        bool withDeleted = false,
+        bool enableTracking = true,
+        CancellationToken cancellationToken = default
+    )
+    {
+        IPaginate<{{ entity.name | string.camelcase | string.pascalcase }}> {{ entity.name | string.camelcase }}List = await _{{ entity.name | string.camelcase }}Repository.GetListAsync(
+            predicate,
+            orderBy,
+            include,
+            index,
+            size,
+            withDeleted,
+            enableTracking,
+            cancellationToken
+        );
+        return {{ entity.name | string.camelcase }}List;
+    }
+
+    public async Task<{{ entity.name | string.camelcase | string.pascalcase }}> AddAsync({{ entity.name | string.camelcase | string.pascalcase }} {{ entity.name | string.camelcase }})
+    {
+        {{ entity.name | string.camelcase | string.pascalcase }} added{{ entity.name | string.camelcase | string.pascalcase }} = await _{{ entity.name | string.camelcase }}Repository.AddAsync({{ entity.name | string.camelcase }});
+
+        return added{{ entity.name | string.camelcase | string.pascalcase }};
+    }
+
+    public async Task<{{ entity.name | string.camelcase | string.pascalcase }}> UpdateAsync({{ entity.name | string.camelcase | string.pascalcase }} {{ entity.name | string.camelcase }})
+    {
+        {{ entity.name | string.camelcase | string.pascalcase }} updated{{ entity.name | string.camelcase | string.pascalcase }} = await _{{ entity.name | string.camelcase }}Repository.UpdateAsync({{ entity.name | string.camelcase }});
+
+        return updated{{ entity.name | string.camelcase | string.pascalcase }};
+    }
+
+    public async Task<{{ entity.name | string.camelcase | string.pascalcase }}> DeleteAsync({{ entity.name | string.camelcase | string.pascalcase }} {{ entity.name | string.camelcase }}, bool permanent = false)
+    {
+        {{ entity.name | string.camelcase | string.pascalcase }} deleted{{ entity.name | string.camelcase | string.pascalcase }} = await _{{ entity.name | string.camelcase }}Repository.DeleteAsync({{ entity.name | string.camelcase }});
+
+        return deleted{{ entity.name | string.camelcase | string.pascalcase }};
+    }
+}

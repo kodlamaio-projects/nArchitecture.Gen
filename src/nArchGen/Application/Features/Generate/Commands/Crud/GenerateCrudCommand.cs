@@ -1,11 +1,11 @@
-﻿using System.Runtime.CompilerServices;
-using Application.Features.Generate.Rules;
+﻿using Application.Features.Generate.Rules;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.File;
 using Core.CodeGen.TemplateEngine;
 using Domain.Constants;
 using Domain.ValueObjects;
 using MediatR;
+using System.Runtime.CompilerServices;
 
 namespace Application.Features.Generate.Commands.Crud;
 
@@ -204,7 +204,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             CrudTemplateData crudTemplateData
         )
         {
-            List<string> templateFilePaths = DirectoryHelper
+            var templateFilePaths = DirectoryHelper
                 .GetFilesInDirectoryTree(
                     templateDir,
                     searchPattern: $"*.{_templateEngine.TemplateExtension}"
@@ -231,6 +231,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             CrudTemplateData crudTemplateData
         )
         {
+            #region Persistence
             string persistenceServiceRegistrationFilePath =
                 @$"{projectPath}\Persistence\PersistenceServiceRegistration.cs";
             string persistenceServiceRegistrationTemplateCodeLine = await File.ReadAllTextAsync(
@@ -241,13 +242,52 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                     persistenceServiceRegistrationTemplateCodeLine,
                     crudTemplateData
                 );
-
             await CSharpCodeInjector.AddCodeLinesToMethodAsync(
                 persistenceServiceRegistrationFilePath,
                 methodName: "AddPersistenceServices",
                 codeLines: new[] { persistenceServiceRegistrationRenderedCodeLine }
             );
-            return new[] { persistenceServiceRegistrationFilePath };
+            #endregion
+
+            #region Application
+            string applicationServiceRegistrationNameSpaceUsingFilePath =
+                @$"{projectPath}\Application\ApplicationServiceRegistration.cs";
+            string applicationServiceRegistrationNameSpaceUsingTemplateCodeLine =
+                await File.ReadAllTextAsync(
+                    @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityServiceRegistrationNameSpaceUsing.cs.sbn"
+                );
+            string applicationServiceRegistrationNameSpaceUsingRenderedCodeLine =
+                await _templateEngine.RenderAsync(
+                    applicationServiceRegistrationNameSpaceUsingTemplateCodeLine,
+                    crudTemplateData
+                );
+            await CSharpCodeInjector.AddUsingToFile(
+                applicationServiceRegistrationNameSpaceUsingFilePath,
+                usingLines: new[] { applicationServiceRegistrationNameSpaceUsingRenderedCodeLine }
+            );
+
+            string applicationServiceRegistrationFilePath =
+                @$"{projectPath}\Application\ApplicationServiceRegistration.cs";
+            string applicationServiceRegistrationTemplateCodeLine = await File.ReadAllTextAsync(
+                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityServiceRegistration.cs.sbn"
+            );
+            string applicationServiceRegistrationRenderedCodeLine =
+                await _templateEngine.RenderAsync(
+                    applicationServiceRegistrationTemplateCodeLine,
+                    crudTemplateData
+                );
+            await CSharpCodeInjector.AddCodeLinesToMethodAsync(
+                applicationServiceRegistrationFilePath,
+                methodName: "AddApplicationServices",
+                codeLines: new[] { applicationServiceRegistrationRenderedCodeLine }
+            );
+            #endregion
+
+            return new[]
+            {
+                persistenceServiceRegistrationFilePath,
+                applicationServiceRegistrationFilePath
+            };
         }
     }
 }
