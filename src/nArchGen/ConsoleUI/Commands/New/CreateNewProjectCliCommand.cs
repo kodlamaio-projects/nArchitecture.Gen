@@ -17,8 +17,13 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
         settings.CheckProjectNameArgument();
+        settings.CheckIsThereSecurityMechanismArgument();
 
-        CreateNewProjectCommand request = new() { ProjectName = settings.ProjectName! };
+        CreateNewProjectCommand request =
+            new(
+                projectName: settings.ProjectName!,
+                isThereSecurityMechanism: settings.IsThereSecurityMechanism
+            );
 
         IAsyncEnumerable<CreatedNewProjectResponse> resultsStream = _mediator.CreateStream(request);
 
