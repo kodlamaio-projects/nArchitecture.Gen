@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.CodeGen", "src\corePac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Application", "src\corePackages\Core.Application\Core.Application.csproj", "{ABAE025D-8DB7-4BEC-9B84-6E279246C6EA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.CrossCuttingConcerns", "src\corePackages\Core.CrossCuttingConcers\Core.CrossCuttingConcerns.csproj", "{DAA1FFAA-74C7-48AE-A372-C8136F8E99B2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.CrossCuttingConcerns", "src\corePackages\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj", "{DAA1FFAA-74C7-48AE-A372-C8136F8E99B2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.ConsoleUI", "src\corePackages\Core.ConsoleUI\Core.ConsoleUI.csproj", "{92C3F668-A726-49AA-8652-B479588BD68F}"
 EndProject
