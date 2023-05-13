@@ -62,9 +62,12 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
 
             response.CurrentStatusMessage = "Adding feature operation claims as seed...";
             yield return response;
-            updatedFilePaths.Add(
-                await injectFeatureOperationClaims(request.ProjectPath, request.CrudTemplateData)
+            string? addedOperationClaim = await injectFeatureOperationClaims(
+                request.ProjectPath,
+                request.CrudTemplateData
             );
+            if (addedOperationClaim != null)
+                updatedFilePaths.Add(addedOperationClaim);
             response.LastOperationMessage = "Feature operation claims have been added.";
 
             response.CurrentStatusMessage = "Generating Application layer codes...";
@@ -140,13 +143,16 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
         }
 
-        private async Task<string> injectFeatureOperationClaims(
+        private async Task<string?> injectFeatureOperationClaims(
             string projectPath,
             CrudTemplateData crudTemplateData
         )
         {
             string operationClaimConfigurationFilePath =
                 @$"{projectPath}\Persistence\EntityConfigurations\OperationClaimConfiguration.cs";
+            if (!File.Exists(operationClaimConfigurationFilePath))
+                return null;
+
             string[] seedTemplateCodeLines = await File.ReadAllLinesAsync(
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityFeatureOperationClaimSeeds.cs.sbn"
             );
@@ -242,6 +248,14 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                     persistenceServiceRegistrationTemplateCodeLine,
                     crudTemplateData
                 );
+            await CSharpCodeInjector.AddUsingToFile(
+                persistenceServiceRegistrationFilePath,
+                usingLines: new[]
+                {
+                    "using Application.Services.Repositories;",
+                    "using Persistence.Repositories;"
+                }
+            );
             await CSharpCodeInjector.AddCodeLinesToMethodAsync(
                 persistenceServiceRegistrationFilePath,
                 methodName: "AddPersistenceServices",

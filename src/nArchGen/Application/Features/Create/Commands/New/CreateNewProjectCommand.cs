@@ -164,6 +164,12 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
 
             string[] filesToDelete = new[]
             {
+                $"{projectSourcePath}/Application/Services/Repositories/IEmailAuthenticatorRepository.cs",
+                $"{projectSourcePath}/Application/Services/Repositories/IOperationClaimRepository.cs",
+                $"{projectSourcePath}/Application/Services/Repositories/IOtpAuthenticatorRepository.cs",
+                $"{projectSourcePath}/Application/Services/Repositories/IRefreshTokenRepository.cs",
+                $"{projectSourcePath}/Application/Services/Repositories/IUserOperationClaimRepository.cs",
+                $"{projectSourcePath}/Application/Services/Repositories/IUserRepository.cs",
                 $"{projectSourcePath}/Persistence/EntityConfigurations/EmailAuthenticatorConfiguration.cs",
                 $"{projectSourcePath}/Persistence/EntityConfigurations/OperationClaimConfiguration.cs",
                 $"{projectSourcePath}/Persistence/EntityConfigurations/OtpAuthenticatorConfiguration.cs",
@@ -225,6 +231,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                         new[]
                         {
                             "using Persistence.Repositories;",
+                            "using Application.Services.Repositories;",
                             "services.AddScoped<IEmailAuthenticatorRepository, EmailAuthenticatorRepository>()",
                             "services.AddScoped<IOperationClaimRepository, OperationClaimRepository>()",
                             "services.AddScoped<IOtpAuthenticatorRepository, OtpAuthenticatorRepository>();",

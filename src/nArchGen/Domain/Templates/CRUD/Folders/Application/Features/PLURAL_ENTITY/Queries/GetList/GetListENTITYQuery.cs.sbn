@@ -19,7 +19,7 @@ public class GetList{{ entity.name | string.pascalcase }}Query : IRequest<GetLis
     public string[] Roles => new[] { Admin, Read };{{ end }}{{ if is_caching_used }}
 
     public bool BypassCache { get; }
-    public string CacheKey => $"GetList{{ entity.name | string.pascalcase | string.plural }}({PageRequest.Page},{PageRequest.PageSize})";
+    public string CacheKey => $"GetList{{ entity.name | string.pascalcase | string.plural }}({PageRequest.PageIndex},{PageRequest.PageSize})";
     public string CacheGroupKey => "Get{{ entity.name | string.pascalcase | string.plural }}";
     public TimeSpan? SlidingExpiration { get; }{{ end }}
 
@@ -37,7 +37,7 @@ public class GetList{{ entity.name | string.pascalcase }}Query : IRequest<GetLis
         public async Task<GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>> Handle(GetList{{ entity.name | string.pascalcase }}Query request, CancellationToken cancellationToken)
         {
             IPaginate<{{ entity.name | string.pascalcase }}> {{ entity.name | string.camelcase | string.plural }} = await _{{ entity.name | string.camelcase }}Repository.GetListAsync(
-                index: request.PageRequest.Page,
+                index: request.PageRequest.PageIndex,
                 size: request.PageRequest.PageSize, 
                 cancellationToken: cancellationToken
             );

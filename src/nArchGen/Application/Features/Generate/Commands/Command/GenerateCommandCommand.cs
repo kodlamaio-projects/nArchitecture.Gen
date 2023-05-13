@@ -114,6 +114,9 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
 
             string operationClaimsEntityConfigurationFilePath =
                 @$"{projectPath}\Persistence\EntityConfigurations\OperationClaimConfiguration.cs";
+            if(!File.Exists(operationClaimsEntityConfigurationFilePath)) 
+                return new[] { featureOperationClaimFilePath };
+
             string[] commandOperationClaimSeedTemplateCodeLines = await File.ReadAllLinesAsync(
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Command}\Lines\CommandOperationClaimSeed.cs.sbn"
             );

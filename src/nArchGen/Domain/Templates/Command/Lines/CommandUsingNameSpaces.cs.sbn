@@ -1,1 +1,1 @@
-using Application.Features.{{ feature_name }}.Commands.{{ command_name }};
+using Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};

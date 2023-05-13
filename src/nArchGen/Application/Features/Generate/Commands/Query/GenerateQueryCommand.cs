@@ -114,6 +114,9 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
 
             string operationClaimsEntityConfigurationFilePath =
                 @$"{projectPath}\Persistence\EntityConfigurations\OperationClaimConfiguration.cs";
+            if(!File.Exists(operationClaimsEntityConfigurationFilePath)) 
+                return new[] { featureOperationClaimFilePath };
+
             string[] queryOperationClaimSeedTemplateCodeLines = await File.ReadAllLinesAsync(
                 @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Query}\Lines\QueryOperationClaimSeed.cs.sbn"
             );
