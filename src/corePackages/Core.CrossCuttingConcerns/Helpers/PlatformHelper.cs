@@ -16,7 +16,7 @@ namespace Core.CrossCuttingConcerns.Helpers
             return path;
         }
 
-        public static string GetDirectorHeader()
+        public static string GetDirectoryHeader()
         {
             string file;
             _ = Environment.OSVersion.Platform switch
