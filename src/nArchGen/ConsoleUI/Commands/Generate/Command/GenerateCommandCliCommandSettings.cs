@@ -1,5 +1,6 @@
 ﻿using Core.CodeGen.Code;
 using Core.CrossCuttingConcerns.Exceptions;
+using Core.CrossCuttingConcerns.Helpers;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -35,7 +36,7 @@ public partial class GenerateCommandCliCommand
 
         public string ProjectPath =>
             ProjectName != null
-                ? $@"{Environment.CurrentDirectory}\src\{ProjectName.ToCamelCase()}"
+                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
                 : Environment.CurrentDirectory;
 
         public void CheckCommandName()
