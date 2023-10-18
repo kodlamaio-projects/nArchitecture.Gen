@@ -92,6 +92,7 @@ public static class CSharpCodeInjector
         fileContent.InsertRange(
             methodEndIndex,
             collection: codeLines.Select(line => new string(' ', minimumSpaceCountInMethod) + line)
+                                 .Where(line => !fileContent.Contains(line))
         );
         await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
     }
