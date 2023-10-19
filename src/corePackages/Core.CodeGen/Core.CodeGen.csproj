@@ -17,4 +17,7 @@
     <Folder Include="File\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
+  </ItemGroup>
 </Project>
