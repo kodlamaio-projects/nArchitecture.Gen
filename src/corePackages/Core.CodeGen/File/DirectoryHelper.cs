@@ -9,7 +9,8 @@ public static class DirectoryHelper
     {
         get
         {
-            string codeBase = PlatformHelper.GetDirectoryHeader() + Assembly.GetExecutingAssembly().Location;
+            string codeBase =
+                PlatformHelper.GetDirectoryHeader() + Assembly.GetExecutingAssembly().Location;
             UriBuilder uri = new(codeBase);
             string path = Uri.UnescapeDataString(uri.Path);
             return Path.GetDirectoryName(path)!;

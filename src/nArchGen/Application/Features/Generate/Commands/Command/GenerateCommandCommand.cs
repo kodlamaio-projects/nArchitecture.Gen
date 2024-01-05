@@ -39,7 +39,15 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
         )
         {
             await _businessRules.FileShouldNotBeExists(
-                PlatformHelper.SecuredPathJoin(request.ProjectPath, "Application", "features", request.FeatureName.ToPascalCase(), "Commands", request.CommandName, $"{request.CommandName}Command.cs")
+                PlatformHelper.SecuredPathJoin(
+                    request.ProjectPath,
+                    "Application",
+                    "features",
+                    request.FeatureName.ToPascalCase(),
+                    "Commands",
+                    request.CommandName,
+                    $"{request.CommandName}Command.cs"
+                )
             );
 
             GeneratedCommandResponse response = new();
@@ -83,7 +91,12 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             CommandTemplateData commandTemplateData
         )
         {
-            string templateDir = PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Command, "Folders", "Application");
+            string templateDir = PlatformHelper.SecuredPathJoin(
+                DirectoryHelper.AssemblyDirectory,
+                Templates.Paths.Command,
+                "Folders",
+                "Application"
+            );
             return await generateFolderCodes(
                 templateDir,
                 outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
@@ -97,9 +110,21 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             CommandTemplateData commandTemplateData
         )
         {
-            string featureOperationClaimFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Application", "Features", featureName, "Constants", $"{featureName}OperationClaims.cs");
+            string featureOperationClaimFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "Application",
+                "Features",
+                featureName,
+                "Constants",
+                $"{featureName}OperationClaims.cs"
+            );
             string[] commandOperationClaimPropertyTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Command, "Lines", "CommandOperationClaimProperty.cs.sbn")
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Command,
+                    "Lines",
+                    "CommandOperationClaimProperty.cs.sbn"
+                )
             );
             string[] commandOperationClaimPropertyCodeLines = await Task.WhenAll(
                 commandOperationClaimPropertyTemplateCodeLines.Select(
@@ -111,13 +136,23 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
                 commandOperationClaimPropertyCodeLines
             );
 
-            string operationClaimsEntityConfigurationFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Persistence", "EntityConfigurations", "OperationClaimConfiguration.cs");
+            string operationClaimsEntityConfigurationFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "Persistence",
+                "EntityConfigurations",
+                "OperationClaimConfiguration.cs"
+            );
 
             if (!File.Exists(operationClaimsEntityConfigurationFilePath))
                 return new[] { featureOperationClaimFilePath };
 
             string[] commandOperationClaimSeedTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Command, "Lines", "CommandOperationClaimSeed.cs.sbn")
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Command,
+                    "Lines",
+                    "CommandOperationClaimSeed.cs.sbn"
+                )
             );
             string[] commandOperationClaimSeedCodeLines = await Task.WhenAll(
                 commandOperationClaimSeedTemplateCodeLines.Select(
@@ -171,10 +206,20 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             CommandTemplateData commandTemplateData
         )
         {
-            string controllerFilePath = PlatformHelper.SecuredPathJoin(projectPath, "WebAPI", "Controllers", $"{featureName}Controller.cs");
+            string controllerFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "WebAPI",
+                "Controllers",
+                $"{featureName}Controller.cs"
+            );
 
             string[] controllerEndPointMethodTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Command, "Lines", "ControllerEndPointMethod.cs.sbn")
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Command,
+                    "Lines",
+                    "ControllerEndPointMethod.cs.sbn"
+                )
             );
             string[] controllerEndPointMethodRenderedCodeLines = await Task.WhenAll(
                 controllerEndPointMethodTemplateCodeLines.Select(
@@ -189,7 +234,12 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             );
 
             string[] commandUsingNameSpaceTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Command, "Lines", "CommandUsingNameSpaces.cs.sbn")
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Command,
+                    "Lines",
+                    "CommandUsingNameSpaces.cs.sbn"
+                )
             );
             string[] commandUsingNameSpaceRenderedCodeLines = await Task.WhenAll(
                 commandUsingNameSpaceTemplateCodeLines.Select(

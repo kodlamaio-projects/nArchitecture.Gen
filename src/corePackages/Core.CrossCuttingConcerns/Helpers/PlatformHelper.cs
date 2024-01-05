@@ -1,4 +1,5 @@
 ﻿using System;
+
 namespace Core.CrossCuttingConcerns.Helpers
 {
     public static class PlatformHelper
@@ -30,4 +31,3 @@ namespace Core.CrossCuttingConcerns.Helpers
         }
     }
 }
-

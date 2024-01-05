@@ -36,7 +36,11 @@ public partial class GenerateCommandCliCommand
 
         public string ProjectPath =>
             ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
+                ? PlatformHelper.SecuredPathJoin(
+                    Environment.CurrentDirectory,
+                    "src",
+                    ProjectName.ToCamelCase()
+                )
                 : Environment.CurrentDirectory;
 
         public void CheckCommandName()

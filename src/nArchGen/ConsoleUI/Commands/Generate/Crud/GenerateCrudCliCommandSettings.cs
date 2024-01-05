@@ -35,7 +35,11 @@ public partial class GenerateCrudCliCommand
 
         public string ProjectPath =>
             ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
+                ? PlatformHelper.SecuredPathJoin(
+                    Environment.CurrentDirectory,
+                    "src",
+                    ProjectName.ToCamelCase()
+                )
                 : Environment.CurrentDirectory;
 
         public void CheckProjectName()
@@ -114,7 +118,9 @@ public partial class GenerateCrudCliCommand
             }
 
             string[] dbContexts = Directory
-                .GetFiles(path: PlatformHelper.SecuredPathJoin(ProjectPath, "Persistence", "Contexts"))
+                .GetFiles(
+                    path: PlatformHelper.SecuredPathJoin(ProjectPath, "Persistence", "Contexts")
+                )
                 .Select(Path.GetFileNameWithoutExtension)
                 .ToArray()!;
             if (dbContexts.Length == 0)

@@ -17,9 +17,14 @@ public class GenerateBusinessRules
         string[] fileContent = await File.ReadAllLinesAsync(
             PlatformHelper.SecuredPathJoin(projectPath, "Domain", "Entities", $"{entityName}.cs")
         );
-       
+
         string entityBaseClassNameSpaceUsingTemplate = await File.ReadAllTextAsync(
-            PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Lines", "EntityBaseClassNameSpaceUsing.cs.sbn")
+            PlatformHelper.SecuredPathJoin(
+                DirectoryHelper.AssemblyDirectory,
+                Templates.Paths.Crud,
+                "Lines",
+                "EntityBaseClassNameSpaceUsing.cs.sbn"
+            )
         );
         Regex entityBaseClassRegex = new(@$"public\s+class\s+{entityName}\s*:\s*Entity\s*");
         bool isExists =

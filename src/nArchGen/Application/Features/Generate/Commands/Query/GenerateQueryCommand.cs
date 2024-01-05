@@ -39,7 +39,15 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
         )
         {
             await _businessRules.FileShouldNotBeExists(
-                PlatformHelper.SecuredPathJoin(request.ProjectPath, "Application", "features", request.FeatureName.ToPascalCase(), "Queries", request.QueryName, $"{request.QueryName}Query.cs")
+                PlatformHelper.SecuredPathJoin(
+                    request.ProjectPath,
+                    "Application",
+                    "features",
+                    request.FeatureName.ToPascalCase(),
+                    "Queries",
+                    request.QueryName,
+                    $"{request.QueryName}Query.cs"
+                )
             );
 
             GeneratedQueryResponse response = new();
@@ -83,7 +91,12 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             QueryTemplateData QueryTemplateData
         )
         {
-            string templateDir = PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Query, "Folders", "Application");
+            string templateDir = PlatformHelper.SecuredPathJoin(
+                DirectoryHelper.AssemblyDirectory,
+                Templates.Paths.Query,
+                "Folders",
+                "Application"
+            );
             return await generateFolderCodes(
                 templateDir,
                 outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
@@ -97,10 +110,22 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             QueryTemplateData QueryTemplateData
         )
         {
-            string featureOperationClaimFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Application", "Features", featureName, "Constants", $"{featureName}OperationClaims.cs");
+            string featureOperationClaimFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "Application",
+                "Features",
+                featureName,
+                "Constants",
+                $"{featureName}OperationClaims.cs"
+            );
 
             string[] queryOperationClaimPropertyTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Query, "Lines", "QueryOperationClaimProperty.cs.sbn")
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Query,
+                    "Lines",
+                    "QueryOperationClaimProperty.cs.sbn"
+                )
             );
             string[] queryOperationClaimPropertyCodeLines = await Task.WhenAll(
                 queryOperationClaimPropertyTemplateCodeLines.Select(
@@ -112,13 +137,23 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                 queryOperationClaimPropertyCodeLines
             );
 
-            string operationClaimsEntityConfigurationFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Persistence", "EntityConfigurations", "OperationClaimConfiguration.cs");
+            string operationClaimsEntityConfigurationFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "Persistence",
+                "EntityConfigurations",
+                "OperationClaimConfiguration.cs"
+            );
 
             if (!File.Exists(operationClaimsEntityConfigurationFilePath))
                 return new[] { featureOperationClaimFilePath };
 
             string[] queryOperationClaimSeedTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Query, "Lines", "QueryOperationClaimSeed.cs.sbn")
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Query,
+                    "Lines",
+                    "QueryOperationClaimSeed.cs.sbn"
+                )
             );
             string[] queryOperationClaimSeedCodeLines = await Task.WhenAll(
                 queryOperationClaimSeedTemplateCodeLines.Select(
@@ -172,10 +207,19 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             QueryTemplateData QueryTemplateData
         )
         {
-            string controllerFilePath =
-                PlatformHelper.SecuredPathJoin(projectPath, "WebAPI", "Controllers", $"{featureName}Controller.cs");
+            string controllerFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "WebAPI",
+                "Controllers",
+                $"{featureName}Controller.cs"
+            );
             string[] controllerEndPointMethodTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Query, "Lines", "ControllerEndPointMethod.cs.sbn")
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Query,
+                    "Lines",
+                    "ControllerEndPointMethod.cs.sbn"
+                )
             );
             string[] controllerEndPointMethodRenderedCodeLines = await Task.WhenAll(
                 controllerEndPointMethodTemplateCodeLines.Select(
@@ -190,7 +234,12 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             );
 
             string[] queryUsingNameSpaceTemplateCodeLines = await File.ReadAllLinesAsync(
-                 PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Query, "Lines", "QueryUsingNameSpaces.cs.sbn")
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Query,
+                    "Lines",
+                    "QueryUsingNameSpaces.cs.sbn"
+                )
             );
             string[] queryUsingNameSpaceCodeLines = await Task.WhenAll(
                 queryUsingNameSpaceTemplateCodeLines.Select(
