@@ -119,6 +119,37 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 projectName: projectName.ToCamelCase()
             );
 
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.development.yml",
+                search: "starterProject",
+                projectName: projectName.ToCamelCase()
+            );
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.development.yml",
+                search: "NArchitecture",
+                projectName: projectName.ToPascalCase()
+            );
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.staging.yml",
+                search: "starterProject",
+                projectName: projectName.ToCamelCase()
+            );
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.staging.yml",
+                search: "NArchitecture",
+                projectName: projectName.ToPascalCase()
+            );
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.production.yml",
+                search: "starterProject",
+                projectName: projectName.ToCamelCase()
+            );
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.production.yml",
+                search: "NArchitecture",
+                projectName: projectName.ToPascalCase()
+            );
+
             Directory.SetCurrentDirectory("../");
 
             static async Task replaceFileContentWithProjectName(
