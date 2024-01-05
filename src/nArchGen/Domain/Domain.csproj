@@ -19,6 +19,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\corePackages\Core.CodeGen\Core.CodeGen.csproj" />
+		<ProjectReference Include="..\..\corePackages\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
 	</ItemGroup>
 
 </Project>

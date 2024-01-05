@@ -1,5 +1,8 @@
 ﻿using Core.CodeGen.Code;
+using Core.CodeGen.File;
 using Core.CrossCuttingConcerns.Exceptions;
+using Core.CrossCuttingConcerns.Helpers;
+using Domain.Constants;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -32,7 +35,7 @@ public partial class GenerateCrudCliCommand
 
         public string ProjectPath =>
             ProjectName != null
-                ? $@"{Environment.CurrentDirectory}\src\{ProjectName.ToCamelCase()}"
+                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
                 : Environment.CurrentDirectory;
 
         public void CheckProjectName()
@@ -84,7 +87,7 @@ public partial class GenerateCrudCliCommand
             }
 
             string[] entities = Directory
-                .GetFiles(path: @$"{ProjectPath}\Domain\Entities")
+                .GetFiles(path: PlatformHelper.SecuredPathJoin(ProjectPath, "Domain", "Entities"))
                 .Select(Path.GetFileNameWithoutExtension)
                 .ToArray()!;
             if (entities.Length == 0)
@@ -111,7 +114,7 @@ public partial class GenerateCrudCliCommand
             }
 
             string[] dbContexts = Directory
-                .GetFiles(path: @$"{ProjectPath}\Persistence\Contexts")
+                .GetFiles(path: PlatformHelper.SecuredPathJoin(ProjectPath, "Persistence", "Contexts"))
                 .Select(Path.GetFileNameWithoutExtension)
                 .ToArray()!;
             if (dbContexts.Length == 0)

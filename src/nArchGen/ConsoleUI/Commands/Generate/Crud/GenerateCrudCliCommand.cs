@@ -1,6 +1,7 @@
 ﻿using Application.Features.Generate.Commands.Crud;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.Code.CSharp.ValueObjects;
+using Core.CrossCuttingConcerns.Helpers;
 using Domain.ValueObjects;
 using MediatR;
 using Spectre.Console;
@@ -24,7 +25,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
         settings.CheckDbContextArgument();
         settings.CheckMechanismOptions();
 
-        string entityPath = @$"{settings.ProjectPath}\Domain\Entities\{settings.EntityName}.cs";
+        string entityPath = PlatformHelper.SecuredPathJoin(settings.ProjectPath, "Domain", "Entities", $"{settings.EntityName}.cs");
         ICollection<PropertyInfo> entityProperties =
             await CSharpCodeReader.ReadClassPropertiesAsync(entityPath, settings.ProjectPath);
         string entityIdType = (

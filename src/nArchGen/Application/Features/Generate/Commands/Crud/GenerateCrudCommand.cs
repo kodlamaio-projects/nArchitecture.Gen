@@ -2,6 +2,7 @@
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.File;
 using Core.CodeGen.TemplateEngine;
+using Core.CrossCuttingConcerns.Helpers;
 using Domain.Constants;
 using Domain.ValueObjects;
 using MediatR;
@@ -102,16 +103,15 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             CrudTemplateData crudTemplateData
         )
         {
-            string contextFilePath =
-                @$"{projectPath}\Persistence\Contexts\{crudTemplateData.DbContextName}.cs";
+            string contextFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Persistence", "Contexts", $"{crudTemplateData.DbContextName}.cs");
 
             string[] entityNameSpaceUsingTemplate = await File.ReadAllLinesAsync(
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityNameSpaceUsing.cs.sbn"
+                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Lines", "EntityNameSpaceUsing.cs.sbn")
             );
             await CSharpCodeInjector.AddUsingToFile(contextFilePath, entityNameSpaceUsingTemplate);
 
             string dbSetPropertyTemplateCodeLine = await File.ReadAllTextAsync(
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityContextProperty.cs.sbn"
+                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Lines", "EntityContextProperty.cs.sbn")
             );
             string dbSetPropertyCodeLine = await _templateEngine.RenderAsync(
                 dbSetPropertyTemplateCodeLine,
@@ -134,11 +134,10 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             CrudTemplateData crudTemplateData
         )
         {
-            string templateDir =
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Folders\Persistence";
+            string templateDir = PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Folders", "Persistence");
             return await generateFolderCodes(
                 templateDir,
-                outputDir: $@"{projectPath}\Persistence",
+                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Persistence"),
                 crudTemplateData
             );
         }
@@ -148,13 +147,13 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             CrudTemplateData crudTemplateData
         )
         {
-            string operationClaimConfigurationFilePath =
-                @$"{projectPath}\Persistence\EntityConfigurations\OperationClaimConfiguration.cs";
+            string operationClaimConfigurationFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Persistence", "EntityConfigurations", "OperationClaimConfiguration.cs");
+
             if (!File.Exists(operationClaimConfigurationFilePath))
                 return null;
 
             string[] seedTemplateCodeLines = await File.ReadAllLinesAsync(
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityFeatureOperationClaimSeeds.cs.sbn"
+                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Lines", "EntityFeatureOperationClaimSeeds.cs.sbn")
             );
 
             List<string> seedCodeLines = new() { string.Empty };
@@ -181,11 +180,11 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             CrudTemplateData crudTemplateData
         )
         {
-            string templateDir =
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Folders\Application";
+            string templateDir = PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Folders", "Application");
+
             return await generateFolderCodes(
                 templateDir,
-                outputDir: $@"{projectPath}\Application",
+                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
                 crudTemplateData
             );
         }
@@ -195,11 +194,10 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             CrudTemplateData crudTemplateData
         )
         {
-            string templateDir =
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Folders\WebAPI";
+            string templateDir = PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Folders", "WebAPI");
             return await generateFolderCodes(
                 templateDir,
-                outputDir: $@"{projectPath}\WebAPI",
+                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "WebAPI"),
                 crudTemplateData
             );
         }
@@ -238,10 +236,10 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
         )
         {
             #region Persistence
-            string persistenceServiceRegistrationFilePath =
-                @$"{projectPath}\Persistence\PersistenceServiceRegistration.cs";
+            string persistenceServiceRegistrationFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Persistence", "PersistenceServiceRegistration.cs");
+
             string persistenceServiceRegistrationTemplateCodeLine = await File.ReadAllTextAsync(
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityRepositoryServiceRegistration.cs.sbn"
+                PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Lines", "EntityRepositoryServiceRegistration.cs.sbn")
             );
             string persistenceServiceRegistrationRenderedCodeLine =
                 await _templateEngine.RenderAsync(
@@ -264,11 +262,11 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             #endregion
 
             #region Application
-            string applicationServiceRegistrationNameSpaceUsingFilePath =
-                @$"{projectPath}\Application\ApplicationServiceRegistration.cs";
+            string applicationServiceRegistrationNameSpaceUsingFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Application", "ApplicationServiceRegistration.cs");
+
             string applicationServiceRegistrationNameSpaceUsingTemplateCodeLine =
                 await File.ReadAllTextAsync(
-                    @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityServiceRegistrationNameSpaceUsing.cs.sbn"
+                      PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Lines", "EntityServiceRegistrationNameSpaceUsing.cs.sbn")
                 );
             string applicationServiceRegistrationNameSpaceUsingRenderedCodeLine =
                 await _templateEngine.RenderAsync(
@@ -280,10 +278,10 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                 usingLines: new[] { applicationServiceRegistrationNameSpaceUsingRenderedCodeLine }
             );
 
-            string applicationServiceRegistrationFilePath =
-                @$"{projectPath}\Application\ApplicationServiceRegistration.cs";
+            string applicationServiceRegistrationFilePath = PlatformHelper.SecuredPathJoin(projectPath, "Application", "ApplicationServiceRegistration.cs");
+
             string applicationServiceRegistrationTemplateCodeLine = await File.ReadAllTextAsync(
-                @$"{DirectoryHelper.AssemblyDirectory}\{Templates.Paths.Crud}\Lines\EntityServiceRegistration.cs.sbn"
+                 PlatformHelper.SecuredPathJoin(DirectoryHelper.AssemblyDirectory, Templates.Paths.Crud, "Lines", "EntityServiceRegistration.cs.sbn")
             );
             string applicationServiceRegistrationRenderedCodeLine =
                 await _templateEngine.RenderAsync(
