@@ -118,6 +118,11 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 search: "StarterProject",
                 projectName: projectName.ToPascalCase()
             );
+            await replaceFileContentWithProjectName(
+                path: $"{Environment.CurrentDirectory}/{projectName.ToPascalCase()}.sln",
+                search: "StarterProject",
+                projectName: projectName.ToPascalCase()
+            );
 
             await replaceFileContentWithProjectName(
                 path: $"{projectPath}/WebAPI/appsettings.json",
