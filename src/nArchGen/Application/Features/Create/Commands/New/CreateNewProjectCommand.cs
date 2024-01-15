@@ -102,10 +102,21 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 projectName: projectName.ToCamelCase()
             );
 
+            string testProjectDir =
+                $"{Environment.CurrentDirectory}/tests/{projectName.ToPascalCase()}.Application.Tests";
+            Directory.Move(
+                sourceDirName: $"{Environment.CurrentDirectory}/tests/StarterProject.Application.Tests/",
+                destDirName: testProjectDir
+            );
             await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/tests/Application.Tests/Application.Tests.csproj",
+                path: $"{testProjectDir}/StarterProject.Application.Tests.csproj",
                 search: "starterProject",
                 projectName: projectName.ToCamelCase()
+            );
+            await replaceFileContentWithProjectName(
+                path: $"{testProjectDir}/StarterProject.Application.Tests.csproj",
+                search: "StarterProject",
+                projectName: projectName.ToPascalCase()
             );
 
             await replaceFileContentWithProjectName(
