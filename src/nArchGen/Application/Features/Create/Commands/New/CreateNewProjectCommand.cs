@@ -204,7 +204,9 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 $"{projectSourcePath}/Application/Services/OperationClaims",
                 $"{projectSourcePath}/Application/Services/UserOperationClaims",
                 $"{projectSourcePath}/Application/Services/UsersService",
-                $"{projectTestsPath}/Application.Tests/Features/Users",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Features/Auth",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Features/Users",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/Repositories/Auth",
             };
             foreach (string dirPath in dirsToDelete)
                 Directory.Delete(dirPath, recursive: true);
@@ -234,9 +236,13 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 $"{projectSourcePath}/WebAPI/Controllers/UserOperationClaimsController.cs",
                 $"{projectSourcePath}/WebAPI/Controllers/UsersController.cs",
                 $"{projectSourcePath}/WebAPI/Controllers/Dtos/UpdateByAuthFromServiceRequestDto.cs",
-                $"{projectTestsPath}/Application.Tests/DependencyResolvers/UsersTestServiceRegistration.cs",
-                $"{projectTestsPath}/Application.Tests/Mocks/FakeData/UserFakeData.cs",
-                $"{projectTestsPath}/Application.Tests/Mocks/Repositories/UserMockRepository.cs",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/DependencyResolvers/AuthServiceRegistrations.cs",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/DependencyResolvers/UsersTestServiceRegistration.cs",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/FakeDatas/OperationClaimFakeData.cs",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/FakeDatas/RefreshTokenFakeData.cs",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/FakeDatas/UserFakeData.cs",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/Repositories/UserMockRepository.cs",
+                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/Configurations/MockConfiguration.cs",
             };
             foreach (string filePath in filesToDelete)
                 File.Delete(filePath);
@@ -289,13 +295,17 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                     ).Any(line.Contains)
             );
             await FileHelper.RemoveLinesAsync(
-                filePath: $"{projectTestsPath}/Application.Tests/Startup.cs",
+                filePath: $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Startup.cs",
                 predicate: line =>
                     (
                         new[]
                         {
-                            "using Application.Tests.DependencyResolvers;",
-                            "public void ConfigureServices(IServiceCollection services) => services.AddUsersServices();",
+                            "using Application.Services.AuthenticatorService;",
+                            "using Application.Services.AuthService;",
+                            $"using StarterProject.Application.Tests.DependencyResolvers;",
+                            "using Core.Security;",
+                            "services.AddUsersServices();",
+                            "services.AddAuthServices();",
                         }
                     ).Any(line.Contains)
             );
