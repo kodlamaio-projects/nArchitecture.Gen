@@ -61,16 +61,6 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
             response.LastOperationMessage = "Persistence layer codes have been generated.";
 
-            response.CurrentStatusMessage = "Adding feature operation claims as seed...";
-            yield return response;
-            string? addedOperationClaim = await injectFeatureOperationClaims(
-                request.ProjectPath,
-                request.CrudTemplateData
-            );
-            if (addedOperationClaim != null)
-                updatedFilePaths.Add(addedOperationClaim);
-            response.LastOperationMessage = "Feature operation claims have been added.";
-
             response.CurrentStatusMessage = "Generating Application layer codes...";
             yield return response;
             newFilePaths.AddRange(
@@ -160,49 +150,6 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                 outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Persistence"),
                 crudTemplateData
             );
-        }
-
-        private async Task<string?> injectFeatureOperationClaims(
-            string projectPath,
-            CrudTemplateData crudTemplateData
-        )
-        {
-            string operationClaimConfigurationFilePath = PlatformHelper.SecuredPathJoin(
-                projectPath,
-                "Persistence",
-                "EntityConfigurations",
-                "OperationClaimConfiguration.cs"
-            );
-
-            if (!File.Exists(operationClaimConfigurationFilePath))
-                return null;
-
-            string[] seedTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(
-                    DirectoryHelper.AssemblyDirectory,
-                    Templates.Paths.Crud,
-                    "Lines",
-                    "EntityFeatureOperationClaimSeeds.cs.sbn"
-                )
-            );
-
-            List<string> seedCodeLines = new() { string.Empty };
-            foreach (string templateCodeLine in seedTemplateCodeLines)
-            {
-                string seedCodeLine = await _templateEngine.RenderAsync(
-                    templateCodeLine,
-                    crudTemplateData
-                );
-                seedCodeLines.Add(seedCodeLine);
-            }
-            seedCodeLines.Add(string.Empty);
-
-            await CSharpCodeInjector.AddCodeLinesToMethodAsync(
-                operationClaimConfigurationFilePath,
-                methodName: "getSeeds",
-                codeLines: seedCodeLines.ToArray()
-            );
-            return operationClaimConfigurationFilePath;
         }
 
         private async Task<ICollection<string>> generateApplicationCodes(
