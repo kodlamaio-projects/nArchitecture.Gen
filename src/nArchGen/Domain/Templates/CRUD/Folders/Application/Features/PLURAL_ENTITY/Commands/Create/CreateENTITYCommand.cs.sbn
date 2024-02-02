@@ -21,7 +21,7 @@ public class Create{{ entity.name | string.pascalcase }}Command : IRequest<Creat
 
     public bool BypassCache { get; }
     public string? CacheKey { get; }
-    public string CacheGroupKey => "Get{{ entity.name | string.pascalcase | string.plural }}";{{ end }}
+    public string[]? CacheGroupKey => ["Get{{ entity.name | string.pascalcase | string.plural }}"];{{ end }}
 
     public class Create{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Create{{ entity.name | string.pascalcase }}Command, Created{{ entity.name | string.pascalcase }}Response>
     {

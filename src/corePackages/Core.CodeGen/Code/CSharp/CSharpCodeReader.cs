@@ -54,7 +54,7 @@ public static class CSharpCodeReader
         string fileContent = await System.IO.File.ReadAllTextAsync(filePath);
         Regex propertyRegex =
             new(
-                @"(public|protected|internal|protected internal|private protected|private)?\s+(?:const|static)?\s*((?:\w\.?)+\??)\s+(\w+)\s*\{.*\}"
+                @"(public|protected|internal|protected internal|private protected|private)?\s+(?:const|static|required)?\s*((?:\w\.?)+\??)\s+(\w+)\s*\{.*\}"
             );
         Regex builtInTypeRegex =
             new(

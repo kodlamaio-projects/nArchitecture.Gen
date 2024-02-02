@@ -102,7 +102,7 @@ public static class CSharpCodeInjector
     {
         string[] fileContent = await System.IO.File.ReadAllLinesAsync(filePath);
         const string propertyStartRegex =
-            @"(public|protected|internal|protected internal|private protected|private)?\s*(?:const|static)?\s+(\w+(<.*>)?)\s+(\w+)\s*(?:\{.*\}|=.+;)";
+            @"(public|protected|internal|protected internal|private protected|private)?\s*(?:const|static|required)?\s+(\w+(<.*>)?)\s+(\w+)\s*(?:\{.*\}|=.+;)";
 
         int indexToAdd = -1;
         for (int i = 0; i < fileContent.Length; ++i)
@@ -256,16 +256,17 @@ public static class CSharpCodeInjector
                     classStartIndex = j;
                     break;
                 }
+            break;
         }
 
-        int curlyBracketCountInMethod = 1;
+        int curlyBracketCountInClass = 1;
         for (int i = classStartIndex + 1; i < fileContent.Count; ++i)
         {
             if (scopeBlockStartRegex.Match(input: fileContent[i]).Success)
-                ++curlyBracketCountInMethod;
+                ++curlyBracketCountInClass;
             if (scopeBlockEndRegex.Match(input: fileContent[i]).Success)
-                --curlyBracketCountInMethod;
-            if (curlyBracketCountInMethod != 0)
+                --curlyBracketCountInClass;
+            if (curlyBracketCountInClass != 0)
                 continue;
 
             classEndIndex = i;

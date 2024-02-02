@@ -22,7 +22,7 @@ public class Update{{ entity.name | string.pascalcase }}Command : IRequest<Updat
 
     public bool BypassCache { get; }
     public string? CacheKey { get; }
-    public string CacheGroupKey => "Get{{ entity.name | string.pascalcase | string.plural }}";{{ end }}
+    public string[]? CacheGroupKey => ["Get{{ entity.name | string.pascalcase | string.plural }}"];{{ end }}
 
     public class Update{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Update{{ entity.name | string.pascalcase }}Command, Updated{{ entity.name | string.pascalcase }}Response>
     {

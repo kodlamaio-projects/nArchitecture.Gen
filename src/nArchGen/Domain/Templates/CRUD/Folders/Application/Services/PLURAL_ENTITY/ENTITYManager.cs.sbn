@@ -7,12 +7,12 @@ using System.Linq.Expressions;
 
 namespace Application.Services.{{ entity.name | string.pascalcase | string.plural }};
 
-public class {{ entity.name | string.pascalcase | string.plural }}Manager : I{{ entity.name | string.pascalcase | string.plural }}Service
+public class {{ entity.name | string.pascalcase }}Manager : I{{ entity.name | string.pascalcase }}Service
 {
     private readonly I{{ entity.name | string.camelcase | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
     private readonly {{ entity.name | string.camelcase | string.pascalcase }}BusinessRules _{{ entity.name | string.camelcase }}BusinessRules;
 
-    public {{ entity.name | string.pascalcase | string.plural }}Manager(I{{ entity.name | string.camelcase | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository, {{ entity.name | string.camelcase | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
+    public {{ entity.name | string.pascalcase }}Manager(I{{ entity.name | string.camelcase | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository, {{ entity.name | string.camelcase | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
     {
         _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
         _{{ entity.name | string.camelcase }}BusinessRules = {{ entity.name | string.camelcase }}BusinessRules;

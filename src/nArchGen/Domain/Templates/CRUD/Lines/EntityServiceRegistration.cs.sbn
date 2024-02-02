@@ -1,1 +1,1 @@
-services.AddScoped<I{{ entity.name | string.pascalcase | string.plural }}Service, {{ entity.name | string.pascalcase | string.plural }}Manager>();
+services.AddScoped<I{{ entity.name | string.pascalcase }}Service, {{ entity.name | string.pascalcase }}Manager>();

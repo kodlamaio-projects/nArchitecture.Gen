@@ -1,11 +1,11 @@
-{{ if is_secured_operation_used }}using Application.Features.{{ feature_name | string.plural }}.Constants;
+{{ if is_secured_operation_used }}using Application.Features.{{ feature_name }}.Constants;
 {{ end }}using Application.Features.{{ feature_name }}.Rules;
 using AutoMapper;{{ if is_secured_operation_used }}
 using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
 using Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
 using Core.Application.Pipelines.Logging;{{ end }}
 using MediatR;{{ if is_secured_operation_used }}
-using static Application.Features.{{ feature_name | string.plural }}.Constants.{{ feature_name | string.plural }}OperationClaims;{{ end }}
+using static Application.Features.{{ feature_name }}.Constants.{{ feature_name }}OperationClaims;{{ end }}
 
 namespace Application.Features.{{ feature_name }}.Queries.{{ query_name | string.pascalcase }};
 
@@ -15,8 +15,8 @@ public class {{ query_name | string.pascalcase }}Query : IRequest<{{ query_name 
     public string[] Roles => new[] { Admin, Read, {{ feature_name | string.pascalcase }}OperationClaims.{{ query_name }} };{{ end }}{{ if is_caching_used }}
 
     public bool BypassCache { get; }
-    public string CacheKey => $"{{ query_name }}";
-    public string CacheGroupKey => "Get{{ feature_name | string.pascalcase }}";
+    public string? CacheKey => $"{{ query_name }}";
+    public string? CacheGroupKey => "Get{{ feature_name | string.pascalcase }}";
     public TimeSpan? SlidingExpiration { get; }{{ end }}
     
     public class {{ query_name | string.pascalcase }}QueryHandler : IRequestHandler<{{ query_name | string.pascalcase }}Query, {{ query_name | string.pascalcase }}Response>

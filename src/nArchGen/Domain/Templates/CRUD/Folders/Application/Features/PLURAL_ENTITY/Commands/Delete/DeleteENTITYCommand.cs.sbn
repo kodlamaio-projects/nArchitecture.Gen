@@ -21,7 +21,7 @@ public class Delete{{ entity.name | string.pascalcase }}Command : IRequest<Delet
 
     public bool BypassCache { get; }
     public string? CacheKey { get; }
-    public string CacheGroupKey => "Get{{ entity.name | string.pascalcase | string.plural }}";{{ end }}
+    public string[]? CacheGroupKey => ["Get{{ entity.name | string.pascalcase | string.plural }}"];{{ end }}
 
     public class Delete{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Delete{{ entity.name | string.pascalcase }}Command, Deleted{{ entity.name | string.pascalcase }}Response>
     {

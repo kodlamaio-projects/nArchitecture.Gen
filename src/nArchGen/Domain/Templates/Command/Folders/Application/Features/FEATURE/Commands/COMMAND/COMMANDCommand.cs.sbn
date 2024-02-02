@@ -1,4 +1,4 @@
-{{ if is_secured_operation_used }}using Application.Features.{{ feature_name | string.plural }}.Constants;
+{{ if is_secured_operation_used }}using Application.Features.{{ feature_name }}.Constants;
 {{ end }}using Application.Features.{{ feature_name }}.Rules;
 using AutoMapper;{{ if is_secured_operation_used }}
 using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
@@ -6,7 +6,7 @@ using Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
 using Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
 using Core.Application.Pipelines.Transaction;{{ end }}
 using MediatR;{{ if is_secured_operation_used }}
-using static Application.Features.{{ feature_name | string.plural }}.Constants.{{ feature_name | string.plural }}OperationClaims;{{ end }}
+using static Application.Features.{{ feature_name }}.Constants.{{ feature_name }}OperationClaims;{{ end }}
 
 namespace Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
 
@@ -17,7 +17,7 @@ public class {{ command_name | string.pascalcase }}Command : IRequest<{{ command
 
     public bool BypassCache { get; }
     public string? CacheKey { get; }
-    public string CacheGroupKey => "Get{{ feature_name | string.pascalcase }}";{{ end }}
+    public string[]? CacheGroupKey => ["Get{{ feature_name | string.pascalcase }}"];{{ end }}
     
     public class {{ command_name | string.pascalcase }}CommandHandler : IRequestHandler<{{ command_name | string.pascalcase }}Command, {{ command_name | string.pascalcase }}Response>
     {
