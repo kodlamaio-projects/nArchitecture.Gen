@@ -45,7 +45,8 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                     IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
                     DbContextName = settings.DbContextName!
                 },
-                ProjectPath = settings.ProjectPath
+                ProjectPath = settings.ProjectPath,
+                DbContextName = settings.DbContextName!
             };
 
         IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(request: generateCrudCommand);
