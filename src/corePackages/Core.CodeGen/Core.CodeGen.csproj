@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PluralizeService.Core" Version="1.2.21147.2" />
-    <PackageReference Include="Scriban" Version="5.5.2" />
+    <PackageReference Include="Scriban" Version="5.9.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
   </ItemGroup>
   <ItemGroup>
