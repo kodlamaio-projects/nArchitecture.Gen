@@ -2,5 +2,7 @@ namespace Application.Features.{{ entity.name | string.pascalcase | string.plura
 
 public static class {{ entity.name | string.pascalcase | string.plural }}BusinessMessages
 {
-    public const string {{ entity.name | string.pascalcase }}NotExists = "{{ entity.name | string.words | string.downcase | string.capitalize }} not exists.";
+    public const string SectionName = "{{ entity.name | string.pascalcase }}";
+
+    public const string {{ entity.name | string.pascalcase }}NotExists = "{{ entity.name | string.pascalcase }}NotExists";
 }

@@ -11,7 +11,7 @@ public static class GitCommandHelper
         gitProcess.StartInfo.WorkingDirectory = Environment.CurrentDirectory;
         gitProcess.StartInfo.UseShellExecute = false;
         gitProcess.StartInfo.RedirectStandardOutput = true;
-        gitProcess.StartInfo.RedirectStandardError = true;
+        gitProcess.StartInfo.RedirectStandardError = false;
         return gitProcess;
     }
 

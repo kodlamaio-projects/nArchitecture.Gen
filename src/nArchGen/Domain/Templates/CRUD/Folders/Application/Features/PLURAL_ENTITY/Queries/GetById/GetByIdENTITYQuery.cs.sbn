@@ -13,7 +13,7 @@ public class GetById{{ entity.name | string.pascalcase }}Query : IRequest<GetByI
 {
     public {{ entity.id_type }} Id { get; set; }{{ if is_secured_operation_used }}
 
-    public string[] Roles => new[] { Admin, Read };{{ end }}
+    public string[] Roles => [Admin, Read];{{ end }}
 
     public class GetById{{ entity.name | string.pascalcase }}QueryHandler : IRequestHandler<GetById{{ entity.name | string.pascalcase }}Query, GetById{{ entity.name | string.pascalcase }}Response>
     {

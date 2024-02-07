@@ -2,6 +2,7 @@
 using Application.Services.Repositories;
 using Core.Application.Rules;
 using Core.CrossCuttingConcerns.Exceptions.Types;
+using Core.Localization.Abstraction;
 using Domain.Entities;
 
 namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
@@ -9,17 +10,24 @@ namespace Application.Features.{{ entity.name | string.pascalcase | string.plura
 public class {{ entity.name | string.pascalcase }}BusinessRules : BaseBusinessRules
 {
     private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
+    private readonly ILocalizationService _localizationService;
 
-    public {{ entity.name | string.pascalcase }}BusinessRules(I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository)
+    public {{ entity.name | string.pascalcase }}BusinessRules(I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository, ILocalizationService localizationService)
     {
         _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
+        _localizationService = localizationService;
     }
 
-    public Task {{ entity.name | string.pascalcase }}ShouldExistWhenSelected({{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }})
+    private async Task throwBusinessException(string messageKey)
+    {
+        string message = await _localizationService.GetLocalizedAsync(messageKey, {{ entity.name | string.pascalcase | string.plural }}BusinessMessages.SectionName);
+        throw new BusinessException(message);
+    }
+
+    public async Task {{ entity.name | string.pascalcase }}ShouldExistWhenSelected({{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }})
     {
         if ({{ entity.name | string.camelcase }} == null)
-            throw new BusinessException({{ entity.name | string.pascalcase | string.plural }}BusinessMessages.{{ entity.name | string.pascalcase }}NotExists);
-        return Task.CompletedTask;
+            await throwBusinessException({{ entity.name | string.pascalcase | string.plural }}BusinessMessages.{{ entity.name | string.pascalcase }}NotExists);
     }
 
     public async Task {{ entity.name | string.pascalcase }}IdShouldExistWhenSelected({{ entity.id_type }} id, CancellationToken cancellationToken)

@@ -7,33 +7,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Folder Include="Templates\Crud\Folders\" />
+		<ProjectReference Include="..\..\corePackages\Core.CodeGen\Core.CodeGen.csproj" />
+		<ProjectReference Include="..\..\corePackages\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
 	</ItemGroup>
-
+	
 	<ItemGroup>
 		<ContentWithTargetPath Include="Templates\**">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>Templates\%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
 		</ContentWithTargetPath>
 	</ItemGroup>
-
-	<ItemGroup>
-	  <ContentWithTargetPath Remove="Templates\CRUD\Folders\Application\Services\PLURAL_ENTITY\ENTITYManager.cs.sbn" />
-	  <ContentWithTargetPath Remove="Templates\CRUD\Folders\Application\Services\PLURAL_ENTITY\IENTITYService.cs.sbn" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\corePackages\Core.CodeGen\Core.CodeGen.csproj" />
-		<ProjectReference Include="..\..\corePackages\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Update="Templates\CRUD\Folders\Application\Services\PLURAL_ENTITY\ENTITYManager.cs.sbn">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Templates\CRUD\Folders\Application\Services\PLURAL_ENTITY\IENTITYService.cs.sbn">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
-
 </Project>

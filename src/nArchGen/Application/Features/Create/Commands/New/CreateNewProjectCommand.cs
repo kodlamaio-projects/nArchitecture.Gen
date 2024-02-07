@@ -2,6 +2,7 @@
 using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
 using MediatR;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 
 namespace Application.Features.Create.Commands.New;
@@ -36,7 +37,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             response.CurrentStatusMessage = "Cloning starter project and core packages...";
             yield return response;
             response.OutputMessage = null;
-            await cloneCorePackagesAndStarterProject(request.ProjectName);
+            await downloadStarterProject(request.ProjectName);
             response.LastOperationMessage =
                 "Starter project has been cloned from 'https://github.com/kodlamaio-projects/nArchitecture'.";
 
@@ -48,9 +49,6 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             response.LastOperationMessage =
                 $"Project has been prepared with {request.ProjectName.ToPascalCase()}.";
 
-            DirectoryHelper.DeleteDirectory(
-                $"{Environment.CurrentDirectory}/{request.ProjectName}/.git"
-            );
             ICollection<string> newFiles = DirectoryHelper.GetFilesInDirectoryTree(
                 root: $"{Environment.CurrentDirectory}/{request.ProjectName}",
                 searchPattern: "*"
@@ -70,10 +68,26 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             yield return response;
         }
 
-        private async Task cloneCorePackagesAndStarterProject(string projectName) =>
-            await GitCommandHelper.RunAsync(
-                $"clone https://github.com/kodlamaio-projects/nArchitecture.git ./{projectName}"
+        private async Task downloadStarterProject(string projectName)
+        {
+            // Download zip on url
+            string releaseUrl =
+                "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v0.1.0.zip";
+            using HttpClient client = new();
+            using HttpResponseMessage response = await client.GetAsync(releaseUrl);
+            response.EnsureSuccessStatusCode();
+            string zipPath = $"{Environment.CurrentDirectory}/{projectName}.zip";
+            await using Stream zipStream = await response.Content.ReadAsStreamAsync();
+            await using FileStream fileStream = new(zipPath, FileMode.Create, FileAccess.Write);
+            await zipStream.CopyToAsync(fileStream);
+            fileStream.Close();
+            ZipFile.ExtractToDirectory(zipPath, Environment.CurrentDirectory);
+            File.Delete(zipPath);
+            Directory.Move(
+                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-0.1.0",
+                $"{Environment.CurrentDirectory}/{projectName}"
             );
+        }
 
         private async Task renameProject(string projectName)
         {
@@ -314,50 +328,18 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 filePath: $"{projectSourcePath}/WebAPI/Program.cs",
                 contents: new[]
                 {
-                    "using Core.Security;",
-                    "using Core.Security.Encryption;",
-                    "using Core.Security.JWT;",
-                    "using Core.WebAPI.Extensions.Swagger;",
-                    "using Microsoft.AspNetCore.Authentication.JwtBearer;",
-                    "using Microsoft.IdentityModel.Tokens;",
-                    "using Microsoft.OpenApi.Models;",
-                    "builder.Services.AddSecurityServices();",
-                    @"const string tokenOptionsConfigurationSection = ""TokenOptions"";
-TokenOptions tokenOptions =
-    builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()
-    ?? throw new InvalidOperationException($""\""{tokenOptionsConfigurationSection}\"" section cannot found in configuration."");
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidIssuer = tokenOptions.Issuer,
-            ValidAudience = tokenOptions.Audience,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)
-        };
-    });",
-                    @"opt.AddSecurityDefinition(
-        name: ""Bearer"",
-        securityScheme: new OpenApiSecurityScheme
-        {
-            Name = ""Authorization"",
-            Type = SecuritySchemeType.Http,
-            Scheme = ""Bearer"",
-            BearerFormat = ""JWT"",
-            In = ParameterLocation.Header,
-            Description =
-                ""JWT Authorization header using the Bearer scheme. Example: \""Authorization: Bearer YOUR_TOKEN\"". \r\n\r\n""
-                + ""`Enter your token in the text input below.`""
-        }
-    );
-    opt.OperationFilter<BearerSecurityRequirementOperationFilter>();",
-                    @"app.UseAuthentication();
-app.UseAuthorization();"
+                    "using Core.Security;\n",
+                    "using Core.Security.Encryption;\n",
+                    "using Core.Security.JWT;\n",
+                    "using Core.WebAPI.Extensions.Swagger;\n",
+                    "using Microsoft.AspNetCore.Authentication.JwtBearer;\n",
+                    "using Microsoft.IdentityModel.Tokens;\n",
+                    "using Microsoft.OpenApi.Models;\n",
+                    "builder.Services.AddSecurityServices();\n",
+                    "const string tokenOptionsConfigurationSection = \"TokenOptions\";\nTokenOptions tokenOptions =\n    builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()\n    ?? throw new InvalidOperationException($\"\\\"{tokenOptionsConfigurationSection}\\\" section cannot found in configuration.\");\nbuilder\n    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)\n    .AddJwtBearer(options =>\n    {\n        options.TokenValidationParameters = new TokenValidationParameters\n        {\n            ValidateIssuer = true,\n            ValidateAudience = true,\n            ValidateLifetime = true,\n            ValidIssuer = tokenOptions.Issuer,\n            ValidAudience = tokenOptions.Audience,\n            ValidateIssuerSigningKey = true,\n            IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)\n        };\n    });\n\n",
+                   "    opt.AddSecurityDefinition(\n        name: \"Bearer\",\n        securityScheme: new OpenApiSecurityScheme\n        {\n            Name = \"Authorization\",\n            Type = SecuritySchemeType.Http,\n            Scheme = \"Bearer\",\n            BearerFormat = \"JWT\",\n            In = ParameterLocation.Header,\n            Description =\n                \"JWT Authorization header using the Bearer scheme. Example: \\\"Authorization: Bearer YOUR_TOKEN\\\". \\r\\n\\r\\n\"\n                + \"`Enter your token in the text input below.`\"\n        }\n    );\n    opt.OperationFilter<BearerSecurityRequirementOperationFilter>();\n",
+                    "app.UseAuthentication();\n",
+                    "app.UseAuthorization();\n"
                 }
             );
         }
@@ -367,14 +349,35 @@ app.UseAuthorization();"
             Directory.SetCurrentDirectory($"./{projectName}");
             await GitCommandHelper.RunAsync($"init");
             await GitCommandHelper.RunAsync($"branch -m master main");
-            Directory.Delete($"{Environment.CurrentDirectory}/src/corePackages/");
-            await GitCommandHelper.RunAsync(
-                "submodule add https://github.com/kodlamaio-projects/nArchitecture.Core ./src/corePackages"
-            );
+            await downloadCorePackages(projectName);
             await GitCommandHelper.CommitChangesAsync(
                 "chore: initial commit from nArchitecture.Gen"
             );
             Directory.SetCurrentDirectory("../");
+        }
+
+        private async Task downloadCorePackages(string projectName)
+        {
+            string releaseUrl =
+                "https://github.com/kodlamaio-projects/nArchitecture.Core/archive/refs/tags/v0.1.0.zip";
+            using HttpClient client = new();
+            using HttpResponseMessage response = await client.GetAsync(releaseUrl);
+            response.EnsureSuccessStatusCode();
+            string zipPath = $"{Environment.CurrentDirectory}/{projectName}.zip";
+            await using Stream zipStream = await response.Content.ReadAsStreamAsync();
+            await using FileStream fileStream = new(zipPath, FileMode.Create, FileAccess.Write);
+            await zipStream.CopyToAsync(fileStream);
+            fileStream.Close();
+            ZipFile.ExtractToDirectory(zipPath, Environment.CurrentDirectory);
+            File.Delete(zipPath);
+
+            string corePackagesDir = $"{Environment.CurrentDirectory}/src/corePackages";
+            if (Directory.Exists(corePackagesDir))
+                Directory.Delete(corePackagesDir, recursive: true);
+            Directory.Move(
+                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture.Core-0.1.0",
+                $"{Environment.CurrentDirectory}/src/corePackages"
+            );
         }
     }
 }

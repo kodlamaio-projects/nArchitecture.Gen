@@ -16,7 +16,7 @@ public class GetList{{ entity.name | string.pascalcase }}Query : IRequest<GetLis
 {
     public PageRequest PageRequest { get; set; }{{ if is_secured_operation_used }}
 
-    public string[] Roles => new[] { Admin, Read };{{ end }}{{ if is_caching_used }}
+    public string[] Roles => [Admin, Read];{{ end }}{{ if is_caching_used }}
 
     public bool BypassCache { get; }
     public string? CacheKey => $"GetList{{ entity.name | string.pascalcase | string.plural }}({PageRequest.PageIndex},{PageRequest.PageSize})";

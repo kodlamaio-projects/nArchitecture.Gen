@@ -10,7 +10,7 @@ public partial class CreateNewProjectCliCommand
         [CommandArgument(position: 0, template: "[ProjectName]")]
         public string? ProjectName { get; set; }
 
-        [CommandOption("--no-security")]
+        [CommandOption("--security")]
         public bool IsThereSecurityMechanism { get; set; }
 
         public void CheckProjectNameArgument()
@@ -30,7 +30,7 @@ public partial class CreateNewProjectCliCommand
                 return;
             IsThereSecurityMechanism = AnsiConsole.Confirm(
                 prompt: "Do you want to add security mechanism to your project?",
-                defaultValue: true
+                defaultValue: false
             );
         }
     }
