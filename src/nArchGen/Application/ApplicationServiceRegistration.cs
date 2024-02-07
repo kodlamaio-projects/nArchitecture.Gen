@@ -1,8 +1,8 @@
-﻿using Application.Features.Generate.Rules;
+﻿using System.Reflection;
+using Application.Features.Generate.Rules;
 using Core.CodeGen.TemplateEngine;
 using Core.CodeGen.TemplateEngine.Scriban;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace Application;
 

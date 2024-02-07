@@ -6,6 +6,7 @@ using ConsoleUI.Commands.Generate.Query;
 using ConsoleUI.Commands.New;
 using Core.ConsoleUI.IoC.SpectreConsoleCli;
 using Microsoft.Extensions.DependencyInjection;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 #region Console Configuration
@@ -56,5 +57,7 @@ app.Configure(config =>
 
     #endregion
 });
+
+AnsiConsole.Write(new FigletText("nArchitecture").LeftJustified().Color(Color.Blue));
 
 return app.Run(args);
