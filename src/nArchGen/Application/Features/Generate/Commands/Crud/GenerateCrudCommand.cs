@@ -1,4 +1,5 @@
-﻿using Application.Features.Generate.Rules;
+﻿using System.Runtime.CompilerServices;
+using Application.Features.Generate.Rules;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.File;
 using Core.CodeGen.TemplateEngine;
@@ -6,15 +7,14 @@ using Core.CrossCuttingConcerns.Helpers;
 using Domain.Constants;
 using Domain.ValueObjects;
 using MediatR;
-using System.Runtime.CompilerServices;
 
 namespace Application.Features.Generate.Commands.Crud;
 
 public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
 {
-    public string ProjectPath { get; set; }
-    public CrudTemplateData CrudTemplateData { get; set; }
-    public string DbContextName { get; set; }
+    public required string ProjectPath { get; set; }
+    public required CrudTemplateData CrudTemplateData { get; set; }
+    public required string DbContextName { get; set; }
 
     public class GenerateCrudCommandHandler : IStreamRequestHandler<GenerateCrudCommand, GeneratedCrudResponse>
     {
@@ -35,8 +35,8 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             await _businessRules.EntityClassShouldBeInhreitEntityBaseClass(request.ProjectPath, request.CrudTemplateData.Entity.Name);
 
             GeneratedCrudResponse response = new();
-            List<string> newFilePaths = new();
-            List<string> updatedFilePaths = new();
+            List<string> newFilePaths = [];
+            List<string> updatedFilePaths = [];
 
             response.CurrentStatusMessage = $"Adding {request.CrudTemplateData.Entity.Name} entity to BaseContext.";
             yield return response;

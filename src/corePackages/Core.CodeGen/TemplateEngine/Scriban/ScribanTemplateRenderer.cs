@@ -9,7 +9,7 @@ public class ScribanTemplateRenderer : ITemplateRenderer
 
     public ScribanTemplateRenderer()
     {
-        _builtinFunctionsExtensions = new ScribanBuiltinFunctionsExtensions();
+        _builtinFunctionsExtensions = [];
     }
 
     public string TemplateExtension => "sbn";
@@ -18,7 +18,7 @@ public class ScribanTemplateRenderer : ITemplateRenderer
     {
         TemplateContext templateContext = new();
         templateContext.PushGlobal(_builtinFunctionsExtensions);
-        ScriptObject dataScriptObject = new();
+        ScriptObject dataScriptObject = [];
         dataScriptObject.Import(data);
         templateContext.PushGlobal(dataScriptObject);
 

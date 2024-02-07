@@ -1,5 +1,5 @@
-﻿using Core.CrossCuttingConcerns.Helpers;
-using System.Reflection;
+﻿using System.Reflection;
+using Core.CrossCuttingConcerns.Helpers;
 
 namespace Core.CodeGen.File;
 
@@ -18,7 +18,7 @@ public static class DirectoryHelper
 
     public static ICollection<string> GetFilesInDirectoryTree(string root, string searchPattern)
     {
-        List<string> files = new();
+        List<string> files = [];
 
         Stack<string> stack = new();
         stack.Push(root);
@@ -36,7 +36,7 @@ public static class DirectoryHelper
 
     public static ICollection<string> GetDirsInDirectoryTree(string root, string searchPattern)
     {
-        List<string> dirs = new();
+        List<string> dirs = [];
 
         Stack<string> stack = new();
         stack.Push(root);

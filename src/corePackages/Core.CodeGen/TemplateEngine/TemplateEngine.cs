@@ -44,7 +44,7 @@ public class TemplateEngine : ITemplateEngine
         ITemplateData templateData
     )
     {
-        List<string> newRenderedFilePaths = new();
+        List<string> newRenderedFilePaths = [];
         foreach (string templateFilePath in templateFilePaths)
         {
             string newRenderedFilePath = await RenderFileAsync(templateFilePath, templateDir, replacePathVariable, outputDir, templateData);

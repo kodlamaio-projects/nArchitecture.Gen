@@ -102,7 +102,7 @@ public partial class GenerateQueryCliCommand
 
         public void CheckMechanismOptions()
         {
-            List<string> mechanismsToPrompt = new();
+            List<string> mechanismsToPrompt = [];
 
             if (IsCachingUsed)
                 AnsiConsole.MarkupLine("[green]Caching[/] is used.");

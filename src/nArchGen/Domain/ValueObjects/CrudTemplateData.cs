@@ -4,8 +4,8 @@ namespace Domain.ValueObjects;
 
 public class CrudTemplateData : ITemplateData
 {
-    public Entity Entity { get; set; }
-    public string DbContextName { get; set; }
+    public required Entity Entity { get; set; }
+    public required string DbContextName { get; set; }
     public bool IsCachingUsed { get; set; }
     public bool IsLoggingUsed { get; set; }
     public bool IsTransactionUsed { get; set; }

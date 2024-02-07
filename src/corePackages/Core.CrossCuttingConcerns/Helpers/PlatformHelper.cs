@@ -1,33 +1,30 @@
-﻿using System;
+﻿namespace Core.CrossCuttingConcerns.Helpers;
 
-namespace Core.CrossCuttingConcerns.Helpers
+public static class PlatformHelper
 {
-    public static class PlatformHelper
+    public static string SecuredPathJoin(params string[] pathItems)
     {
-        public static string SecuredPathJoin(params string[] pathItems)
+        string path;
+        _ = Environment.OSVersion.Platform switch
         {
-            string path;
-            _ = Environment.OSVersion.Platform switch
-            {
-                PlatformID.Unix => path = String.Join("/", pathItems),
-                PlatformID.MacOSX => path = String.Join("/", pathItems),
-                _ => path = String.Join("\\", pathItems),
-            };
+            PlatformID.Unix => path = string.Join("/", pathItems),
+            PlatformID.MacOSX => path = string.Join("/", pathItems),
+            _ => path = string.Join("\\", pathItems),
+        };
 
-            return path;
-        }
+        return path;
+    }
 
-        public static string GetDirectoryHeader()
+    public static string GetDirectoryHeader()
+    {
+        string file;
+        _ = Environment.OSVersion.Platform switch
         {
-            string file;
-            _ = Environment.OSVersion.Platform switch
-            {
-                PlatformID.Unix => file = "file://",
-                PlatformID.MacOSX => file = "file://",
-                _ => file = "",
-            };
+            PlatformID.Unix => file = "file://",
+            PlatformID.MacOSX => file = "file://",
+            _ => file = "",
+        };
 
-            return file;
-        }
+        return file;
     }
 }

@@ -47,8 +47,8 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             );
 
             GeneratedCommandResponse response = new();
-            List<string> newFilePaths = new();
-            List<string> updatedFilePaths = new();
+            List<string> newFilePaths = [];
+            List<string> updatedFilePaths = [];
 
             response.CurrentStatusMessage = "Generating Application layer codes...";
             yield return response;
@@ -105,8 +105,8 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
                 )
             );
             string[] commandOperationClaimPropertyCodeLines = await Task.WhenAll(
-                commandOperationClaimPropertyTemplateCodeLines.Select(
-                    async line => await _templateEngine.RenderAsync(line, commandTemplateData)
+                commandOperationClaimPropertyTemplateCodeLines.Select(async line =>
+                    await _templateEngine.RenderAsync(line, commandTemplateData)
                 )
             );
             await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(featureOperationClaimFilePath, commandOperationClaimPropertyCodeLines);
@@ -130,8 +130,8 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
                 )
             );
             string[] commandOperationClaimSeedCodeLines = await Task.WhenAll(
-                commandOperationClaimSeedTemplateCodeLines.Select(
-                    async line => await _templateEngine.RenderAsync(line, commandTemplateData)
+                commandOperationClaimSeedTemplateCodeLines.Select(async line =>
+                    await _templateEngine.RenderAsync(line, commandTemplateData)
                 )
             );
             await CSharpCodeInjector.AddCodeLinesToRegionAsync(
@@ -149,7 +149,7 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             CommandTemplateData commandTemplateData
         )
         {
-            List<string> templateFilePaths = DirectoryHelper
+            var templateFilePaths = DirectoryHelper
                 .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
                 .ToList();
             Dictionary<string, string> replacePathVariable =

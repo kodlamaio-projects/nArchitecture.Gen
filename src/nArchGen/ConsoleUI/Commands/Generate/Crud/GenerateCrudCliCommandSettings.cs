@@ -1,8 +1,6 @@
 ﻿using Core.CodeGen.Code;
-using Core.CodeGen.File;
 using Core.CrossCuttingConcerns.Exceptions;
 using Core.CrossCuttingConcerns.Helpers;
-using Domain.Constants;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -116,7 +114,7 @@ public partial class GenerateCrudCliCommand
 
         public void CheckMechanismOptions()
         {
-            List<string> mechanismsToPrompt = new();
+            List<string> mechanismsToPrompt = [];
 
             if (IsCachingUsed)
                 AnsiConsole.MarkupLine("[green]Caching[/] is used.");

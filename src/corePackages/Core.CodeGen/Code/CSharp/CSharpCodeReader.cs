@@ -58,7 +58,7 @@ public static class CSharpCodeReader
             );
 
         MatchCollection matches = propertyRegex.Matches(fileContent);
-        List<PropertyInfo> result = new();
+        List<PropertyInfo> result = [];
         foreach (Match match in matches)
         {
             string accessModifier = match.Groups[1].Value.Trim();
@@ -80,8 +80,7 @@ public static class CSharpCodeReader
                         values: potentialPropertyTypeFilePath
                             .Replace(projectPath, string.Empty)
                             .Replace(oldChar: '\\', newChar: '.')
-                            .Replace(oldValue: $".{typeName}.cs", string.Empty)
-                            .Substring(1)
+                            .Replace(oldValue: $".{typeName}.cs", string.Empty)[1..]
                             .Split('.')
                             .Select(part => char.ToUpper(part[0], CultureInfo.GetCultureInfo("en-EN")) + part[1..])
                     );

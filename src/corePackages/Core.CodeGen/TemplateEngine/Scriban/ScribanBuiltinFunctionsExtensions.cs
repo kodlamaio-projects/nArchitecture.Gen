@@ -1,6 +1,6 @@
-﻿using Scriban.Functions;
+﻿using System.Globalization;
+using Scriban.Functions;
 using Scriban.Runtime;
-using System.Globalization;
 
 namespace Core.CodeGen.TemplateEngine.Scriban;
 
@@ -13,7 +13,7 @@ public class ScribanBuiltinFunctionsExtensions : BuiltinFunctions
 
     private void addStringFunctionsExtensions()
     {
-        ScriptObject stringFunctions = new();
+        ScriptObject stringFunctions = [];
         stringFunctions.Import(
             obj: typeof(ScribanStringFunctionsExtensions),
             renamer: member => member.Name.ToLower(CultureInfo.GetCultureInfo("en-EN"))

@@ -108,7 +108,7 @@ public partial class GenerateCommandCliCommand
 
         public void CheckMechanismOptions()
         {
-            List<string> mechanismsToPrompt = new();
+            List<string> mechanismsToPrompt = [];
 
             if (IsCachingUsed)
                 AnsiConsole.MarkupLine("[green]Caching[/] is used.");

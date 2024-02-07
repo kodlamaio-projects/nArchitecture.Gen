@@ -6,7 +6,7 @@ public static class CSharpCodeInjector
 {
     public static async Task AddCodeLinesToMethodAsync(string filePath, string methodName, string[] codeLines)
     {
-        List<string> fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
         string methodStartRegex =
             @"((public|protected|internal|protected internal|private protected|private)\s+)?(static\s+)?(void|[a-zA-Z]+(<.*>)?)\s+\b"
             + methodName
@@ -71,13 +71,10 @@ public static class CSharpCodeInjector
             throw new Exception($"{methodName} not found in \"{filePath}\".");
 
         ICollection<string> methodContent = fileContent.Skip(methodStartIndex + 1).Take(methodEndIndex - 1 - methodStartIndex).ToArray();
-        int minimumSpaceCountInMethod;
-        if (methodContent.Count < 2)
-            minimumSpaceCountInMethod = fileContent[methodStartIndex].TakeWhile(char.IsWhiteSpace).Count() * 2;
-        else
-            minimumSpaceCountInMethod = methodContent
-                .Where(line => !string.IsNullOrEmpty(line))
-                .Min(line => line.TakeWhile(char.IsWhiteSpace).Count());
+        int minimumSpaceCountInMethod =
+            methodContent.Count < 2
+                ? fileContent[methodStartIndex].TakeWhile(char.IsWhiteSpace).Count() * 2
+                : methodContent.Where(line => !string.IsNullOrEmpty(line)).Min(line => line.TakeWhile(char.IsWhiteSpace).Count());
 
         fileContent.InsertRange(
             methodEndIndex,
@@ -141,7 +138,7 @@ public static class CSharpCodeInjector
 
     public static async Task AddCodeLinesToRegionAsync(string filePath, IEnumerable<string> linesToAdd, string regionName)
     {
-        List<string> fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
         string regionStartRegex = @$"^\s*#region\s*{regionName}\s*";
         const string regionEndRegex = @"^\s*#endregion\s*.*";
 
@@ -185,7 +182,7 @@ public static class CSharpCodeInjector
 
     public static async Task AddUsingToFile(string filePath, IEnumerable<string> usingLines)
     {
-        List<string> fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
 
         IEnumerable<string> usingLinesToAdd = usingLines.Where(usingLine => !fileContent.Contains(usingLine));
 
@@ -206,7 +203,7 @@ public static class CSharpCodeInjector
 
     public static async Task AddMethodToClass(string filePath, string className, string[] codeLines)
     {
-        List<string> fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
         Regex classStartRegex =
             new(@$"((public|protected|internal|protected internal|private protected|private)\s+)?(static\s+)?\s+\b{className}");
         Regex scopeBlockStartRegex = new(@"\{");
@@ -252,13 +249,10 @@ public static class CSharpCodeInjector
 
         ICollection<string> classContent = fileContent.Skip(classStartIndex + 1).Take(classEndIndex - 1 - classStartIndex).ToArray();
 
-        int minimumSpaceCountInClass;
-        if (classContent.Count < 2)
-            minimumSpaceCountInClass = fileContent[classStartIndex].TakeWhile(char.IsWhiteSpace).Count() * 2;
-        else
-            minimumSpaceCountInClass = classContent
-                .Where(line => !string.IsNullOrEmpty(line))
-                .Min(line => line.TakeWhile(char.IsWhiteSpace).Count());
+        int minimumSpaceCountInClass =
+            classContent.Count < 2
+                ? fileContent[classStartIndex].TakeWhile(char.IsWhiteSpace).Count() * 2
+                : classContent.Where(line => !string.IsNullOrEmpty(line)).Min(line => line.TakeWhile(char.IsWhiteSpace).Count());
 
         fileContent.InsertRange(classEndIndex, collection: codeLines.Select(line => new string(' ', minimumSpaceCountInClass) + line));
         await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());

@@ -1,9 +1,9 @@
-﻿using Core.CodeGen.Code;
+﻿using System.IO.Compression;
+using System.Runtime.CompilerServices;
+using Core.CodeGen.Code;
 using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
 using MediatR;
-using System.IO.Compression;
-using System.Runtime.CompilerServices;
 
 namespace Application.Features.Create.Commands.New;
 
@@ -31,7 +31,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
         )
         {
             CreatedNewProjectResponse response = new();
-            List<string> newFilePaths = new();
+            List<string> newFilePaths = [];
 
             response.CurrentStatusMessage = "Cloning starter project and core packages...";
             yield return response;

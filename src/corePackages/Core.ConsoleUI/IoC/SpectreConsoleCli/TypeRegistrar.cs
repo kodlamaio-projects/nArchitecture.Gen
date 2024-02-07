@@ -14,15 +14,9 @@ public class TypeRegistrar : ITypeRegistrar
 
     public ITypeResolver Build() => new TypeResolver(provider: _builder.BuildServiceProvider());
 
-    public void Register(Type service, Type implementation)
-    {
-        _builder.AddSingleton(service, implementation);
-    }
+    public void Register(Type service, Type implementation) => _builder.AddSingleton(service, implementation);
 
-    public void RegisterInstance(Type service, object implementation)
-    {
-        _builder.AddSingleton(service, implementation);
-    }
+    public void RegisterInstance(Type service, object implementation) => _builder.AddSingleton(service, implementation);
 
     public void RegisterLazy(Type service, Func<object> func)
     {
