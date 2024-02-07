@@ -30,11 +30,7 @@ public partial class GenerateQueryCliCommand
 
         public string ProjectPath =>
             ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(
-                    Environment.CurrentDirectory,
-                    "src",
-                    ProjectName.ToCamelCase()
-                )
+                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
                 : Environment.CurrentDirectory;
 
         public void CheckQueryName()
@@ -45,29 +41,20 @@ public partial class GenerateQueryCliCommand
                 return;
             }
 
-            QueryName = AnsiConsole.Prompt(
-                new TextPrompt<string>("[blue]What is [green]new query name[/]?[/]")
-            );
+            QueryName = AnsiConsole.Prompt(new TextPrompt<string>("[blue]What is [green]new query name[/]?[/]"));
         }
 
         public void CheckFeatureName()
         {
             if (FeatureName is not null)
             {
-                AnsiConsole.MarkupLine(
-                    $"[green]Feature[/] name that the query will be in is [blue]{FeatureName}[/]."
-                );
+                AnsiConsole.MarkupLine($"[green]Feature[/] name that the query will be in is [blue]{FeatureName}[/].");
                 return;
             }
 
-            string?[] features = Directory
-                .GetDirectories($"{ProjectPath}/Application/Features")
-                .Select(Path.GetFileName)
-                .ToArray()!;
+            string?[] features = Directory.GetDirectories($"{ProjectPath}/Application/Features").Select(Path.GetFileName).ToArray()!;
             if (features.Length == 0)
-                throw new BusinessException(
-                    $"No feature found in \"{ProjectPath}/Application/Features\"."
-                );
+                throw new BusinessException($"No feature found in \"{ProjectPath}/Application/Features\".");
 
             FeatureName = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -88,11 +75,7 @@ public partial class GenerateQueryCliCommand
             }
 
             string[] layerFolders = { "Application", "Domain", "Persistence", "WebAPI" };
-            if (
-                layerFolders.All(
-                    folder => Directory.Exists($"{Environment.CurrentDirectory}/{folder}")
-                )
-            )
+            if (layerFolders.All(folder => Directory.Exists($"{Environment.CurrentDirectory}/{folder}")))
                 return;
 
             string[] projects = Directory
@@ -143,10 +126,7 @@ public partial class GenerateQueryCliCommand
                     .NotRequired()
                     .PageSize(5)
                     .MoreChoicesText("[grey](Move up and down to reveal more mechanisms)[/]")
-                    .InstructionsText(
-                        "[grey](Press [blue]<space>[/] to toggle a mechanism, "
-                            + "[green]<enter>[/] to accept)[/]"
-                    )
+                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle a mechanism, " + "[green]<enter>[/] to accept)[/]")
                     .AddChoices(mechanismsToPrompt)
             );
 

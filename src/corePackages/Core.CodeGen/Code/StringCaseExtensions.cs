@@ -28,10 +28,7 @@ public static class StringCaseExtensions
 
         return string.Join(
             string.Empty,
-            values: words.Select(
-                word =>
-                    char.ToUpper(word[index: 0], CultureInfo.GetCultureInfo("en-EN")) + word[1..]
-            )
+            values: words.Select(word => char.ToUpper(word[index: 0], CultureInfo.GetCultureInfo("en-EN")) + word[1..])
         );
     }
 
@@ -44,10 +41,7 @@ public static class StringCaseExtensions
         if (words.Length == 1)
             return value.ToLower(CultureInfo.GetCultureInfo("en-EN"));
 
-        return string.Join(
-            separator: "_",
-            values: words.Select(word => word.ToLower(CultureInfo.GetCultureInfo("en-EN")))
-        );
+        return string.Join(separator: "_", values: words.Select(word => word.ToLower(CultureInfo.GetCultureInfo("en-EN"))));
     }
 
     public static string ToKebabCase(this string value)
@@ -59,10 +53,7 @@ public static class StringCaseExtensions
         if (words.Length == 1)
             return value.ToLower(CultureInfo.GetCultureInfo("en-EN"));
 
-        return string.Join(
-            separator: "-",
-            values: words.Select(word => word.ToLower(CultureInfo.GetCultureInfo("en-EN")))
-        );
+        return string.Join(separator: "-", values: words.Select(word => word.ToLower(CultureInfo.GetCultureInfo("en-EN"))));
     }
 
     public static string ToAbbreviation(this string value)
@@ -74,11 +65,6 @@ public static class StringCaseExtensions
         if (words.Length == 1)
             return char.ToLower(value[index: 0], CultureInfo.GetCultureInfo("en-EN")).ToString();
 
-        return string.Join(
-            string.Empty,
-            values: words.Select(
-                word => char.ToLower(word[index: 0], CultureInfo.GetCultureInfo("en-EN"))
-            )
-        );
+        return string.Join(string.Empty, values: words.Select(word => char.ToLower(word[index: 0], CultureInfo.GetCultureInfo("en-EN"))));
     }
 }

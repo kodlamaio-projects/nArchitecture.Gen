@@ -26,17 +26,9 @@ public class TemplateEngine : ITemplateEngine
     {
         string templateFileText = await System.IO.File.ReadAllTextAsync(templateFilePath);
 
-        string newRenderedFileText = await _templateRenderer.RenderAsync(
-            templateFileText,
-            templateData
-        );
+        string newRenderedFileText = await _templateRenderer.RenderAsync(templateFileText, templateData);
         string newRenderedFilePath = await _templateRenderer.RenderAsync(
-            template: getOutputFilePath(
-                templateFilePath,
-                templateDir,
-                replacePathVariable,
-                outputDir
-            ),
+            template: getOutputFilePath(templateFilePath, templateDir, replacePathVariable, outputDir),
             templateData
         );
 
@@ -55,13 +47,7 @@ public class TemplateEngine : ITemplateEngine
         List<string> newRenderedFilePaths = new();
         foreach (string templateFilePath in templateFilePaths)
         {
-            string newRenderedFilePath = await RenderFileAsync(
-                templateFilePath,
-                templateDir,
-                replacePathVariable,
-                outputDir,
-                templateData
-            );
+            string newRenderedFilePath = await RenderFileAsync(templateFilePath, templateDir, replacePathVariable, outputDir, templateData);
             newRenderedFilePaths.Add(newRenderedFilePath);
         }
 
@@ -77,10 +63,7 @@ public class TemplateEngine : ITemplateEngine
     {
         string outputFilePath = templateFilePath;
         foreach (KeyValuePair<string, string> replacePathVariableItem in replacePathVariable)
-            outputFilePath = outputFilePath.Replace(
-                replacePathVariableItem.Key,
-                replacePathVariableItem.Value
-            );
+            outputFilePath = outputFilePath.Replace(replacePathVariableItem.Key, replacePathVariableItem.Value);
         outputFilePath = outputFilePath
             .Replace(templateDir, outputDir)
             .Replace(oldValue: $".{_templateRenderer.TemplateExtension}", string.Empty);

@@ -16,16 +16,12 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
     public CrudTemplateData CrudTemplateData { get; set; }
     public string DbContextName { get; set; }
 
-    public class GenerateCrudCommandHandler
-        : IStreamRequestHandler<GenerateCrudCommand, GeneratedCrudResponse>
+    public class GenerateCrudCommandHandler : IStreamRequestHandler<GenerateCrudCommand, GeneratedCrudResponse>
     {
         private readonly ITemplateEngine _templateEngine;
         private readonly GenerateBusinessRules _businessRules;
 
-        public GenerateCrudCommandHandler(
-            ITemplateEngine templateEngine,
-            GenerateBusinessRules businessRules
-        )
+        public GenerateCrudCommandHandler(ITemplateEngine templateEngine, GenerateBusinessRules businessRules)
         {
             _templateEngine = templateEngine;
             _businessRules = businessRules;
@@ -36,50 +32,35 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             [EnumeratorCancellation] CancellationToken cancellationToken
         )
         {
-            await _businessRules.EntityClassShouldBeInhreitEntityBaseClass(
-                request.ProjectPath,
-                request.CrudTemplateData.Entity.Name
-            );
+            await _businessRules.EntityClassShouldBeInhreitEntityBaseClass(request.ProjectPath, request.CrudTemplateData.Entity.Name);
 
             GeneratedCrudResponse response = new();
             List<string> newFilePaths = new();
             List<string> updatedFilePaths = new();
 
-            response.CurrentStatusMessage =
-                $"Adding {request.CrudTemplateData.Entity.Name} entity to BaseContext.";
+            response.CurrentStatusMessage = $"Adding {request.CrudTemplateData.Entity.Name} entity to BaseContext.";
             yield return response;
-            updatedFilePaths.Add(
-                await injectEntityToContext(request.ProjectPath, request.CrudTemplateData)
-            );
-            response.LastOperationMessage =
-                $"{request.CrudTemplateData.Entity.Name} has been added to BaseContext.";
+            updatedFilePaths.Add(await injectEntityToContext(request.ProjectPath, request.CrudTemplateData));
+            response.LastOperationMessage = $"{request.CrudTemplateData.Entity.Name} has been added to BaseContext.";
 
             response.CurrentStatusMessage = "Generating Persistence layer codes...";
             yield return response;
-            newFilePaths.AddRange(
-                await generatePersistenceCodes(request.ProjectPath, request.CrudTemplateData)
-            );
+            newFilePaths.AddRange(await generatePersistenceCodes(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Persistence layer codes have been generated.";
 
             response.CurrentStatusMessage = "Generating Application layer codes...";
             yield return response;
-            newFilePaths.AddRange(
-                await generateApplicationCodes(request.ProjectPath, request.CrudTemplateData)
-            );
+            newFilePaths.AddRange(await generateApplicationCodes(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Application layer codes have been generated.";
 
             response.CurrentStatusMessage = "Adding service registrations...";
             yield return response;
-            updatedFilePaths.AddRange(
-                await injectServiceRegistrations(request.ProjectPath, request.CrudTemplateData)
-            );
+            updatedFilePaths.AddRange(await injectServiceRegistrations(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Service registrations have been added.";
 
             response.CurrentStatusMessage = "Generating WebAPI layer codes...";
             yield return response;
-            newFilePaths.AddRange(
-                await generateWebApiCodes(request.ProjectPath, request.CrudTemplateData)
-            );
+            newFilePaths.AddRange(await generateWebApiCodes(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "WebAPI layer codes have been generated.";
 
             response.CurrentStatusMessage = "Completed.";
@@ -88,10 +69,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             yield return response;
         }
 
-        private async Task<string> injectEntityToContext(
-            string projectPath,
-            CrudTemplateData crudTemplateData
-        )
+        private async Task<string> injectEntityToContext(string projectPath, CrudTemplateData crudTemplateData)
         {
             string contextFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
@@ -118,26 +96,15 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                     "EntityContextProperty.cs.sbn"
                 )
             );
-            string dbSetPropertyCodeLine = await _templateEngine.RenderAsync(
-                dbSetPropertyTemplateCodeLine,
-                crudTemplateData
-            );
-            bool isExists = (await File.ReadAllLinesAsync(contextFilePath)).Any(
-                line => line.Contains(dbSetPropertyCodeLine)
-            );
+            string dbSetPropertyCodeLine = await _templateEngine.RenderAsync(dbSetPropertyTemplateCodeLine, crudTemplateData);
+            bool isExists = (await File.ReadAllLinesAsync(contextFilePath)).Any(line => line.Contains(dbSetPropertyCodeLine));
             if (!isExists)
-                await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(
-                    contextFilePath,
-                    codeLines: new[] { dbSetPropertyCodeLine }
-                );
+                await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(contextFilePath, codeLines: new[] { dbSetPropertyCodeLine });
 
             return contextFilePath;
         }
 
-        private async Task<ICollection<string>> generatePersistenceCodes(
-            string projectPath,
-            CrudTemplateData crudTemplateData
-        )
+        private async Task<ICollection<string>> generatePersistenceCodes(string projectPath, CrudTemplateData crudTemplateData)
         {
             string templateDir = PlatformHelper.SecuredPathJoin(
                 DirectoryHelper.AssemblyDirectory,
@@ -152,10 +119,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
         }
 
-        private async Task<ICollection<string>> generateApplicationCodes(
-            string projectPath,
-            CrudTemplateData crudTemplateData
-        )
+        private async Task<ICollection<string>> generateApplicationCodes(string projectPath, CrudTemplateData crudTemplateData)
         {
             string templateDir = PlatformHelper.SecuredPathJoin(
                 DirectoryHelper.AssemblyDirectory,
@@ -171,10 +135,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
         }
 
-        private async Task<ICollection<string>> generateWebApiCodes(
-            string projectPath,
-            CrudTemplateData crudTemplateData
-        )
+        private async Task<ICollection<string>> generateWebApiCodes(string projectPath, CrudTemplateData crudTemplateData)
         {
             string templateDir = PlatformHelper.SecuredPathJoin(
                 DirectoryHelper.AssemblyDirectory,
@@ -189,17 +150,10 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
         }
 
-        private async Task<ICollection<string>> generateFolderCodes(
-            string templateDir,
-            string outputDir,
-            CrudTemplateData crudTemplateData
-        )
+        private async Task<ICollection<string>> generateFolderCodes(string templateDir, string outputDir, CrudTemplateData crudTemplateData)
         {
             var templateFilePaths = DirectoryHelper
-                .GetFilesInDirectoryTree(
-                    templateDir,
-                    searchPattern: $"*.{_templateEngine.TemplateExtension}"
-                )
+                .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
                 .ToList();
             Dictionary<string, string> replacePathVariable =
                 new()
@@ -217,10 +171,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             return newRenderedFilePaths;
         }
 
-        private async Task<ICollection<string>> injectServiceRegistrations(
-            string projectPath,
-            CrudTemplateData crudTemplateData
-        )
+        private async Task<ICollection<string>> injectServiceRegistrations(string projectPath, CrudTemplateData crudTemplateData)
         {
             #region Persistence
             string persistenceServiceRegistrationFilePath = PlatformHelper.SecuredPathJoin(
@@ -237,18 +188,13 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                     "EntityRepositoryServiceRegistration.cs.sbn"
                 )
             );
-            string persistenceServiceRegistrationRenderedCodeLine =
-                await _templateEngine.RenderAsync(
-                    persistenceServiceRegistrationTemplateCodeLine,
-                    crudTemplateData
-                );
+            string persistenceServiceRegistrationRenderedCodeLine = await _templateEngine.RenderAsync(
+                persistenceServiceRegistrationTemplateCodeLine,
+                crudTemplateData
+            );
             await CSharpCodeInjector.AddUsingToFile(
                 persistenceServiceRegistrationFilePath,
-                usingLines: new[]
-                {
-                    "using Application.Services.Repositories;",
-                    "using Persistence.Repositories;"
-                }
+                usingLines: new[] { "using Application.Services.Repositories;", "using Persistence.Repositories;" }
             );
             await CSharpCodeInjector.AddCodeLinesToMethodAsync(
                 persistenceServiceRegistrationFilePath,
@@ -258,27 +204,24 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             #endregion
 
             #region Application
-            string applicationServiceRegistrationNameSpaceUsingFilePath =
-                PlatformHelper.SecuredPathJoin(
-                    projectPath,
-                    "Application",
-                    "ApplicationServiceRegistration.cs"
-                );
+            string applicationServiceRegistrationNameSpaceUsingFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "Application",
+                "ApplicationServiceRegistration.cs"
+            );
 
-            string applicationServiceRegistrationNameSpaceUsingTemplateCodeLine =
-                await File.ReadAllTextAsync(
-                    PlatformHelper.SecuredPathJoin(
-                        DirectoryHelper.AssemblyDirectory,
-                        Templates.Paths.Crud,
-                        "Lines",
-                        "EntityServiceRegistrationNameSpaceUsing.cs.sbn"
-                    )
-                );
-            string applicationServiceRegistrationNameSpaceUsingRenderedCodeLine =
-                await _templateEngine.RenderAsync(
-                    applicationServiceRegistrationNameSpaceUsingTemplateCodeLine,
-                    crudTemplateData
-                );
+            string applicationServiceRegistrationNameSpaceUsingTemplateCodeLine = await File.ReadAllTextAsync(
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Crud,
+                    "Lines",
+                    "EntityServiceRegistrationNameSpaceUsing.cs.sbn"
+                )
+            );
+            string applicationServiceRegistrationNameSpaceUsingRenderedCodeLine = await _templateEngine.RenderAsync(
+                applicationServiceRegistrationNameSpaceUsingTemplateCodeLine,
+                crudTemplateData
+            );
             await CSharpCodeInjector.AddUsingToFile(
                 applicationServiceRegistrationNameSpaceUsingFilePath,
                 usingLines: new[] { applicationServiceRegistrationNameSpaceUsingRenderedCodeLine }
@@ -298,11 +241,10 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                     "EntityServiceRegistration.cs.sbn"
                 )
             );
-            string applicationServiceRegistrationRenderedCodeLine =
-                await _templateEngine.RenderAsync(
-                    applicationServiceRegistrationTemplateCodeLine,
-                    crudTemplateData
-                );
+            string applicationServiceRegistrationRenderedCodeLine = await _templateEngine.RenderAsync(
+                applicationServiceRegistrationTemplateCodeLine,
+                crudTemplateData
+            );
             await CSharpCodeInjector.AddCodeLinesToMethodAsync(
                 applicationServiceRegistrationFilePath,
                 methodName: "AddApplicationServices",
@@ -310,11 +252,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
             #endregion
 
-            return new[]
-            {
-                persistenceServiceRegistrationFilePath,
-                applicationServiceRegistrationFilePath
-            };
+            return new[] { persistenceServiceRegistrationFilePath, applicationServiceRegistrationFilePath };
         }
     }
 }

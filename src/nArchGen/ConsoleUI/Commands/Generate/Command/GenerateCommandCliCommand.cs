@@ -41,9 +41,7 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
                 }
             };
 
-        IAsyncEnumerable<GeneratedCommandResponse> resultsStream = _mediator.CreateStream(
-            request: generateCommandCommand
-        );
+        IAsyncEnumerable<GeneratedCommandResponse> resultsStream = _mediator.CreateStream(request: generateCommandCommand);
 
         await AnsiConsole
             .Status()
@@ -61,30 +59,20 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
                             AnsiConsole.MarkupLine(result.OutputMessage);
 
                         if (result.LastOperationMessage is not null)
-                            AnsiConsole.MarkupLine(
-                                $":check_mark_button: {result.LastOperationMessage}"
-                            );
+                            AnsiConsole.MarkupLine($":check_mark_button: {result.LastOperationMessage}");
 
                         if (result.NewFilePathsResult is not null)
                         {
                             AnsiConsole.MarkupLine(":new_button: [green]Generated files:[/]");
                             foreach (string filePath in result.NewFilePathsResult)
-                                AnsiConsole.Write(
-                                    new TextPath(filePath)
-                                        .StemColor(Color.Yellow)
-                                        .LeafColor(Color.Blue)
-                                );
+                                AnsiConsole.Write(new TextPath(filePath).StemColor(Color.Yellow).LeafColor(Color.Blue));
                         }
 
                         if (result.UpdatedFilePathsResult is not null)
                         {
                             AnsiConsole.MarkupLine(":up_button: [green]Updated files:[/]");
                             foreach (string filePath in result.UpdatedFilePathsResult)
-                                AnsiConsole.Write(
-                                    new TextPath(filePath)
-                                        .StemColor(Color.Yellow)
-                                        .LeafColor(Color.Blue)
-                                );
+                                AnsiConsole.Write(new TextPath(filePath).StemColor(Color.Yellow).LeafColor(Color.Blue));
                         }
                     }
                 }

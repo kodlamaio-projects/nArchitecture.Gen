@@ -31,9 +31,7 @@ public static class CSharpCodeReader
         return match.Groups[1].Value;
     }
 
-    public static async Task<ICollection<string>> ReadBaseClassGenericArgumentsAsync(
-        string filePath
-    )
+    public static async Task<ICollection<string>> ReadBaseClassGenericArgumentsAsync(string filePath)
     {
         string fileContent = await System.IO.File.ReadAllTextAsync(filePath);
         const string pattern = @"class\s+\w+\s*:?\s*(\w+)\s*<([\w,\s]+)>";
@@ -46,10 +44,7 @@ public static class CSharpCodeReader
         return genericArguments.Select(genericArgument => genericArgument.Trim()).ToArray();
     }
 
-    public static async Task<ICollection<PropertyInfo>> ReadClassPropertiesAsync(
-        string filePath,
-        string projectPath
-    )
+    public static async Task<ICollection<PropertyInfo>> ReadClassPropertiesAsync(string filePath, string projectPath)
     {
         string fileContent = await System.IO.File.ReadAllTextAsync(filePath);
         Regex propertyRegex =
@@ -73,14 +68,11 @@ public static class CSharpCodeReader
             string? nameSpace = null;
             if (!builtInTypeRegex.IsMatch(typeName))
             {
-                ICollection<string> potentialPropertyTypeFilePaths =
-                    DirectoryHelper.GetFilesInDirectoryTree(
-                        projectPath,
-                        searchPattern: $"{typeName}.cs"
-                    );
-                ICollection<string> usingNameSpacesInFile = await ReadUsingNameSpacesAsync(
-                    filePath
+                ICollection<string> potentialPropertyTypeFilePaths = DirectoryHelper.GetFilesInDirectoryTree(
+                    projectPath,
+                    searchPattern: $"{typeName}.cs"
                 );
+                ICollection<string> usingNameSpacesInFile = await ReadUsingNameSpacesAsync(filePath);
                 foreach (string potentialPropertyTypeFilePath in potentialPropertyTypeFilePaths)
                 {
                     string potentialPropertyNameSpace = string.Join(
@@ -91,11 +83,7 @@ public static class CSharpCodeReader
                             .Replace(oldValue: $".{typeName}.cs", string.Empty)
                             .Substring(1)
                             .Split('.')
-                            .Select(
-                                part =>
-                                    char.ToUpper(part[0], CultureInfo.GetCultureInfo("en-EN"))
-                                    + part[1..]
-                            )
+                            .Select(part => char.ToUpper(part[0], CultureInfo.GetCultureInfo("en-EN")) + part[1..])
                     );
                     if (!usingNameSpacesInFile.Contains(potentialPropertyNameSpace))
                         continue;
@@ -107,9 +95,7 @@ public static class CSharpCodeReader
             PropertyInfo propertyInfo =
                 new()
                 {
-                    AccessModifier = string.IsNullOrEmpty(accessModifier)
-                        ? "private"
-                        : accessModifier,
+                    AccessModifier = string.IsNullOrEmpty(accessModifier) ? "private" : accessModifier,
                     Type = type,
                     Name = name,
                     NameSpace = nameSpace

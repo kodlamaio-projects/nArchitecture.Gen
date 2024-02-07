@@ -18,16 +18,12 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
     public string ProjectPath { get; set; } = null!;
     public QueryTemplateData QueryTemplateData { get; set; } = null!;
 
-    public class GenerateQueryCommandHandler
-        : IStreamRequestHandler<GenerateQueryCommand, GeneratedQueryResponse>
+    public class GenerateQueryCommandHandler : IStreamRequestHandler<GenerateQueryCommand, GeneratedQueryResponse>
     {
         private readonly ITemplateEngine _templateEngine;
         private readonly GenerateBusinessRules _businessRules;
 
-        public GenerateQueryCommandHandler(
-            ITemplateEngine templateEngine,
-            GenerateBusinessRules businessRules
-        )
+        public GenerateQueryCommandHandler(ITemplateEngine templateEngine, GenerateBusinessRules businessRules)
         {
             _templateEngine = templateEngine;
             _businessRules = businessRules;
@@ -56,29 +52,14 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
 
             response.CurrentStatusMessage = "Generating Application layer codes...";
             yield return response;
-            newFilePaths.AddRange(
-                await generateApplicationCodes(request.ProjectPath, request.QueryTemplateData)
-            );
-            updatedFilePaths.AddRange(
-                await injectOperationClaims(
-                    request.ProjectPath,
-                    request.FeatureName,
-                    request.QueryTemplateData
-                )
-            );
+            newFilePaths.AddRange(await generateApplicationCodes(request.ProjectPath, request.QueryTemplateData));
+            updatedFilePaths.AddRange(await injectOperationClaims(request.ProjectPath, request.FeatureName, request.QueryTemplateData));
             response.LastOperationMessage = "Application layer codes have been generated.";
 
             response.CurrentStatusMessage = "Adding endpoint to WebAPI...";
             yield return response;
-            updatedFilePaths.AddRange(
-                await injectWebApiEndpoint(
-                    request.ProjectPath,
-                    request.FeatureName,
-                    request.QueryTemplateData
-                )
-            );
-            response.LastOperationMessage =
-                $"New endpoint has been add to {request.FeatureName.ToPascalCase()}Controller.";
+            updatedFilePaths.AddRange(await injectWebApiEndpoint(request.ProjectPath, request.FeatureName, request.QueryTemplateData));
+            response.LastOperationMessage = $"New endpoint has been add to {request.FeatureName.ToPascalCase()}Controller.";
 
             response.CurrentStatusMessage = "Completed.";
             response.NewFilePathsResult = newFilePaths;
@@ -86,10 +67,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             yield return response;
         }
 
-        private async Task<ICollection<string>> generateApplicationCodes(
-            string projectPath,
-            QueryTemplateData QueryTemplateData
-        )
+        private async Task<ICollection<string>> generateApplicationCodes(string projectPath, QueryTemplateData QueryTemplateData)
         {
             string templateDir = PlatformHelper.SecuredPathJoin(
                 DirectoryHelper.AssemblyDirectory,
@@ -132,10 +110,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                     async line => await _templateEngine.RenderAsync(line, QueryTemplateData)
                 )
             );
-            await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(
-                featureOperationClaimFilePath,
-                queryOperationClaimPropertyCodeLines
-            );
+            await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(featureOperationClaimFilePath, queryOperationClaimPropertyCodeLines);
 
             string operationClaimsEntityConfigurationFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
@@ -156,9 +131,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                 )
             );
             string[] queryOperationClaimSeedCodeLines = await Task.WhenAll(
-                queryOperationClaimSeedTemplateCodeLines.Select(
-                    async line => await _templateEngine.RenderAsync(line, QueryTemplateData)
-                )
+                queryOperationClaimSeedTemplateCodeLines.Select(async line => await _templateEngine.RenderAsync(line, QueryTemplateData))
             );
             await CSharpCodeInjector.AddCodeLinesToRegionAsync(
                 operationClaimsEntityConfigurationFilePath,
@@ -166,11 +139,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                 featureName
             );
 
-            return new[]
-            {
-                featureOperationClaimFilePath,
-                operationClaimsEntityConfigurationFilePath
-            };
+            return new[] { featureOperationClaimFilePath, operationClaimsEntityConfigurationFilePath };
         }
 
         private async Task<ICollection<string>> generateFolderCodes(
@@ -180,17 +149,10 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
         )
         {
             List<string> templateFilePaths = DirectoryHelper
-                .GetFilesInDirectoryTree(
-                    templateDir,
-                    searchPattern: $"*.{_templateEngine.TemplateExtension}"
-                )
+                .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
                 .ToList();
             Dictionary<string, string> replacePathVariable =
-                new()
-                {
-                    { "FEATURE", "{{ feature_name | string.pascalcase }}" },
-                    { "QUERY", "{{ query_name | string.pascalcase }}" }
-                };
+                new() { { "FEATURE", "{{ feature_name | string.pascalcase }}" }, { "QUERY", "{{ query_name | string.pascalcase }}" } };
             ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
                 templateFilePaths,
                 templateDir,
@@ -207,12 +169,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             QueryTemplateData QueryTemplateData
         )
         {
-            string controllerFilePath = PlatformHelper.SecuredPathJoin(
-                projectPath,
-                "WebAPI",
-                "Controllers",
-                $"{featureName}Controller.cs"
-            );
+            string controllerFilePath = PlatformHelper.SecuredPathJoin(projectPath, "WebAPI", "Controllers", $"{featureName}Controller.cs");
             string[] controllerEndPointMethodTemplateCodeLines = await File.ReadAllLinesAsync(
                 PlatformHelper.SecuredPathJoin(
                     DirectoryHelper.AssemblyDirectory,
@@ -222,9 +179,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                 )
             );
             string[] controllerEndPointMethodRenderedCodeLines = await Task.WhenAll(
-                controllerEndPointMethodTemplateCodeLines.Select(
-                    async line => await _templateEngine.RenderAsync(line, QueryTemplateData)
-                )
+                controllerEndPointMethodTemplateCodeLines.Select(async line => await _templateEngine.RenderAsync(line, QueryTemplateData))
             );
 
             await CSharpCodeInjector.AddMethodToClass(
@@ -242,14 +197,9 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                 )
             );
             string[] queryUsingNameSpaceCodeLines = await Task.WhenAll(
-                queryUsingNameSpaceTemplateCodeLines.Select(
-                    async line => await _templateEngine.RenderAsync(line, QueryTemplateData)
-                )
+                queryUsingNameSpaceTemplateCodeLines.Select(async line => await _templateEngine.RenderAsync(line, QueryTemplateData))
             );
-            await CSharpCodeInjector.AddUsingToFile(
-                controllerFilePath,
-                queryUsingNameSpaceCodeLines
-            );
+            await CSharpCodeInjector.AddUsingToFile(controllerFilePath, queryUsingNameSpaceCodeLines);
 
             return new[] { controllerFilePath };
         }

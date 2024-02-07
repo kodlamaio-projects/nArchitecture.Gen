@@ -23,8 +23,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
         IsThereSecurityMechanism = isThereSecurityMechanism;
     }
 
-    public class CreateNewProjectCommandHandler
-        : IStreamRequestHandler<CreateNewProjectCommand, CreatedNewProjectResponse>
+    public class CreateNewProjectCommandHandler : IStreamRequestHandler<CreateNewProjectCommand, CreatedNewProjectResponse>
     {
         public async IAsyncEnumerable<CreatedNewProjectResponse> Handle(
             CreateNewProjectCommand request,
@@ -38,16 +37,14 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             yield return response;
             response.OutputMessage = null;
             await downloadStarterProject(request.ProjectName);
-            response.LastOperationMessage =
-                "Starter project has been cloned from 'https://github.com/kodlamaio-projects/nArchitecture'.";
+            response.LastOperationMessage = "Starter project has been cloned from 'https://github.com/kodlamaio-projects/nArchitecture'.";
 
             response.CurrentStatusMessage = "Preparing project...";
             yield return response;
             await renameProject(request.ProjectName);
             if (!request.IsThereSecurityMechanism)
                 await removeSecurityMechanism(request.ProjectName);
-            response.LastOperationMessage =
-                $"Project has been prepared with {request.ProjectName.ToPascalCase()}.";
+            response.LastOperationMessage = $"Project has been prepared with {request.ProjectName.ToPascalCase()}.";
 
             ICollection<string> newFiles = DirectoryHelper.GetFilesInDirectoryTree(
                 root: $"{Environment.CurrentDirectory}/{request.ProjectName}",
@@ -63,16 +60,14 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             response.NewFilePathsResult = newFiles;
             response.OutputMessage =
                 $":warning: Check the configuration that has name 'appsettings.json' in 'src/{request.ProjectName.ToCamelCase()}'.";
-            response.OutputMessage =
-                ":warning: Run 'Update-Database' nuget command on the Persistence layer to apply initial migration.";
+            response.OutputMessage = ":warning: Run 'Update-Database' nuget command on the Persistence layer to apply initial migration.";
             yield return response;
         }
 
         private async Task downloadStarterProject(string projectName)
         {
             // Download zip on url
-            string releaseUrl =
-                "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v0.1.0.zip";
+            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v0.1.0.zip";
             using HttpClient client = new();
             using HttpResponseMessage response = await client.GetAsync(releaseUrl);
             response.EnsureSuccessStatusCode();
@@ -105,10 +100,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             );
 
             string projectPath = $"{Environment.CurrentDirectory}/src/{projectName.ToCamelCase()}";
-            Directory.Move(
-                sourceDirName: $"{Environment.CurrentDirectory}/src/starterProject",
-                projectPath
-            );
+            Directory.Move(sourceDirName: $"{Environment.CurrentDirectory}/src/starterProject", projectPath);
 
             await replaceFileContentWithProjectName(
                 path: $"{Environment.CurrentDirectory}/{projectName.ToPascalCase()}.sln",
@@ -116,8 +108,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 projectName: projectName.ToCamelCase()
             );
 
-            string testProjectDir =
-                $"{Environment.CurrentDirectory}/tests/{projectName.ToPascalCase()}.Application.Tests";
+            string testProjectDir = $"{Environment.CurrentDirectory}/tests/{projectName.ToPascalCase()}.Application.Tests";
             Directory.Move(
                 sourceDirName: $"{Environment.CurrentDirectory}/tests/StarterProject.Application.Tests/",
                 destDirName: testProjectDir
@@ -182,11 +173,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
 
             Directory.SetCurrentDirectory("../");
 
-            static async Task replaceFileContentWithProjectName(
-                string path,
-                string search,
-                string projectName
-            )
+            static async Task replaceFileContentWithProjectName(string path, string search, string projectName)
             {
                 if (path.Contains(search))
                 {
@@ -337,7 +324,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                     "using Microsoft.OpenApi.Models;\n",
                     "builder.Services.AddSecurityServices();\n",
                     "const string tokenOptionsConfigurationSection = \"TokenOptions\";\nTokenOptions tokenOptions =\n    builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()\n    ?? throw new InvalidOperationException($\"\\\"{tokenOptionsConfigurationSection}\\\" section cannot found in configuration.\");\nbuilder\n    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)\n    .AddJwtBearer(options =>\n    {\n        options.TokenValidationParameters = new TokenValidationParameters\n        {\n            ValidateIssuer = true,\n            ValidateAudience = true,\n            ValidateLifetime = true,\n            ValidIssuer = tokenOptions.Issuer,\n            ValidAudience = tokenOptions.Audience,\n            ValidateIssuerSigningKey = true,\n            IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)\n        };\n    });\n\n",
-                   "    opt.AddSecurityDefinition(\n        name: \"Bearer\",\n        securityScheme: new OpenApiSecurityScheme\n        {\n            Name = \"Authorization\",\n            Type = SecuritySchemeType.Http,\n            Scheme = \"Bearer\",\n            BearerFormat = \"JWT\",\n            In = ParameterLocation.Header,\n            Description =\n                \"JWT Authorization header using the Bearer scheme. Example: \\\"Authorization: Bearer YOUR_TOKEN\\\". \\r\\n\\r\\n\"\n                + \"`Enter your token in the text input below.`\"\n        }\n    );\n    opt.OperationFilter<BearerSecurityRequirementOperationFilter>();\n",
+                    "    opt.AddSecurityDefinition(\n        name: \"Bearer\",\n        securityScheme: new OpenApiSecurityScheme\n        {\n            Name = \"Authorization\",\n            Type = SecuritySchemeType.Http,\n            Scheme = \"Bearer\",\n            BearerFormat = \"JWT\",\n            In = ParameterLocation.Header,\n            Description =\n                \"JWT Authorization header using the Bearer scheme. Example: \\\"Authorization: Bearer YOUR_TOKEN\\\". \\r\\n\\r\\n\"\n                + \"`Enter your token in the text input below.`\"\n        }\n    );\n    opt.OperationFilter<BearerSecurityRequirementOperationFilter>();\n",
                     "app.UseAuthentication();\n",
                     "app.UseAuthorization();\n"
                 }
@@ -350,16 +337,13 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             await GitCommandHelper.RunAsync($"init");
             await GitCommandHelper.RunAsync($"branch -m master main");
             await downloadCorePackages(projectName);
-            await GitCommandHelper.CommitChangesAsync(
-                "chore: initial commit from nArchitecture.Gen"
-            );
+            await GitCommandHelper.CommitChangesAsync("chore: initial commit from nArchitecture.Gen");
             Directory.SetCurrentDirectory("../");
         }
 
         private async Task downloadCorePackages(string projectName)
         {
-            string releaseUrl =
-                "https://github.com/kodlamaio-projects/nArchitecture.Core/archive/refs/tags/v0.1.0.zip";
+            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture.Core/archive/refs/tags/v0.1.0.zip";
             using HttpClient client = new();
             using HttpResponseMessage response = await client.GetAsync(releaseUrl);
             response.EnsureSuccessStatusCode();

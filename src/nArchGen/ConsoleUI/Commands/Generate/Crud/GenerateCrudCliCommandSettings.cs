@@ -35,11 +35,7 @@ public partial class GenerateCrudCliCommand
 
         public string ProjectPath =>
             ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(
-                    Environment.CurrentDirectory,
-                    "src",
-                    ProjectName.ToCamelCase()
-                )
+                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
                 : Environment.CurrentDirectory;
 
         public void CheckProjectName()
@@ -53,11 +49,7 @@ public partial class GenerateCrudCliCommand
             }
 
             string[] layerFolders = { "Application", "Domain", "Persistence", "WebAPI" };
-            if (
-                layerFolders.All(
-                    folder => Directory.Exists($"{Environment.CurrentDirectory}/{folder}")
-                )
-            )
+            if (layerFolders.All(folder => Directory.Exists($"{Environment.CurrentDirectory}/{folder}")))
                 return;
 
             string[] projects = Directory
@@ -95,15 +87,10 @@ public partial class GenerateCrudCliCommand
                 .Select(Path.GetFileNameWithoutExtension)
                 .ToArray()!;
             if (entities.Length == 0)
-                throw new BusinessException(
-                    $"No entities found in \"{ProjectPath}\\Domain\\Entities\""
-                );
+                throw new BusinessException($"No entities found in \"{ProjectPath}\\Domain\\Entities\"");
 
             EntityName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]entity[/]?")
-                    .PageSize(10)
-                    .AddChoices(entities)
+                new SelectionPrompt<string>().Title("What's your [green]entity[/]?").PageSize(10).AddChoices(entities)
             );
         }
 
@@ -111,28 +98,19 @@ public partial class GenerateCrudCliCommand
         {
             if (DbContextName is not null)
             {
-                AnsiConsole.MarkupLine(
-                    $"Selected [green]DbContext[/] is [blue]{DbContextName}[/]."
-                );
+                AnsiConsole.MarkupLine($"Selected [green]DbContext[/] is [blue]{DbContextName}[/].");
                 return;
             }
 
             string[] dbContexts = Directory
-                .GetFiles(
-                    path: PlatformHelper.SecuredPathJoin(ProjectPath, "Persistence", "Contexts")
-                )
+                .GetFiles(path: PlatformHelper.SecuredPathJoin(ProjectPath, "Persistence", "Contexts"))
                 .Select(Path.GetFileNameWithoutExtension)
                 .ToArray()!;
             if (dbContexts.Length == 0)
-                throw new BusinessException(
-                    $"No DbContexts found in \"{ProjectPath}\\Persistence\\Contexts\""
-                );
+                throw new BusinessException($"No DbContexts found in \"{ProjectPath}\\Persistence\\Contexts\"");
 
             DbContextName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]DbContext[/]?")
-                    .PageSize(5)
-                    .AddChoices(dbContexts)
+                new SelectionPrompt<string>().Title("What's your [green]DbContext[/]?").PageSize(5).AddChoices(dbContexts)
             );
         }
 
@@ -166,10 +144,7 @@ public partial class GenerateCrudCliCommand
                     .NotRequired()
                     .PageSize(5)
                     .MoreChoicesText("[grey](Move up and down to reveal more mechanisms)[/]")
-                    .InstructionsText(
-                        "[grey](Press [blue]<space>[/] to toggle a mechanism, "
-                            + "[green]<enter>[/] to accept)[/]"
-                    )
+                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle a mechanism, " + "[green]<enter>[/] to accept)[/]")
                     .AddChoices(mechanismsToPrompt)
             );
 

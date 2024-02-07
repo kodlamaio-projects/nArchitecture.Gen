@@ -6,10 +6,7 @@ namespace Core.CodeGen.Code;
 public static class StringWordExtension
 {
     public static string[] GetWords(this string value) =>
-        Regex
-            .Split(value, pattern: @"(?<!^)(?=[A-Z0-9])|\s+|_|-")
-            .Where(word => !string.IsNullOrEmpty(word))
-            .ToArray();
+        Regex.Split(value, pattern: @"(?<!^)(?=[A-Z0-9])|\s+|_|-").Where(word => !string.IsNullOrEmpty(word)).ToArray();
 
     public static string ToPlural(this string value) => PluralizationProvider.Pluralize(value);
 

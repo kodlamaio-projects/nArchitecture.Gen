@@ -20,10 +20,7 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
         settings.CheckIsThereSecurityMechanismArgument();
 
         CreateNewProjectCommand request =
-            new(
-                projectName: settings.ProjectName!,
-                isThereSecurityMechanism: settings.IsThereSecurityMechanism
-            );
+            new(projectName: settings.ProjectName!, isThereSecurityMechanism: settings.IsThereSecurityMechanism);
 
         IAsyncEnumerable<CreatedNewProjectResponse> resultsStream = _mediator.CreateStream(request);
 
@@ -40,19 +37,13 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
                         ctx.Status(result.CurrentStatusMessage);
 
                         if (result.LastOperationMessage is not null)
-                            AnsiConsole.MarkupLine(
-                                $":check_mark_button: {result.LastOperationMessage}"
-                            );
+                            AnsiConsole.MarkupLine($":check_mark_button: {result.LastOperationMessage}");
 
                         if (result.NewFilePathsResult is not null)
                         {
                             AnsiConsole.MarkupLine(":new_button: [green]Generated files:[/]");
                             foreach (string filePath in result.NewFilePathsResult)
-                                AnsiConsole.Write(
-                                    new TextPath(filePath)
-                                        .StemColor(Color.Yellow)
-                                        .LeafColor(Color.Blue)
-                                );
+                                AnsiConsole.Write(new TextPath(filePath).StemColor(Color.Yellow).LeafColor(Color.Blue));
                         }
 
                         if (result.OutputMessage is not null)

@@ -25,17 +25,9 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
         settings.CheckDbContextArgument();
         settings.CheckMechanismOptions();
 
-        string entityPath = PlatformHelper.SecuredPathJoin(
-            settings.ProjectPath,
-            "Domain",
-            "Entities",
-            $"{settings.EntityName}.cs"
-        );
-        ICollection<PropertyInfo> entityProperties =
-            await CSharpCodeReader.ReadClassPropertiesAsync(entityPath, settings.ProjectPath);
-        string entityIdType = (
-            await CSharpCodeReader.ReadBaseClassGenericArgumentsAsync(entityPath)
-        ).First();
+        string entityPath = PlatformHelper.SecuredPathJoin(settings.ProjectPath, "Domain", "Entities", $"{settings.EntityName}.cs");
+        ICollection<PropertyInfo> entityProperties = await CSharpCodeReader.ReadClassPropertiesAsync(entityPath, settings.ProjectPath);
+        string entityIdType = (await CSharpCodeReader.ReadBaseClassGenericArgumentsAsync(entityPath)).First();
         GenerateCrudCommand generateCrudCommand =
             new()
             {
@@ -45,9 +37,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                     {
                         Name = settings.EntityName!,
                         IdType = entityIdType,
-                        Properties = entityProperties
-                            .Where(property => property.AccessModifier == "public")
-                            .ToArray()
+                        Properties = entityProperties.Where(property => property.AccessModifier == "public").ToArray()
                     },
                     IsCachingUsed = settings.IsCachingUsed,
                     IsLoggingUsed = settings.IsLoggingUsed,
@@ -58,9 +48,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                 ProjectPath = settings.ProjectPath
             };
 
-        IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(
-            request: generateCrudCommand
-        );
+        IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(request: generateCrudCommand);
 
         await AnsiConsole
             .Status()
@@ -78,30 +66,20 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                             AnsiConsole.MarkupLine(result.OutputMessage);
 
                         if (result.LastOperationMessage is not null)
-                            AnsiConsole.MarkupLine(
-                                $":check_mark_button: {result.LastOperationMessage}"
-                            );
+                            AnsiConsole.MarkupLine($":check_mark_button: {result.LastOperationMessage}");
 
                         if (result.NewFilePathsResult is not null)
                         {
                             AnsiConsole.MarkupLine(":new_button: [green]Generated files:[/]");
                             foreach (string filePath in result.NewFilePathsResult)
-                                AnsiConsole.Write(
-                                    new TextPath(filePath)
-                                        .StemColor(Color.Yellow)
-                                        .LeafColor(Color.Blue)
-                                );
+                                AnsiConsole.Write(new TextPath(filePath).StemColor(Color.Yellow).LeafColor(Color.Blue));
                         }
 
                         if (result.UpdatedFilePathsResult is not null)
                         {
                             AnsiConsole.MarkupLine(":up_button: [green]Updated files:[/]");
                             foreach (string filePath in result.UpdatedFilePathsResult)
-                                AnsiConsole.Write(
-                                    new TextPath(filePath)
-                                        .StemColor(Color.Yellow)
-                                        .LeafColor(Color.Blue)
-                                );
+                                AnsiConsole.Write(new TextPath(filePath).StemColor(Color.Yellow).LeafColor(Color.Blue));
                         }
                     }
                 }

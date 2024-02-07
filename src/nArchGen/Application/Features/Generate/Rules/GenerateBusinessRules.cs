@@ -9,10 +9,7 @@ namespace Application.Features.Generate.Rules;
 
 public class GenerateBusinessRules
 {
-    public async Task EntityClassShouldBeInhreitEntityBaseClass(
-        string projectPath,
-        string entityName
-    )
+    public async Task EntityClassShouldBeInhreitEntityBaseClass(string projectPath, string entityName)
     {
         string[] fileContent = await File.ReadAllLinesAsync(
             PlatformHelper.SecuredPathJoin(projectPath, "Domain", "Entities", $"{entityName}.cs")
@@ -28,13 +25,10 @@ public class GenerateBusinessRules
         );
         Regex entityBaseClassRegex = new(@$"public\s+class\s+{entityName}\s*:\s*Entity\s*");
         bool isExists =
-            fileContent.Any(line => line == entityBaseClassNameSpaceUsingTemplate)
-            && fileContent.Any(entityBaseClassRegex.IsMatch);
+            fileContent.Any(line => line == entityBaseClassNameSpaceUsingTemplate) && fileContent.Any(entityBaseClassRegex.IsMatch);
 
         if (!isExists)
-            throw new BusinessException(
-                GenerateBusinessMessages.EntityClassShouldBeInheritEntityBaseClass(entityName)
-            );
+            throw new BusinessException(GenerateBusinessMessages.EntityClassShouldBeInheritEntityBaseClass(entityName));
     }
 
     public Task FileShouldNotBeExists(string filePath)
