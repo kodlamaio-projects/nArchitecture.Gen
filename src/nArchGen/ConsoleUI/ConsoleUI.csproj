@@ -8,22 +8,24 @@
 	<PackAsTool>true</PackAsTool>
 	<ToolCommandName>nArchGen</ToolCommandName>
 	<PackageOutputPath>./nupkg</PackageOutputPath>
-	<PackageId>Kodlamaio.$(AssemblyName)</PackageId>
+	<PackageId>NArchitecture.Gen</PackageId>
 	<Title>nArchitecture Gen</Title>
 	<Company>Kodlama.io</Company>
 	<Authors>Kodlama.io, Contributors</Authors>
 	<Description>Code generator tool for nArchitecture framework.</Description>
 	<PackageProjectUrl></PackageProjectUrl>
-	<PackageIcon>Resources/Images/Logo.png</PackageIcon>
+	<PackageIcon>n-architecture-logo.png</PackageIcon>
 	<RepositoryUrl>https://github.com/kodlamaio-projects/nArchitecture.Gen</RepositoryUrl>
 	<PackageTags>nArchitecture, nArchGen, cli, framework, tool, code generation</PackageTags>
-	<AssemblyVersion>0.1.0</AssemblyVersion>
-	<FileVersion>0.1.0</FileVersion>
-	<Version>0.1.0</Version>
+	<Version>1.0.1</Version>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="..\..\..\docs\images\n-architecture-logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\..\..\LICENSE">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

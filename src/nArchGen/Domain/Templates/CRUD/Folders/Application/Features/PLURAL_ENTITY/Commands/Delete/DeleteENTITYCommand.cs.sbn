@@ -4,10 +4,10 @@ using Application.Features.{{ entity.name | string.pascalcase | string.plural }}
 using Application.Services.Repositories;
 using AutoMapper;
 using Domain.Entities;{{ if is_secured_operation_used }}
-using Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
-using Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
-using Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
-using Core.Application.Pipelines.Transaction;{{ end }}
+using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
+using NArchitecture.Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
+using NArchitecture.Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
+using NArchitecture.Core.Application.Pipelines.Transaction;{{ end }}
 using MediatR;{{ if is_secured_operation_used }}
 using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 

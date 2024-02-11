@@ -1,4 +1,4 @@
-﻿using Core.Application.Responses;{{ for propertyItem in entity.properties }}{{ if (propertyItem.name_space) }}
+﻿using NArchitecture.Core.Application.Responses;{{ for propertyItem in entity.properties }}{{ if (propertyItem.name_space) }}
 using {{ propertyItem.name_space }};{{ end }}{{ end }}
 
 namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;

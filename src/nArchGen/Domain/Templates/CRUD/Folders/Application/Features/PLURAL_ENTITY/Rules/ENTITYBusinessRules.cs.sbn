@@ -1,8 +1,8 @@
 ﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
 using Application.Services.Repositories;
-using Core.Application.Rules;
-using Core.CrossCuttingConcerns.Exceptions.Types;
-using Core.Localization.Abstraction;
+using NArchitecture.Core.Application.Rules;
+using NArchitecture.Core.CrossCuttingConcerns.Exception.Types;
+using NArchitecture.Core.Localization.Abstraction;
 using Domain.Entities;
 
 namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;

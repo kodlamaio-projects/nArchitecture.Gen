@@ -1,5 +1,5 @@
 ﻿using Domain.Entities;
-using Core.Persistence.Repositories;
+using NArchitecture.Core.Persistence.Repositories;
 
 namespace Application.Services.Repositories;
 

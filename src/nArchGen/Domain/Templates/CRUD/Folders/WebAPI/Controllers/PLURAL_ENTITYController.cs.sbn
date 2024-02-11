@@ -3,8 +3,8 @@ using Application.Features.{{ entity.name | string.pascalcase | string.plural }}
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
-using Core.Application.Requests;
-using Core.Application.Responses;
+using NArchitecture.Core.Application.Requests;
+using NArchitecture.Core.Application.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;

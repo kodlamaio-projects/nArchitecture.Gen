@@ -25,8 +25,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.ConsoleUI", "src\coreP
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A8705E86-40ED-4733-9FD4-63978FEB6A2A}"
 	ProjectSection(SolutionItems) = preProject
+		.csharpierrc = .csharpierrc
+		.editorconfig = .editorconfig
 		LICENSE = LICENSE
 		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{EDAA799A-1429-4600-BDF4-A5C1A6782562}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "images", "images", "{6E4D5A62-DCCF-4966-8196-41FDFA7E4A03}"
+	ProjectSection(SolutionItems) = preProject
+		docs\images\n-architecture-logo.png = docs\images\n-architecture-logo.png
 	EndProjectSection
 EndProject
 Global
@@ -77,6 +86,8 @@ Global
 		{ABAE025D-8DB7-4BEC-9B84-6E279246C6EA} = {930E16E5-8D6F-4DED-BF5F-A29BBE5F3D24}
 		{DAA1FFAA-74C7-48AE-A372-C8136F8E99B2} = {930E16E5-8D6F-4DED-BF5F-A29BBE5F3D24}
 		{92C3F668-A726-49AA-8652-B479588BD68F} = {930E16E5-8D6F-4DED-BF5F-A29BBE5F3D24}
+		{EDAA799A-1429-4600-BDF4-A5C1A6782562} = {A8705E86-40ED-4733-9FD4-63978FEB6A2A}
+		{6E4D5A62-DCCF-4966-8196-41FDFA7E4A03} = {EDAA799A-1429-4600-BDF4-A5C1A6782562}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {70B48DC2-4941-4DC9-9D67-A29D673A0C26}

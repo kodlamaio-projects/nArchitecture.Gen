@@ -1,1 +1,1 @@
-using Core.Persistence.Repositories;
+using NArchitecture.Core.Persistence.Repositories;

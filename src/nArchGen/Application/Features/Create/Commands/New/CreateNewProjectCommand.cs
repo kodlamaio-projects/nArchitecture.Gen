@@ -67,7 +67,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
         private async Task downloadStarterProject(string projectName)
         {
             // Download zip on url
-            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v0.1.0.zip";
+            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v1.0.0.zip";
             using HttpClient client = new();
             using HttpResponseMessage response = await client.GetAsync(releaseUrl);
             response.EnsureSuccessStatusCode();
@@ -79,7 +79,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             ZipFile.ExtractToDirectory(zipPath, Environment.CurrentDirectory);
             File.Delete(zipPath);
             Directory.Move(
-                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-0.1.0",
+                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-1.0.0",
                 $"{Environment.CurrentDirectory}/{projectName}"
             );
         }
@@ -336,32 +336,8 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             Directory.SetCurrentDirectory($"./{projectName}");
             await GitCommandHelper.RunAsync($"init");
             await GitCommandHelper.RunAsync($"branch -m master main");
-            await downloadCorePackages(projectName);
             await GitCommandHelper.CommitChangesAsync("chore: initial commit from nArchitecture.Gen");
             Directory.SetCurrentDirectory("../");
-        }
-
-        private async Task downloadCorePackages(string projectName)
-        {
-            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture.Core/archive/refs/tags/v0.1.0.zip";
-            using HttpClient client = new();
-            using HttpResponseMessage response = await client.GetAsync(releaseUrl);
-            response.EnsureSuccessStatusCode();
-            string zipPath = $"{Environment.CurrentDirectory}/{projectName}.zip";
-            await using Stream zipStream = await response.Content.ReadAsStreamAsync();
-            await using FileStream fileStream = new(zipPath, FileMode.Create, FileAccess.Write);
-            await zipStream.CopyToAsync(fileStream);
-            fileStream.Close();
-            ZipFile.ExtractToDirectory(zipPath, Environment.CurrentDirectory);
-            File.Delete(zipPath);
-
-            string corePackagesDir = $"{Environment.CurrentDirectory}/src/corePackages";
-            if (Directory.Exists(corePackagesDir))
-                Directory.Delete(corePackagesDir, recursive: true);
-            Directory.Move(
-                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture.Core-0.1.0",
-                $"{Environment.CurrentDirectory}/src/corePackages"
-            );
         }
     }
 }
