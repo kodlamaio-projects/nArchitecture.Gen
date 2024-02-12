@@ -59,8 +59,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             response.CurrentStatusMessage = "Completed.";
             response.NewFilePathsResult = newFiles;
             response.OutputMessage =
-                $":warning: Check the configuration that has name 'appsettings.json' in 'src/{request.ProjectName.ToCamelCase()}'.";
-            response.OutputMessage = ":warning: Run 'Update-Database' nuget command on the Persistence layer to apply initial migration.";
+                $":warning: Check the configuration that has name 'appsettings.json' in 'src/{request.ProjectName.ToCamelCase()}/WebAPI'.";
             yield return response;
         }
 
