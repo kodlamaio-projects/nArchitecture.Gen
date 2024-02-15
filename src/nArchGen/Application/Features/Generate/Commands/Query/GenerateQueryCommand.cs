@@ -133,12 +133,11 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             string[] queryOperationClaimSeedCodeLines = await Task.WhenAll(
                 queryOperationClaimSeedTemplateCodeLines.Select(async line => await _templateEngine.RenderAsync(line, QueryTemplateData))
             );
-            await CSharpCodeInjector.AddCodeLinesToRegionAsync(
+            await CSharpCodeInjector.AddCodeLinesToMethodAsync(
                 operationClaimsEntityConfigurationFilePath,
-                queryOperationClaimSeedCodeLines,
-                featureName
+                "getFeatureOperationClaims",
+                queryOperationClaimSeedCodeLines
             );
-
             return new[] { featureOperationClaimFilePath, operationClaimsEntityConfigurationFilePath };
         }
 

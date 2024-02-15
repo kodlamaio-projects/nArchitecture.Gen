@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Application.Features.Generate.Rules;
+﻿using Application.Features.Generate.Rules;
 using Core.CodeGen.Code;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.File;
@@ -8,6 +7,7 @@ using Core.CrossCuttingConcerns.Helpers;
 using Domain.Constants;
 using Domain.ValueObjects;
 using MediatR;
+using System.Runtime.CompilerServices;
 
 namespace Application.Features.Generate.Commands.Command;
 
@@ -134,10 +134,10 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
                     await _templateEngine.RenderAsync(line, commandTemplateData)
                 )
             );
-            await CSharpCodeInjector.AddCodeLinesToRegionAsync(
+            await CSharpCodeInjector.AddCodeLinesToMethodAsync(
                 operationClaimsEntityConfigurationFilePath,
-                commandOperationClaimSeedCodeLines,
-                featureName
+                "getFeatureOperationClaims",
+                commandOperationClaimSeedCodeLines
             );
 
             return new[] { featureOperationClaimFilePath, operationClaimsEntityConfigurationFilePath };
