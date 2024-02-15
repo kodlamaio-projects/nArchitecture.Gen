@@ -66,7 +66,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
         private async Task downloadStarterProject(string projectName)
         {
             // Download zip on url
-            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v1.0.0.zip";
+            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v1.1.0.zip";
             using HttpClient client = new();
             using HttpResponseMessage response = await client.GetAsync(releaseUrl);
             response.EnsureSuccessStatusCode();
@@ -78,7 +78,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             ZipFile.ExtractToDirectory(zipPath, Environment.CurrentDirectory);
             File.Delete(zipPath);
             Directory.Move(
-                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-1.0.0",
+                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-1.1.0",
                 $"{Environment.CurrentDirectory}/{projectName}"
             );
         }
@@ -204,6 +204,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 $"{projectSourcePath}/Application/Services/OperationClaims",
                 $"{projectSourcePath}/Application/Services/UserOperationClaims",
                 $"{projectSourcePath}/Application/Services/UsersService",
+                $"{projectSourcePath}/Domain/Entities",
                 $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Features/Auth",
                 $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Features/Users",
                 $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/Repositories/Auth",
@@ -258,9 +259,23 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                             "using Application.Services.UsersService;",
                             "services.AddScoped<IAuthService, AuthManager>();",
                             "services.AddScoped<IAuthenticatorService, AuthenticatorManager>();",
-                            "services.AddScoped<IUserService, UserManager>();"
+                            "services.AddScoped<IUserService, UserManager>();",
+                            "using NArchitecture.Core.Security.DependencyInjection;",
+                            "services.AddSecurityServices<Guid, int>();",
                         }
                     ).Any(line.Contains)
+            );
+            await FileHelper.RemoveLinesAsync(
+                filePath: $"{projectSourcePath}/Application/Application.csproj",
+                predicate: line =>
+                    (new[] { "<PackageReference Include=\"NArchitecture.Core.Security.DependencyInjection\" Version=\"1.0.0\" />", }).Any(
+                        line.Contains
+                    )
+            );
+            await FileHelper.RemoveLinesAsync(
+                filePath: $"{projectSourcePath}/Domain/Domain.csproj",
+                predicate: line =>
+                    (new[] { "<PackageReference Include=\"NArchitecture.Core.Security\" Version=\"1.1.1\" />" }).Any(line.Contains)
             );
             await FileHelper.RemoveLinesAsync(
                 filePath: $"{projectSourcePath}/Persistence/Contexts/BaseDbContext.cs",
@@ -268,6 +283,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                     (
                         new[]
                         {
+                            "using Domain.Entities;",
                             "DbSet<EmailAuthenticator> EmailAuthenticators",
                             "DbSet<OperationClaim> OperationClaim",
                             "DbSet<OtpAuthenticator> OtpAuthenticator",
@@ -321,12 +337,15 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                     "using Microsoft.AspNetCore.Authentication.JwtBearer;\n",
                     "using Microsoft.IdentityModel.Tokens;\n",
                     "using Microsoft.OpenApi.Models;\n",
-                    "builder.Services.AddSecurityServices();\n",
                     "const string tokenOptionsConfigurationSection = \"TokenOptions\";\nTokenOptions tokenOptions =\n    builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()\n    ?? throw new InvalidOperationException($\"\\\"{tokenOptionsConfigurationSection}\\\" section cannot found in configuration.\");\nbuilder\n    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)\n    .AddJwtBearer(options =>\n    {\n        options.TokenValidationParameters = new TokenValidationParameters\n        {\n            ValidateIssuer = true,\n            ValidateAudience = true,\n            ValidateLifetime = true,\n            ValidIssuer = tokenOptions.Issuer,\n            ValidAudience = tokenOptions.Audience,\n            ValidateIssuerSigningKey = true,\n            IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)\n        };\n    });\n\n",
                     "    opt.AddSecurityDefinition(\n        name: \"Bearer\",\n        securityScheme: new OpenApiSecurityScheme\n        {\n            Name = \"Authorization\",\n            Type = SecuritySchemeType.Http,\n            Scheme = \"Bearer\",\n            BearerFormat = \"JWT\",\n            In = ParameterLocation.Header,\n            Description =\n                \"JWT Authorization header using the Bearer scheme. Example: \\\"Authorization: Bearer YOUR_TOKEN\\\". \\r\\n\\r\\n\"\n                + \"`Enter your token in the text input below.`\"\n        }\n    );\n    opt.OperationFilter<BearerSecurityRequirementOperationFilter>();\n",
                     "app.UseAuthentication();\n",
                     "app.UseAuthorization();\n"
                 }
+            );
+            await FileHelper.RemoveContentAsync(
+                filePath: $"{projectSourcePath}/WebAPI/WebAPI.csproj",
+                contents: new[] { "<PackageReference Include=\"NArchitecture.Core.Security.WebApi.Swagger\" Version=\"1.0.0\" />;", }
             );
         }
 
