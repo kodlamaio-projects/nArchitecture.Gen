@@ -80,7 +80,6 @@ public static class CSharpCodeInjector
             methodEndIndex,
             collection: codeLines
                 .Select(line => new string(' ', minimumSpaceCountInMethod) + line)
-                .Where(line => !fileContent.Contains(line))
         );
         await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
     }
@@ -159,6 +158,8 @@ public static class CSharpCodeInjector
             if (!Regex.Match(fileLine, regionEndRegex).Success)
                 continue;
 
+            int minimumSpaceCountInRegion = fileContent[indexToAdd].TakeWhile(char.IsWhiteSpace).Count();
+
             string previousLine = fileContent[index: indexToAdd - 1];
             if (Regex.Match(previousLine, regionStartRegex).Success)
             {
@@ -167,12 +168,11 @@ public static class CSharpCodeInjector
             }
 
             if (!string.IsNullOrEmpty(previousLine))
-                fileContent.Insert(index: indexToAdd - 1, string.Empty);
+                fileContent.Insert(index: indexToAdd, string.Empty);
 
-            int minimumSpaceCountInRegion = fileContent[indexToAdd].TakeWhile(char.IsWhiteSpace).Count();
 
             fileContent.InsertRange(
-                index: indexToAdd - 1,
+                index: indexToAdd,
                 collection: linesToAdd.Select(line => new string(' ', minimumSpaceCountInRegion) + line)
             );
             await System.IO.File.WriteAllLinesAsync(filePath, fileContent);

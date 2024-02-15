@@ -1,12 +1,12 @@
 #region {{ entity.name | string.pascalcase | string.plural }}
-
-seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Admin" });
-
-seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Read" });
-seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Write" });
-
-seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Add" });
-seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Update" });
-seeds.Add(new OperationClaim { Id = ++id, Name = "{{ entity.name | string.pascalcase | string.plural }}.Delete" });
-
+featureOperationClaims.AddRange(
+    [
+        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Admin },
+        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Read },
+        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Write },
+        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Create },
+        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Update },
+        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Delete },
+    ]
+);
 #endregion

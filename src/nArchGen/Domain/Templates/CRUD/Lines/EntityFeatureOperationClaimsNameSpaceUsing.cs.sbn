@@ -1,0 +1,1 @@
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;

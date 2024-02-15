@@ -1,1 +1,1 @@
-seeds.Add(new OperationClaim { Id = ++id, Name = "{{ feature_name }}.{{ query_name }}" });
+featureOperationClaims.Add(new() { Id = ++lastId, Name = {{ feature_name }}OperationClaims.{{ query_name | string.pascalcase }} });

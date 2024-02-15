@@ -53,6 +53,11 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             newFilePaths.AddRange(await generateApplicationCodes(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Application layer codes have been generated.";
 
+            response.CurrentStatusMessage = "Adding operation claims as seed data...";
+            yield return response;
+            updatedFilePaths.Add(await injectOperationClaims(request.ProjectPath, request.CrudTemplateData));
+            response.LastOperationMessage = "Operation claims have been added.";
+
             response.CurrentStatusMessage = "Adding service registrations...";
             yield return response;
             updatedFilePaths.AddRange(await injectServiceRegistrations(request.ProjectPath, request.CrudTemplateData));
@@ -67,6 +72,59 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             response.NewFilePathsResult = newFilePaths;
             response.UpdatedFilePathsResult = updatedFilePaths;
             yield return response;
+        }
+
+        private async Task<string> injectOperationClaims(string projectPath, CrudTemplateData crudTemplateData)
+        {
+            string operationClaimConfigurationFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "Persistence",
+                "EntityConfigurations",
+                "OperationClaimConfiguration.cs"
+            );
+
+            if (!File.Exists(operationClaimConfigurationFilePath))
+                return $"Not Found: {operationClaimConfigurationFilePath}";
+
+            string[] seedTemplateCodeLines = await File.ReadAllLinesAsync(
+                PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Crud,
+                    "Lines",
+                    "EntityFeatureOperationClaimSeeds.cs.sbn"
+                )
+            );
+
+            List<string> seedCodeLines = new() { string.Empty };
+            foreach (string templateCodeLine in seedTemplateCodeLines)
+            {
+                string seedCodeLine = await _templateEngine.RenderAsync(templateCodeLine, crudTemplateData);
+                seedCodeLines.Add(seedCodeLine);
+            }
+            seedCodeLines.Add(string.Empty);
+
+            await CSharpCodeInjector.AddCodeLinesToMethodAsync(
+                operationClaimConfigurationFilePath,
+                methodName: "getFeatureOperationClaims",
+                codeLines: seedCodeLines.ToArray()
+            );
+
+            string featureOperationClaimUsingTemplatePath = PlatformHelper.SecuredPathJoin(
+                DirectoryHelper.AssemblyDirectory,
+                Templates.Paths.Crud,
+                "Lines",
+                "EntityFeatureOperationClaimsNameSpaceUsing.cs.sbn"
+            );
+            string featureOperationClaimUsingTemplate = await File.ReadAllTextAsync(featureOperationClaimUsingTemplatePath);
+            string featureOperationClaimUsingRendered = await _templateEngine.RenderAsync(
+                featureOperationClaimUsingTemplate,
+                crudTemplateData
+            );
+            await CSharpCodeInjector.AddUsingToFile(
+                operationClaimConfigurationFilePath,
+                usingLines: featureOperationClaimUsingRendered.Split(Environment.NewLine)
+            );
+            return operationClaimConfigurationFilePath;
         }
 
         private async Task<string> injectEntityToContext(string projectPath, CrudTemplateData crudTemplateData)
