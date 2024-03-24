@@ -66,7 +66,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
         private async Task downloadStarterProject(string projectName)
         {
             // Download zip on url
-            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v1.1.1.zip";
+            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v1.1.2.zip";
             using HttpClient client = new();
             using HttpResponseMessage response = await client.GetAsync(releaseUrl);
             response.EnsureSuccessStatusCode();
@@ -78,7 +78,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             ZipFile.ExtractToDirectory(zipPath, Environment.CurrentDirectory);
             File.Delete(zipPath);
             Directory.Move(
-                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-1.1.1",
+                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-1.1.2",
                 $"{Environment.CurrentDirectory}/{projectName}"
             );
         }
