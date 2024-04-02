@@ -1,4 +1,4 @@
-#region {{ entity.name | string.pascalcase | string.plural }}
+#region {{ entity.name | string.pascalcase | string.plural }} CRUD
 featureOperationClaims.AddRange(
     [
         new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Admin },

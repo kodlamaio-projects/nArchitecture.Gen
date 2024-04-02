@@ -2,7 +2,7 @@
   "profiles": {
     "ConsoleUI": {
       "commandName": "Project",
-      "commandLineArgs": "generate command"
+      "commandLineArgs": "generate crud"
     }
   }
 }

@@ -1,8 +1,5 @@
-using NArchitecture.Core.Security.Attributes;
-
 namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
 
-[OperationClaimConstants]
 public static class {{ entity.name | string.pascalcase | string.plural }}OperationClaims
 {
     private const string _section = "{{ entity.name | string.pascalcase | string.plural }}";

@@ -1,1 +1,1 @@
-{{ entity.name | string.pascalcase }}NotExists: "{{ entity.name | string.words | string.downcase | string.capitalize }} don't exists."
+{{ entity.name | string.pascalcase }}NotExists: {{ entity.name | string.words | string.downcase | string.capitalize }} don't exists.

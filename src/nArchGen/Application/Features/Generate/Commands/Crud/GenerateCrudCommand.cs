@@ -157,7 +157,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             string dbSetPropertyCodeLine = await _templateEngine.RenderAsync(dbSetPropertyTemplateCodeLine, crudTemplateData);
             bool isExists = (await File.ReadAllLinesAsync(contextFilePath)).Any(line => line.Contains(dbSetPropertyCodeLine));
             if (!isExists)
-                await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(contextFilePath, codeLines: new[] { dbSetPropertyCodeLine });
+                await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(contextFilePath, codeLines: [dbSetPropertyCodeLine]);
 
             return contextFilePath;
         }

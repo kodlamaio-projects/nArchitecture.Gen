@@ -17,7 +17,7 @@
 	<PackageIcon>n-architecture-logo.png</PackageIcon>
 	<RepositoryUrl>https://github.com/kodlamaio-projects/nArchitecture.Gen</RepositoryUrl>
 	<PackageTags>nArchitecture, nArchGen, cli, framework, tool, code generation</PackageTags>
-	<Version>1.1.2</Version>
+	<Version>1.2.0</Version>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

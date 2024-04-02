@@ -6,7 +6,7 @@ public class Update{{ entity.name | string.pascalcase }}CommandValidator : Abstr
 {
     public Update{{ entity.name | string.pascalcase }}CommandValidator()
     {
-        RuleFor(c => c.Id).NotEmpty();{{ for propertyItem in entity.properties }}
-        RuleFor(c => c.{{ propertyItem.name | string.pascalcase }}).NotEmpty();{{ end }}
+        RuleFor(c => c.Id).NotEmpty();{{ for propertyItem in entity.properties }}{{ if !(propertyItem.type | string.contains "?") }}
+        RuleFor(c => c.{{ propertyItem.name | string.pascalcase }}).NotEmpty();{{ end }}{{ end }}
     }
 }

@@ -1,4 +1,5 @@
-﻿using Application.Features.Generate.Rules;
+﻿using System.Runtime.CompilerServices;
+using Application.Features.Generate.Rules;
 using Core.CodeGen.Code;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.File;
@@ -7,7 +8,6 @@ using Core.CrossCuttingConcerns.Helpers;
 using Domain.Constants;
 using Domain.ValueObjects;
 using MediatR;
-using System.Runtime.CompilerServices;
 
 namespace Application.Features.Generate.Commands.Command;
 

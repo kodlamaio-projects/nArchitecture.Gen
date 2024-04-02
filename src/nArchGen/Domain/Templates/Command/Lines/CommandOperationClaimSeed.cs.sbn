@@ -1,1 +1,2 @@
+
 featureOperationClaims.Add(new() { Id = ++lastId, Name = {{ feature_name }}OperationClaims.{{ command_name | string.pascalcase }} });

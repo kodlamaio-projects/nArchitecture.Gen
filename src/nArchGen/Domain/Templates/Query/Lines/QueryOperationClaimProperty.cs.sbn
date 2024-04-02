@@ -1,1 +1,2 @@
-public const string {{ query_name }} = $"{_section}.{{ query_name | string.pascalcase }}";
+
+public const string {{ query_name | string.pascalcase }} = $"{_section}.{{ query_name | string.pascalcase }}";

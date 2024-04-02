@@ -76,11 +76,7 @@ public static class CSharpCodeInjector
                 ? fileContent[methodStartIndex].TakeWhile(char.IsWhiteSpace).Count() * 2
                 : methodContent.Where(line => !string.IsNullOrEmpty(line)).Min(line => line.TakeWhile(char.IsWhiteSpace).Count());
 
-        fileContent.InsertRange(
-            methodEndIndex,
-            collection: codeLines
-                .Select(line => new string(' ', minimumSpaceCountInMethod) + line)
-        );
+        fileContent.InsertRange(methodEndIndex, collection: codeLines.Select(line => new string(' ', minimumSpaceCountInMethod) + line));
         await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
     }
 
@@ -169,7 +165,6 @@ public static class CSharpCodeInjector
 
             if (!string.IsNullOrEmpty(previousLine))
                 fileContent.Insert(index: indexToAdd, string.Empty);
-
 
             fileContent.InsertRange(
                 index: indexToAdd,

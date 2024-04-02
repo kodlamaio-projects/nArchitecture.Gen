@@ -1,1 +1,2 @@
-public const string {{ command_name }} = $"{_section}.{{ command_name | string.pascalcase }}";
+
+public const string {{ command_name | string.pascalcase }} = $"{_section}.{{ command_name | string.pascalcase }}";
