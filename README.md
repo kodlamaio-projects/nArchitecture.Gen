@@ -44,7 +44,7 @@ To get a local copy up and running follow these simple steps.
 
 1. Install the tool globally:
    ```sh
-   dotnet tool install --global Kodlamaio.nArchGen
+   dotnet tool install --global NArchitecture.Gen
    ```
    
 
@@ -55,7 +55,7 @@ To get a local copy up and running follow these simple steps.
    ```
    2. Install the tool locally:
    ```sh
-   dotnet tool install Kodlamaio.nArchGen
+   dotnet tool install NArchitecture.Gen
    ```
 ## 🚀 Usage
 
