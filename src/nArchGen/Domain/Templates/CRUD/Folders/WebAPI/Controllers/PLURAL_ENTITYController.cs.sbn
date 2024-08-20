@@ -50,7 +50,7 @@ public class {{ entity.name | string.pascalcase | string.plural }}Controller : B
     }
 
     [HttpGet]
-    public async Task<ActionResult<GetList{{ entity.name | string.pascalcase }}Query>> GetList([FromQuery] PageRequest pageRequest)
+    public async Task<ActionResult<GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>> GetList([FromQuery] PageRequest pageRequest)
     {
         GetList{{ entity.name | string.pascalcase }}Query query = new() { PageRequest = pageRequest };
 
