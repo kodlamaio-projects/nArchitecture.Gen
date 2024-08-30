@@ -20,4 +20,4 @@ jobs:
           dotnet build --configuration Release
           dotnet pack --configuration Release --no-build
           dotnet nuget push **/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
-          dotnet clean
+    
