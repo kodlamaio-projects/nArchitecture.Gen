@@ -1,28 +1,15 @@
-<p align="center">
-  <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen/graphs/contributors"><img src="https://img.shields.io/github/contributors/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge"></a>
-  <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen/network/members"><img src="https://img.shields.io/github/forks/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge"></a>
-  <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen/stargazers"><img src="https://img.shields.io/github/stars/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge"></a>
-  <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen/issues"><img src="https://img.shields.io/github/issues/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge"></a>
-  <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen/blob/master/LICENSE"><img src="https://img.shields.io/github/license/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge"></a>
-</p><br />
+[![GitHub contributors](https://img.shields.io/github/contributors/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge)](https://github.com/kodlamaio-projects/nArchitecture.Gen/graphs/contributors)
+[![GitHub forks](https://img.shields.io/github/forks/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge)](https://github.com/kodlamaio-projects/nArchitecture.Gen/network/members)
+[![GitHub stars](https://img.shields.io/github/stars/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge)](https://github.com/kodlamaio-projects/nArchitecture.Gen/stargazers)
+[![GitHub issues](https://img.shields.io/github/issues/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge)](https://github.com/kodlamaio-projects/nArchitecture.Gen/issues)
+[![GitHub license](https://img.shields.io/github/license/kodlamaio-projects/nArchitecture.Gen.svg?style=for-the-badge)](https://github.com/kodlamaio-projects/nArchitecture.Gen/blob/master/LICENSE)
 
-<p align="center">
-  <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen"><img src="https://user-images.githubusercontent.com/53148314/194872467-827dc967-acee-4bca-88a2-59ed5695bebf.png" height="125"></a>
-  <h3 align="center">nArchitecture Project Code Generator Tool
-</h3>
-  <p align="center">
-    <!-- PROJECT_DESCRIPTION -->
-    <!-- <br />
-    <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen"><strong>Explore the docs »</strong></a>
-    <br /> -->
-    <!-- <br />
-    <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen">View Demo</a>
-    · -->
-    <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/kodlamaio-projects/nArchitecture.Gen/discussions">Request Feature</a>
-  </p>
-</p>
+[![nArchitecture](https://github.com/user-attachments/assets/d1e70b04-06d8-4add-a58f-7002d1abfd58)](https://github.com/kodlamaio-projects/nArchitecture.Gen)
+
+# nArchitecture Project Code Generator Tool
+
+[Report Bug](https://github.com/kodlamaio-projects/nArchitecture.Gen/issues) ·
+[Request Feature](https://github.com/kodlamaio-projects/nArchitecture.Gen/discussions)
 
 ## 💻 About The Project
 
@@ -106,6 +93,3 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ## 📧 Contact
 
 **Project Link:** [https://github.com/kodlamaio-projects/nArchitecture.Gen](https://github.com/kodlamaio-projects/nArchitecture.Gen)
-
-<!-- ## 🙏 Acknowledgements
-- []() -->
