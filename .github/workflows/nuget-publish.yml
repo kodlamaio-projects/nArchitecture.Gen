@@ -2,11 +2,23 @@ name: NuGet Publish
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
 
 jobs:
+  wait-for-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Release workflow
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.ref }}
+          check-name: 'create-release'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
   publish-nuget:
+    needs: wait-for-release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,4 +32,4 @@ jobs:
           dotnet build --configuration Release
           dotnet pack --configuration Release --no-build
           dotnet nuget push **/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
-    
+
