@@ -261,7 +261,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                             "services.AddScoped<IAuthenticatorService, AuthenticatorManager>();",
                             "services.AddScoped<IUserService, UserManager>();",
                             "using NArchitecture.Core.Security.DependencyInjection;",
-                            "services.AddSecurityServices<Guid, int>();",
+                            "services.AddSecurityServices<Guid, int, Guid>(tokenOptions);",
                         }
                     ).Any(line.Contains)
             );
