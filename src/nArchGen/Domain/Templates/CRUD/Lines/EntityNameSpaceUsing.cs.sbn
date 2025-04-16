@@ -1,1 +1,8 @@
-using Domain.Entities;
+@if(entity.BaseType == "User")
+{
+    using Domain.Entities.User;
+}
+@else
+{
+    using Domain.Entities;
+}
