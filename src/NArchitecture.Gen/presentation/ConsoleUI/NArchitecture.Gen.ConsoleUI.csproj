@@ -1,0 +1,55 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>nArchGen</AssemblyName>
+	<PackAsTool>true</PackAsTool>
+	<ToolCommandName>nArchGen</ToolCommandName>
+	<PackageOutputPath>./nupkg</PackageOutputPath>
+	<PackageId>NArchitecture.Gen</PackageId>
+	<Title>nArchitecture Gen</Title>
+	<Company>Kodlama.io</Company>
+	<Authors>Kodlama.io, Contributors</Authors>
+	<Description>Code generator tool for nArchitecture framework.</Description>
+	<PackageProjectUrl></PackageProjectUrl>
+	<PackageIcon>n-architecture-logo.png</PackageIcon>
+	<RepositoryUrl>https://github.com/kodlamaio-projects/nArchitecture.Gen</RepositoryUrl>
+	<PackageTags>nArchitecture, nArchGen, cli, framework, tool, code generation</PackageTags>
+	<Version>1.2.2</Version>
+	<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\docs\images\n-architecture-logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="Spectre.Console" Version="0.48.0" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.48.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\corePackages\Core.ConsoleUI\Core.ConsoleUI.csproj" />
+    <ProjectReference Include="..\..\core\Application\NArchitecture.Gen.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Resources\Images\Logo.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

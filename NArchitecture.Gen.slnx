@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/corePackages/">
+    <Project Path="src/corePackages/Core.Application/Core.Application.csproj" />
+    <Project Path="src/corePackages/Core.CodeGen/Core.CodeGen.csproj" />
+    <Project Path="src/corePackages/Core.ConsoleUI/Core.ConsoleUI.csproj" />
+    <Project Path="src/corePackages/Core.CrossCuttingConcerns/Core.CrossCuttingConcerns.csproj" />
+  </Folder>
+  <Folder Name="/src/NArchitecture.Gen/" />
+  <Folder Name="/src/NArchitecture.Gen/core/">
+    <Project Path="src/NArchitecture.Gen/core/Application/NArchitecture.Gen.Application.csproj" />
+    <Project Path="src/NArchitecture.Gen/core/Domain/NArchitecture.Gen.Domain.csproj" />
+  </Folder>
+  <Folder Name="/src/NArchitecture.Gen/presentation/">
+    <Project Path="src/NArchitecture.Gen/presentation/ConsoleUI/NArchitecture.Gen.ConsoleUI.csproj" />
+  </Folder>
+</Solution>
