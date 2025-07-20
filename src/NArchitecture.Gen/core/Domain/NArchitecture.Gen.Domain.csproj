@@ -14,4 +14,9 @@
       <TargetPath>Templates\%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
     </ContentWithTargetPath>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Features\TemplateManagement\Configurations\templates.json">
+      <LogicalName>templates.json</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>

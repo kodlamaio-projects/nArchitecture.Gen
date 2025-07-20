@@ -1,5 +1,7 @@
 ﻿using System.Reflection;
 using NArchitecture.Gen.Application.Features.CodeGeneration.Rules;
+using NArchitecture.Gen.Application.Features.TemplateManagement.Services;
+using NArchitecture.Gen.Domain.Features.TemplateManagement.DomainServices;
 using Core.CodeGen.TemplateEngine;
 using Core.CodeGen.TemplateEngine.Scriban;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +16,7 @@ public static class ApplicationServiceRegistration
 
         services.AddSingleton<ITemplateRenderer, ScribanTemplateRenderer>();
         services.AddSingleton<ITemplateEngine, TemplateEngine>();
+        services.AddSingleton<ITemplateService, TemplateService>();
 
         services.AddSingleton<GenerateBusinessRules>();
 

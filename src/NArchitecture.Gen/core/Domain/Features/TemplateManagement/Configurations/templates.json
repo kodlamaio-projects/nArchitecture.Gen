@@ -1,0 +1,18 @@
+{
+  "Version": "1.0.0",
+  "Templates": [
+    {
+      "Id": "minimal",
+      "Name": "NArchitecture Minimal Starter",
+      "Description": "A minimal NArchitecture starter template with essential features",
+      "RepositoryUrl": "https://github.com/NArchitecture/narchitecture-minimal-starter",
+      "InstallationMode": 0,
+      "ReleaseVersion": "1.0.0",
+      "BranchName": "main"
+    }
+  ],
+  "Settings": {
+    "IsDebugMode": false,
+    "DefaultTemplateId": "minimal"
+  }
+}

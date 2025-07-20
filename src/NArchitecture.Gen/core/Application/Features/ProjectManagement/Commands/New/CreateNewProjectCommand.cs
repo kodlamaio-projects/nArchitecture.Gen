@@ -4,27 +4,37 @@ using Core.CodeGen.Code;
 using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
 using MediatR;
+using NArchitecture.Gen.Domain.Features.TemplateManagement.DomainServices;
+using NArchitecture.Gen.Domain.Features.TemplateManagement.ValueObjects;
 
 namespace NArchitecture.Gen.Application.Features.ProjectManagement.Commands.New;
 
 public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
 {
     public string ProjectName { get; set; }
-    public bool IsThereSecurityMechanism { get; set; } = true;
+    public string? TemplateId { get; set; }
 
     public CreateNewProjectCommand()
     {
         ProjectName = string.Empty;
     }
 
-    public CreateNewProjectCommand(string projectName, bool isThereSecurityMechanism)
+    public CreateNewProjectCommand(string projectName, string? templateId = null)
     {
         ProjectName = projectName;
-        IsThereSecurityMechanism = isThereSecurityMechanism;
+        TemplateId = templateId;
     }
+
 
     public class CreateNewProjectCommandHandler : IStreamRequestHandler<CreateNewProjectCommand, CreatedNewProjectResponse>
     {
+        private readonly ITemplateService _templateService;
+
+        public CreateNewProjectCommandHandler(ITemplateService templateService)
+        {
+            _templateService = templateService;
+        }
+
         public async IAsyncEnumerable<CreatedNewProjectResponse> Handle(
             CreateNewProjectCommand request,
             [EnumeratorCancellation] CancellationToken cancellationToken
@@ -33,17 +43,20 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             CreatedNewProjectResponse response = new();
             List<string> newFilePaths = [];
 
-            response.CurrentStatusMessage = "Cloning starter project and core packages...";
+            // Resolve template
+            ProjectTemplate template = string.IsNullOrEmpty(request.TemplateId)
+                ? await _templateService.GetDefaultTemplateAsync()
+                : await _templateService.GetTemplateByIdAsync(request.TemplateId);
+
+            response.CurrentStatusMessage = $"Downloading template '{template.Name}'...";
             yield return response;
             response.OutputMessage = null;
-            await downloadStarterProject(request.ProjectName);
-            response.LastOperationMessage = "Starter project has been cloned from 'https://github.com/kodlamaio-projects/nArchitecture'.";
+            await downloadTemplateProject(request.ProjectName, template);
+            response.LastOperationMessage = $"Template '{template.Name}' has been downloaded from '{template.RepositoryUrl}'.";
 
             response.CurrentStatusMessage = "Preparing project...";
             yield return response;
             await renameProject(request.ProjectName);
-            if (!request.IsThereSecurityMechanism)
-                await removeSecurityMechanism(request.ProjectName);
             response.LastOperationMessage = $"Project has been prepared with {request.ProjectName.ToPascalCase()}.";
 
             ICollection<string> newFiles = DirectoryHelper.GetFilesInDirectoryTree(
@@ -63,298 +76,195 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             yield return response;
         }
 
-        private async Task downloadStarterProject(string projectName)
+        private async Task downloadTemplateProject(string projectName, ProjectTemplate template)
         {
-            // Download zip on url
-            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v1.2.0.zip";
+            string downloadUrl = await buildDownloadUrl(template);
+            
             using HttpClient client = new();
-            using HttpResponseMessage response = await client.GetAsync(releaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(300); // 5 minutes timeout
+            using HttpResponseMessage response = await client.GetAsync(downloadUrl);
             response.EnsureSuccessStatusCode();
+            
             string zipPath = $"{Environment.CurrentDirectory}/{projectName}.zip";
             await using Stream zipStream = await response.Content.ReadAsStreamAsync();
             await using FileStream fileStream = new(zipPath, FileMode.Create, FileAccess.Write);
             await zipStream.CopyToAsync(fileStream);
             fileStream.Close();
+            
             ZipFile.ExtractToDirectory(zipPath, Environment.CurrentDirectory);
             File.Delete(zipPath);
+            
+            // Find the extracted directory and rename it
+            string extractedDirName = await findExtractedDirectory(template, downloadUrl);
             Directory.Move(
-                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-1.2.0",
+                sourceDirName: $"{Environment.CurrentDirectory}/{extractedDirName}",
                 $"{Environment.CurrentDirectory}/{projectName}"
             );
+        }
+
+        private async Task<string> buildDownloadUrl(ProjectTemplate template)
+        {
+            TemplateConfiguration config = await _templateService.GetTemplateConfigurationAsync();
+            string version = await _templateService.ResolveTemplateVersionAsync(template);
+            
+            if (config.Settings.IsDebugMode || template.InstallationMode == TemplateInstallationMode.Branch)
+            {
+                // For debug mode or branch-based templates, use branch download
+                string branchName = template.BranchName ?? "main";
+                return $"{template.RepositoryUrl}/archive/refs/heads/{branchName}.zip";
+            }
+            else
+            {
+                // For production mode, use release download
+                return $"{template.RepositoryUrl}/archive/refs/tags/v{version}.zip";
+            }
+        }
+
+        private async Task<string> findExtractedDirectory(ProjectTemplate template, string downloadUrl)
+        {
+            // Extract repository name and version/branch from URL to determine extracted folder name
+            Uri uri = new Uri(template.RepositoryUrl);
+            string repoName = Path.GetFileNameWithoutExtension(uri.AbsolutePath);
+            
+            if (downloadUrl.Contains("/archive/refs/tags/"))
+            {
+                // Release download: repoName-version
+                string version = await _templateService.ResolveTemplateVersionAsync(template);
+                return $"{repoName}-{version}";
+            }
+            else
+            {
+                // Branch download: repoName-branchName
+                string branchName = template.BranchName ?? "main";
+                return $"{repoName}-{branchName}";
+            }
         }
 
         private async Task renameProject(string projectName)
         {
             Directory.SetCurrentDirectory($"./{projectName}");
 
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/NArchitecture.sln",
-                search: "NArchitecture",
-                projectName: projectName.ToPascalCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/NArchitecture.sln.DotSettings",
-                search: "NArchitecture",
-                projectName: projectName.ToPascalCase()
-            );
+            // Templates now use .slnx format
+            string solutionFile = "NArchitecture.Starter.slnx";
+            
+            if (File.Exists($"{Environment.CurrentDirectory}/{solutionFile}"))
+            {
+                await replaceFileContentWithProjectName(
+                    path: $"{Environment.CurrentDirectory}/{solutionFile}",
+                    search: solutionFile.Contains("Starter") ? "NArchitecture.Starter" : "NArchitecture",
+                    projectName: projectName.ToPascalCase()
+                );
+                
+                // Rename solution file to match project name
+                string newSolutionFile = $"{Environment.CurrentDirectory}/{projectName.ToPascalCase()}.slnx";
+                if (solutionFile != $"{projectName.ToPascalCase()}.slnx")
+                {
+                    File.Move($"{Environment.CurrentDirectory}/{solutionFile}", newSolutionFile);
+                }
+            }
 
-            string projectPath = $"{Environment.CurrentDirectory}/src/{projectName.ToCamelCase()}";
-            Directory.Move(sourceDirName: $"{Environment.CurrentDirectory}/src/starterProject", projectPath);
+            // Handle .DotSettings file if it exists
+            string dotSettingsFile = "NArchitecture.Starter.slnx.DotSettings";
+            if (File.Exists($"{Environment.CurrentDirectory}/{dotSettingsFile}"))
+            {
+                await replaceFileContentWithProjectName(
+                    path: $"{Environment.CurrentDirectory}/{dotSettingsFile}",
+                    search: "NArchitecture.Starter",
+                    projectName: projectName.ToPascalCase()
+                );
+            }
 
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/{projectName.ToPascalCase()}.sln",
-                search: "starterProject",
-                projectName: projectName.ToCamelCase()
-            );
+            // Handle source project directory structure
+            string[] srcDirectories = Directory.GetDirectories($"{Environment.CurrentDirectory}/src");
+            if (srcDirectories.Length > 0)
+            {
+                string sourceProjectDir = srcDirectories.First().Split('/').Last();
+                string newProjectPath = $"{Environment.CurrentDirectory}/src/{projectName.ToCamelCase()}";
+                Directory.Move(sourceDirName: $"{Environment.CurrentDirectory}/src/{sourceProjectDir}", newProjectPath);
 
-            string testProjectDir = $"{Environment.CurrentDirectory}/tests/{projectName.ToPascalCase()}.Application.Tests";
-            Directory.Move(
-                sourceDirName: $"{Environment.CurrentDirectory}/tests/StarterProject.Application.Tests/",
-                destDirName: testProjectDir
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{testProjectDir}/StarterProject.Application.Tests.csproj",
-                search: "starterProject",
-                projectName: projectName.ToCamelCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{testProjectDir}/StarterProject.Application.Tests.csproj",
-                search: "StarterProject",
-                projectName: projectName.ToPascalCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/{projectName.ToPascalCase()}.sln",
-                search: "StarterProject",
-                projectName: projectName.ToPascalCase()
-            );
+                // Update all project files in the source directory
+                await updateProjectFilesRecursively(newProjectPath, sourceProjectDir, projectName);
+            }
 
-            await replaceFileContentWithProjectName(
-                path: $"{projectPath}/WebAPI/appsettings.json",
-                search: "StarterProject",
-                projectName: projectName.ToPascalCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{projectPath}/WebAPI/appsettings.json",
-                search: "starterProject",
-                projectName: projectName.ToCamelCase()
-            );
+            // Handle test project directory structure
+            string[] testDirectories = Directory.GetDirectories($"{Environment.CurrentDirectory}/tests");
+            if (testDirectories.Length > 0)
+            {
+                string sourceTestDir = testDirectories.First().Split('/').Last();
+                string newTestPath = $"{Environment.CurrentDirectory}/tests/{projectName.ToPascalCase()}";
+                Directory.Move(sourceDirName: $"{Environment.CurrentDirectory}/tests/{sourceTestDir}", newTestPath);
 
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.development.yml",
-                search: "starterProject",
-                projectName: projectName.ToCamelCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.development.yml",
-                search: "NArchitecture",
-                projectName: projectName.ToPascalCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.staging.yml",
-                search: "starterProject",
-                projectName: projectName.ToCamelCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.staging.yml",
-                search: "NArchitecture",
-                projectName: projectName.ToPascalCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.production.yml",
-                search: "starterProject",
-                projectName: projectName.ToCamelCase()
-            );
-            await replaceFileContentWithProjectName(
-                path: $"{Environment.CurrentDirectory}/.azure/azure-pipelines.production.yml",
-                search: "NArchitecture",
-                projectName: projectName.ToPascalCase()
-            );
+                // Update all test project files
+                await updateProjectFilesRecursively(newTestPath, sourceTestDir, projectName);
+            }
 
             Directory.SetCurrentDirectory("../");
 
-            static async Task replaceFileContentWithProjectName(string path, string search, string projectName)
+            async Task updateProjectFilesRecursively(string directoryPath, string originalName, string newProjectName)
             {
-                if (path.Contains(search))
+                // Update all .csproj files and rename them
+                string[] projectFiles = Directory.GetFiles(directoryPath, "*.csproj", SearchOption.AllDirectories);
+                foreach (string projectFile in projectFiles)
                 {
-                    string newPath = path.Replace(search, projectName);
-                    Directory.Move(path, newPath);
-                    path = newPath;
+                    await replaceFileContentWithProjectName(
+                        path: projectFile,
+                        search: "NArchitecture.Starter",
+                        projectName: newProjectName.ToPascalCase()
+                    );
+                    
+                    // Rename the project file itself
+                    if (Path.GetFileName(projectFile).Contains("NArchitecture.Starter"))
+                    {
+                        string newFileName = Path.GetFileName(projectFile).Replace("NArchitecture.Starter", newProjectName.ToPascalCase());
+                        string newFilePath = Path.Combine(Path.GetDirectoryName(projectFile)!, newFileName);
+                        File.Move(projectFile, newFilePath);
+                    }
                 }
 
+                // Update all .cs files
+                string[] csFiles = Directory.GetFiles(directoryPath, "*.cs", SearchOption.AllDirectories);
+                foreach (string csFile in csFiles)
+                {
+                    await replaceFileContentWithProjectName(
+                        path: csFile,
+                        search: "NArchitecture.Starter",
+                        projectName: newProjectName.ToPascalCase()
+                    );
+                }
+
+                // Update appsettings.json if it exists
+                string[] jsonFiles = Directory.GetFiles(directoryPath, "appsettings*.json", SearchOption.AllDirectories);
+                foreach (string jsonFile in jsonFiles)
+                {
+                    await replaceFileContentWithProjectName(
+                        path: jsonFile,
+                        search: "NArchitecture.Starter",
+                        projectName: newProjectName.ToPascalCase()
+                    );
+                }
+            }
+
+
+            static async Task replaceFileContentWithProjectName(string path, string search, string projectName)
+            {
+                if (!File.Exists(path)) return;
+
                 string fileContent = await File.ReadAllTextAsync(path);
-                fileContent = fileContent.Replace(search, projectName);
-                await File.WriteAllTextAsync(path, fileContent);
+                if (fileContent.Contains(search))
+                {
+                    fileContent = fileContent.Replace(search, projectName);
+                    await File.WriteAllTextAsync(path, fileContent);
+                }
             }
         }
 
-        private async Task removeSecurityMechanism(string projectName)
-        {
-            string slnPath = $"{Environment.CurrentDirectory}/{projectName.ToPascalCase()}";
-            string projectSourcePath = $"{slnPath}/src/{projectName.ToCamelCase()}";
-            string projectTestsPath = $"{slnPath}/tests/";
-
-            string[] dirsToDelete = new[]
-            {
-                $"{projectSourcePath}/Application/Features/Auth",
-                $"{projectSourcePath}/Application/Features/OperationClaims",
-                $"{projectSourcePath}/Application/Features/UserOperationClaims",
-                $"{projectSourcePath}/Application/Features/Users",
-                $"{projectSourcePath}/Application/Services/AuthenticatorService",
-                $"{projectSourcePath}/Application/Services/AuthService",
-                $"{projectSourcePath}/Application/Services/OperationClaims",
-                $"{projectSourcePath}/Application/Services/UserOperationClaims",
-                $"{projectSourcePath}/Application/Services/UsersService",
-                $"{projectSourcePath}/Domain/Entities",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Features/Auth",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Features/Users",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/Repositories/Auth",
-            };
-            foreach (string dirPath in dirsToDelete)
-                Directory.Delete(dirPath, recursive: true);
-
-            string[] filesToDelete = new[]
-            {
-                $"{projectSourcePath}/Application/Services/Repositories/IEmailAuthenticatorRepository.cs",
-                $"{projectSourcePath}/Application/Services/Repositories/IOperationClaimRepository.cs",
-                $"{projectSourcePath}/Application/Services/Repositories/IOtpAuthenticatorRepository.cs",
-                $"{projectSourcePath}/Application/Services/Repositories/IRefreshTokenRepository.cs",
-                $"{projectSourcePath}/Application/Services/Repositories/IUserOperationClaimRepository.cs",
-                $"{projectSourcePath}/Application/Services/Repositories/IUserRepository.cs",
-                $"{projectSourcePath}/Persistence/EntityConfigurations/EmailAuthenticatorConfiguration.cs",
-                $"{projectSourcePath}/Persistence/EntityConfigurations/OperationClaimConfiguration.cs",
-                $"{projectSourcePath}/Persistence/EntityConfigurations/OtpAuthenticatorConfiguration.cs",
-                $"{projectSourcePath}/Persistence/EntityConfigurations/RefreshTokenConfiguration.cs",
-                $"{projectSourcePath}/Persistence/EntityConfigurations/UserConfiguration.cs",
-                $"{projectSourcePath}/Persistence/EntityConfigurations/UserOperationClaimConfiguration.cs",
-                $"{projectSourcePath}/Persistence/Repositories/EmailAuthenticatorRepository.cs",
-                $"{projectSourcePath}/Persistence/Repositories/OperationClaimRepository.cs",
-                $"{projectSourcePath}/Persistence/Repositories/OtpAuthenticatorRepository.cs",
-                $"{projectSourcePath}/Persistence/Repositories/RefreshTokenRepository.cs",
-                $"{projectSourcePath}/Persistence/Repositories/UserOperationClaimRepository.cs",
-                $"{projectSourcePath}/Persistence/Repositories/UserRepository.cs",
-                $"{projectSourcePath}/WebAPI/Controllers/AuthController.cs",
-                $"{projectSourcePath}/WebAPI/Controllers/OperationClaimsController.cs",
-                $"{projectSourcePath}/WebAPI/Controllers/UserOperationClaimsController.cs",
-                $"{projectSourcePath}/WebAPI/Controllers/UsersController.cs",
-                $"{projectSourcePath}/WebAPI/Controllers/Dtos/UpdateByAuthFromServiceRequestDto.cs",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/DependencyResolvers/AuthServiceRegistrations.cs",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/DependencyResolvers/UsersTestServiceRegistration.cs",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/FakeDatas/OperationClaimFakeData.cs",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/FakeDatas/RefreshTokenFakeData.cs",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/FakeDatas/UserFakeData.cs",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/Repositories/UserMockRepository.cs",
-                $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Mocks/Configurations/MockConfiguration.cs",
-            };
-            foreach (string filePath in filesToDelete)
-                File.Delete(filePath);
-
-            await FileHelper.RemoveLinesAsync(
-                filePath: $"{projectSourcePath}/Application/ApplicationServiceRegistration.cs",
-                predicate: line =>
-                    (
-                        new[]
-                        {
-                            "using NArchitecture.Gen.Application.Services.AuthenticatorService;",
-                            "using NArchitecture.Gen.Application.Services.AuthService;",
-                            "using NArchitecture.Gen.Application.Services.UsersService;",
-                            "services.AddScoped<IAuthService, AuthManager>();",
-                            "services.AddScoped<IAuthenticatorService, AuthenticatorManager>();",
-                            "services.AddScoped<IUserService, UserManager>();",
-                            "using NArchitecture.Core.Security.DependencyInjection;",
-                            "services.AddSecurityServices<Guid, int, Guid>(tokenOptions);",
-                        }
-                    ).Any(line.Contains)
-            );
-            await FileHelper.RemoveLinesAsync(
-                filePath: $"{projectSourcePath}/Application/Application.csproj",
-                predicate: line =>
-                    (new[] { "<PackageReference Include=\"NArchitecture.Core.Security.DependencyInjection\" Version=\"1.0.0\" />", }).Any(
-                        line.Contains
-                    )
-            );
-            await FileHelper.RemoveLinesAsync(
-                filePath: $"{projectSourcePath}/Domain/Domain.csproj",
-                predicate: line =>
-                    (new[] { "<PackageReference Include=\"NArchitecture.Core.Security\" Version=\"1.1.1\" />" }).Any(line.Contains)
-            );
-            await FileHelper.RemoveLinesAsync(
-                filePath: $"{projectSourcePath}/Persistence/Contexts/BaseDbContext.cs",
-                predicate: line =>
-                    (
-                        new[]
-                        {
-                            "using NArchitecture.Gen.Domain.Entities;",
-                            "DbSet<EmailAuthenticator> EmailAuthenticators",
-                            "DbSet<OperationClaim> OperationClaim",
-                            "DbSet<OtpAuthenticator> OtpAuthenticator",
-                            "DbSet<RefreshToken> RefreshTokens",
-                            "DbSet<User> User",
-                            "DbSet<UserOperationClaim> UserOperationClaims",
-                        }
-                    ).Any(line.Contains)
-            );
-            await FileHelper.RemoveLinesAsync(
-                filePath: $"{projectSourcePath}/Persistence/PersistenceServiceRegistration.cs",
-                predicate: line =>
-                    (
-                        new[]
-                        {
-                            "using Persistence.Repositories;",
-                            "using NArchitecture.Gen.Application.Services.Repositories;",
-                            "services.AddScoped<IEmailAuthenticatorRepository, EmailAuthenticatorRepository>()",
-                            "services.AddScoped<IOperationClaimRepository, OperationClaimRepository>()",
-                            "services.AddScoped<IOtpAuthenticatorRepository, OtpAuthenticatorRepository>();",
-                            "services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>()",
-                            "services.AddScoped<IUserRepository, UserRepository>();",
-                            "services.AddScoped<IUserOperationClaimRepository, UserOperationClaimRepository>();",
-                        }
-                    ).Any(line.Contains)
-            );
-            await FileHelper.RemoveLinesAsync(
-                filePath: $"{projectTestsPath}/{projectName.ToPascalCase()}.Application.Tests/Startup.cs",
-                predicate: line =>
-                    (
-                        new[]
-                        {
-                            "using NArchitecture.Gen.Application.Services.AuthenticatorService;",
-                            "using NArchitecture.Gen.Application.Services.AuthService;",
-                            $"using StarterProject.Application.Tests.DependencyResolvers;",
-                            "using Core.Security;",
-                            "services.AddUsersServices();",
-                            "services.AddAuthServices();",
-                        }
-                    ).Any(line.Contains)
-            );
-
-            await FileHelper.RemoveContentAsync(
-                filePath: $"{projectSourcePath}/WebAPI/Program.cs",
-                contents: new[]
-                {
-                    "using Core.Security;\n",
-                    "using Core.Security.Encryption;\n",
-                    "using Core.Security.JWT;\n",
-                    "using Core.WebAPI.Extensions.Swagger;\n",
-                    "using Microsoft.AspNetCore.Authentication.JwtBearer;\n",
-                    "using Microsoft.IdentityModel.Tokens;\n",
-                    "using Microsoft.OpenApi.Models;\n",
-                    "const string tokenOptionsConfigurationSection = \"TokenOptions\";\nTokenOptions tokenOptions =\n    builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()\n    ?? throw new InvalidOperationException($\"\\\"{tokenOptionsConfigurationSection}\\\" section cannot found in configuration.\");\nbuilder\n    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)\n    .AddJwtBearer(options =>\n    {\n        options.TokenValidationParameters = new TokenValidationParameters\n        {\n            ValidateIssuer = true,\n            ValidateAudience = true,\n            ValidateLifetime = true,\n            ValidIssuer = tokenOptions.Issuer,\n            ValidAudience = tokenOptions.Audience,\n            ValidateIssuerSigningKey = true,\n            IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)\n        };\n    });\n\n",
-                    "    opt.AddSecurityDefinition(\n        name: \"Bearer\",\n        securityScheme: new OpenApiSecurityScheme\n        {\n            Name = \"Authorization\",\n            Type = SecuritySchemeType.Http,\n            Scheme = \"Bearer\",\n            BearerFormat = \"JWT\",\n            In = ParameterLocation.Header,\n            Description =\n                \"JWT Authorization header using the Bearer scheme. Example: \\\"Authorization: Bearer YOUR_TOKEN\\\". \\r\\n\\r\\n\"\n                + \"`Enter your token in the text input below.`\"\n        }\n    );\n    opt.OperationFilter<BearerSecurityRequirementOperationFilter>();\n",
-                    "app.UseAuthentication();\n",
-                    "app.UseAuthorization();\n"
-                }
-            );
-            await FileHelper.RemoveContentAsync(
-                filePath: $"{projectSourcePath}/WebAPI/WebAPI.csproj",
-                contents: new[] { "<PackageReference Include=\"NArchitecture.Core.Security.WebApi.Swagger\" Version=\"1.0.0\" />;", }
-            );
-        }
 
         private async Task initializeGitRepository(string projectName)
         {
             Directory.SetCurrentDirectory($"./{projectName}");
             await GitCommandHelper.RunAsync($"init");
             await GitCommandHelper.RunAsync($"branch -m master main");
-            await GitCommandHelper.CommitChangesAsync("chore: initial commit from nArchitecture.Gen");
+            await GitCommandHelper.CommitChangesAsync("chore: initial commit from NArchitecture.Gen");
             Directory.SetCurrentDirectory("../");
         }
     }

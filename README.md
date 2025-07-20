@@ -46,7 +46,41 @@ To get a local copy up and running follow these simple steps.
    ```
 ## 🚀 Usage
 
+### Quick Start
+
 1. Run `nArchGen` command in project solution directory.
+
+### Template System v2.0
+
+nArchitecture.Gen v2.0 introduces a comprehensive template selection system:
+
+#### List Available Templates
+```sh
+nArchGen templates
+```
+
+#### Create New Project
+```sh
+# Create with default template (interactive selection)
+nArchGen new MyProject
+
+# Create with specific template
+nArchGen new MyProject --template minimal
+```
+
+#### Code Generation
+```sh
+# Generate CRUD operations
+nArchGen generate crud User BaseDbContext
+
+# Generate custom command
+nArchGen generate command SyncUser Users
+
+# Generate custom query
+nArchGen generate query GetUserByEmail Users
+```
+
+For detailed template system documentation, see [Template System Guide](./docs/TemplateSystem.md).
 
 ## 🚧 Roadmap
 

@@ -4,6 +4,7 @@ using NArchitecture.Gen.ConsoleUI.Features.CodeGeneration.Commands.Command;
 using NArchitecture.Gen.ConsoleUI.Features.CodeGeneration.Commands.Crud;
 using NArchitecture.Gen.ConsoleUI.Features.CodeGeneration.Commands.Query;
 using NArchitecture.Gen.ConsoleUI.Features.ProjectManagement.Commands.New;
+using NArchitecture.Gen.ConsoleUI.Features.ProjectManagement.Commands.ListTemplates;
 using Core.ConsoleUI.IoC.SpectreConsoleCli;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
@@ -53,11 +54,17 @@ app.Configure(config =>
     config
         .AddCommand<CreateNewProjectCliCommand>(name: "new")
         .WithDescription(description: "Create a new project")
-        .WithExample(args: new[] { "new", "ExampleProject" });
+        .WithExample(args: new[] { "new", "ExampleProject" })
+        .WithExample(args: new[] { "new", "ExampleProject", "--template", "minimal" });
+
+    config
+        .AddCommand<ListTemplatesCliCommand>(name: "templates")
+        .WithDescription(description: "List available project templates")
+        .WithExample(args: new[] { "templates" });
 
     #endregion
 });
 
-AnsiConsole.Write(new FigletText("nArchitecture").LeftJustified().Color(Color.Blue));
+AnsiConsole.Write(new FigletText("NArchitecture").LeftJustified().Color(Color.Blue));
 
 return app.Run(args);
