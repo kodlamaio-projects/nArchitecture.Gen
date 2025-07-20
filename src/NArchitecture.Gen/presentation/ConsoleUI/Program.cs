@@ -10,20 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-#region Console Configuration
-
 Console.OutputEncoding = Encoding.UTF8;
 Console.InputEncoding = Encoding.UTF8;
-
-#endregion
-
-#region IoC
 
 IServiceCollection services = new ServiceCollection();
 services.AddApplicationServices();
 TypeRegistrar registrar = new(services);
-
-#endregion
 
 CommandApp app = new(registrar);
 app.Configure(config =>

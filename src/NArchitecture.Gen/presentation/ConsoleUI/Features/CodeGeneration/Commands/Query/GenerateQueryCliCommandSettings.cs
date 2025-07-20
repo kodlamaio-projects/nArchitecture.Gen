@@ -52,7 +52,7 @@ public partial class GenerateQueryCliCommand
                 return;
             }
 
-            string?[] features = Directory.GetDirectories($"{ProjectPath}/Application/Features").Select(Path.GetFileName).ToArray()!;
+            string[] features = Directory.GetDirectories($"{ProjectPath}/Application/Features").Select(Path.GetFileName).Where(f => f != null).Cast<string>().ToArray();
             if (features.Length == 0)
                 throw new BusinessException($"No feature found in \"{ProjectPath}/Application/Features\".");
 
