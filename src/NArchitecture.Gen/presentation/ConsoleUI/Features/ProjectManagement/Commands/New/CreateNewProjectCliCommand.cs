@@ -1,7 +1,7 @@
 ﻿using NArchitecture.Gen.Application.Features.ProjectManagement.Commands.New;
 using NArchitecture.Gen.Domain.Features.TemplateManagement.DomainServices;
 using NArchitecture.Gen.Domain.Features.TemplateManagement.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator.Abstractions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -26,7 +26,7 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
         CreateNewProjectCommand request =
             new(projectName: settings.ProjectName!, templateId: settings.TemplateId);
 
-        IAsyncEnumerable<CreatedNewProjectResponse> resultsStream = _mediator.CreateStream(request);
+        IAsyncEnumerable<CreatedNewProjectResponse> resultsStream = _mediator.SendStreamAsync(request);
 
         await AnsiConsole
             .Status()

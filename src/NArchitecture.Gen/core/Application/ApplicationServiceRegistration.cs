@@ -5,6 +5,7 @@ using NArchitecture.Gen.Domain.Features.TemplateManagement.DomainServices;
 using Core.CodeGen.TemplateEngine;
 using Core.CodeGen.TemplateEngine.Scriban;
 using Microsoft.Extensions.DependencyInjection;
+using NArchitecture.Core.Mediator;
 
 namespace NArchitecture.Gen.Application;
 
@@ -12,7 +13,7 @@ public static class ApplicationServiceRegistration
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        services.AddMediatR(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        services.AddMediator(Assembly.GetExecutingAssembly());
 
         services.AddSingleton<ITemplateRenderer, ScribanTemplateRenderer>();
         services.AddSingleton<ITemplateEngine, TemplateEngine>();

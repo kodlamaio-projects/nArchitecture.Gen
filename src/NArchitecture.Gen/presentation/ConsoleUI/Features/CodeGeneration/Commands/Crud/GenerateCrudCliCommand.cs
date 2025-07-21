@@ -4,7 +4,7 @@ using Core.CodeGen.Code.CSharp.ValueObjects;
 using Core.CrossCuttingConcerns.Helpers;
 using NArchitecture.Gen.Domain.Features.CodeGeneration.ValueObjects;
 using NArchitecture.Gen.Domain.Features.EntityManagement.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator.Abstractions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -50,7 +50,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                 DbContextName = settings.DbContextName!
             };
 
-        IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(request: generateCrudCommand);
+        IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.SendStreamAsync(generateCrudCommand);
 
         await AnsiConsole
             .Status()

@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Core.CodeGen.Code;
 using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
-using MediatR;
+using NArchitecture.Core.Mediator.Abstractions;
 using NArchitecture.Gen.Domain.Features.TemplateManagement.DomainServices;
 using NArchitecture.Gen.Domain.Features.TemplateManagement.ValueObjects;
 

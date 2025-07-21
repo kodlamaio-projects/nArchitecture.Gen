@@ -1,6 +1,6 @@
 ﻿using NArchitecture.Gen.Application.Features.CodeGeneration.Commands.Command;
 using NArchitecture.Gen.Domain.Features.CodeGeneration.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator.Abstractions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -41,7 +41,7 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
                 }
             };
 
-        IAsyncEnumerable<GeneratedCommandResponse> resultsStream = _mediator.CreateStream(request: generateCommandCommand);
+        IAsyncEnumerable<GeneratedCommandResponse> resultsStream = _mediator.SendStreamAsync(generateCommandCommand);
 
         await AnsiConsole
             .Status()

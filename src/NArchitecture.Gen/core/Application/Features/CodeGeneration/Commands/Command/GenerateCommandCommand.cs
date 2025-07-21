@@ -7,7 +7,7 @@ using Core.CodeGen.TemplateEngine;
 using Core.CrossCuttingConcerns.Helpers;
 using NArchitecture.Gen.Domain.Shared.Constants;
 using NArchitecture.Gen.Domain.Features.CodeGeneration.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator.Abstractions;
 
 namespace NArchitecture.Gen.Application.Features.CodeGeneration.Commands.Command;
 
