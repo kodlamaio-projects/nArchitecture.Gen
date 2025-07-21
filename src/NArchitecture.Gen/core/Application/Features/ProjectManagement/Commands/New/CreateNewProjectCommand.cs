@@ -72,7 +72,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             response.CurrentStatusMessage = "Completed.";
             response.NewFilePathsResult = newFiles;
             response.OutputMessage =
-                $":warning: Check the configuration that has name 'appsettings.json' in 'src/{request.ProjectName.ToCamelCase()}/WebAPI'.";
+                $"Have fun!";
             yield return response;
         }
 
@@ -179,7 +179,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             if (srcDirectories.Length > 0)
             {
                 string sourceProjectDir = srcDirectories.First().Split('/').Last();
-                string newProjectPath = $"{Environment.CurrentDirectory}/src/{projectName.ToCamelCase()}";
+                string newProjectPath = $"{Environment.CurrentDirectory}/src/{projectName.ToPascalCase()}";
                 Directory.Move(sourceDirName: $"{Environment.CurrentDirectory}/src/{sourceProjectDir}", newProjectPath);
 
                 // Update all project files in the source directory
