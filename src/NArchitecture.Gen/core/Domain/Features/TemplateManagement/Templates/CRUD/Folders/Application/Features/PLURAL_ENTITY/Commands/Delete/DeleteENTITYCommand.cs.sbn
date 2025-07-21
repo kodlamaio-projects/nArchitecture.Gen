@@ -4,24 +4,29 @@ using Application.Features.{{ entity.name | string.pascalcase | string.plural }}
 using Application.Services.Repositories;
 using AutoMapper;
 using Domain.Entities;{{ if is_secured_operation_used }}
-using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
+using NArchitecture.Core.Application.Pipelines.Auth;{{ end }}{{ if is_caching_used }}
 using NArchitecture.Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
 using NArchitecture.Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
 using NArchitecture.Core.Application.Pipelines.Transaction;{{ end }}
 using MediatR;{{ if is_secured_operation_used }}
-using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
 
 public class Delete{{ entity.name | string.pascalcase }}Command : IRequest<Deleted{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_transaction_used }}, ITransactionalRequest{{ end }}
 {
     public {{ entity.id_type }} Id { get; set; }{{ if is_secured_operation_used }}
+    public required string[] IdentityRoles { get; set; }
 
-    public string[] Roles => [Admin, Write, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Delete];{{ end }}{{ if is_caching_used }}
+    public static readonly string[] RequiredRoles = [{{ entity.name | string.pascalcase | string.plural }}OperationClaims.Admin, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Write, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Delete];
+    public AuthOptions AuthOptions => new(IdentityRoles, RequiredRoles);{{ end }}{{ if is_logging_used }}
 
-    public bool BypassCache { get; }
-    public string? CacheKey { get; }
-    public string[]? CacheGroupKey => ["Get{{ entity.name | string.pascalcase | string.plural }}"];{{ end }}
+    public LogOptions LogOptions => LogOptions.Default;{{ end }}{{ if is_caching_used }}
+
+    public CacheRemoverOptions CacheOptions => new(
+        BypassCache: false,
+        CacheKey: null,
+        CacheGroupKey: ["Get{{ entity.name | string.pascalcase | string.plural }}"]
+    );{{ end }}
 
     public class Delete{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Delete{{ entity.name | string.pascalcase }}Command, Deleted{{ entity.name | string.pascalcase }}Response>
     {

@@ -78,6 +78,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
         {
             string operationClaimConfigurationFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
+                "infrastructure",
                 "Persistence",
                 "EntityConfigurations",
                 "OperationClaimConfiguration.cs"
@@ -131,6 +132,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
         {
             string contextFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
+                "infrastructure",
                 "Persistence",
                 "Contexts",
                 $"{crudTemplateData.DbContextName}.cs"
@@ -172,7 +174,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
             return await generateFolderCodes(
                 templateDir,
-                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Persistence"),
+                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "infrastructure", "Persistence"),
                 crudTemplateData
             );
         }
@@ -188,7 +190,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
 
             return await generateFolderCodes(
                 templateDir,
-                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
+                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "core", "Application"),
                 crudTemplateData
             );
         }
@@ -203,7 +205,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
             return await generateFolderCodes(
                 templateDir,
-                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "WebAPI"),
+                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "presentation", "WebApi"),
                 crudTemplateData
             );
         }
@@ -234,6 +236,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             #region Persistence
             string persistenceServiceRegistrationFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
+                "infrastructure",
                 "Persistence",
                 "PersistenceServiceRegistration.cs"
             );
@@ -264,6 +267,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             #region Application
             string applicationServiceRegistrationNameSpaceUsingFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
+                "core",
                 "Application",
                 "ApplicationServiceRegistration.cs"
             );
@@ -287,6 +291,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
 
             string applicationServiceRegistrationFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
+                "core",
                 "Application",
                 "ApplicationServiceRegistration.cs"
             );

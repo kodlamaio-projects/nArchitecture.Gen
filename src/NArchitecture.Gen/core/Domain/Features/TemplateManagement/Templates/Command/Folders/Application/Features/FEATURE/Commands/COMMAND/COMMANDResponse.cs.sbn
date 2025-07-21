@@ -1,5 +1,4 @@
-using NArchitecture.Core.Application.Responses;
+namespace {{ project_name }}.Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
 
-namespace Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
-
-public class {{ command_name | string.pascalcase }}Response : IResponse { }
+public record {{ command_name | string.pascalcase }}Response(
+);

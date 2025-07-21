@@ -1,50 +1,51 @@
 ﻿{{ if is_secured_operation_used }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
 {{ end }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
 using Application.Services.Repositories;
-using AutoMapper;
-using Domain.Entities;{{ if is_secured_operation_used }}
-using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
+using Domain.Entities;
+using NArchitecture.Core.Mapper.Abstractions;{{ if is_secured_operation_used }}
+using NArchitecture.Core.Application.Pipelines.Auth;{{ end }}{{ if is_caching_used }}
 using NArchitecture.Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
 using NArchitecture.Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
 using NArchitecture.Core.Application.Pipelines.Transaction;{{ end }}
-using MediatR;{{ for propertyItem in entity.properties }}{{ if (propertyItem.name_space) }}
+using NArchitecture.Core.Mediator.Abstractions.CQRS;{{ for propertyItem in entity.properties }}{{ if (propertyItem.name_space) }}
 using {{ propertyItem.name_space }};{{ end }}{{ end }}{{ if is_secured_operation_used }}
-using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Create;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Create;
 
-public class Create{{ entity.name | string.pascalcase }}Command : IRequest<Created{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_transaction_used }}, ITransactionalRequest{{ end }}
-{%{{}%}{{ for propertyItem in entity.properties }}
-    public {{ if !(propertyItem.type | string.contains "?") }}required {{ end }}{{ propertyItem.type }} {{ propertyItem.name | string.pascalcase }} { get; set; }{{ end }}{{ if is_secured_operation_used }}
+public record Create{{ entity.name | string.pascalcase }}Command({{ for propertyItem in entity.properties }}
+    {{ propertyItem.type }} {{ propertyItem.name | string.pascalcase }},{{ end }}{{ if is_secured_operation_used }}
+    string[] IdentityRoles{{ end }}
+) : ICommand<Created{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_transaction_used }}, ITransactionalRequest{{ end }}
+{%{{}%}{{ if is_secured_operation_used }}
+    public static readonly string[] RequiredRoles = [{{ entity.name | string.pascalcase | string.plural }}OperationClaims.Admin, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Write, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Create];
+    public AuthOptions AuthOptions => new(IdentityRoles, RequiredRoles);{{ end }}{{ if is_logging_used }}
+    public LogOptions LogOptions => LogOptions.Default;{{ end }}{{ if is_caching_used }}
+    public CacheRemoverOptions CacheOptions => new(
+        BypassCache: false,
+        CacheKey: null,
+        CacheGroupKey: ["Get{{ entity.name | string.pascalcase | string.plural }}"]
+    );{{ end }}
+}
 
-    public string[] Roles => [Admin, Write, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Create];{{ end }}{{ if is_caching_used }}
-
-    public bool BypassCache { get; }
-    public string? CacheKey { get; }
-    public string[]? CacheGroupKey => ["Get{{ entity.name | string.pascalcase | string.plural }}"];{{ end }}
-
-    public class Create{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Create{{ entity.name | string.pascalcase }}Command, Created{{ entity.name | string.pascalcase }}Response>
+public class Create{{ entity.name | string.pascalcase }}CommandHandler(
+    IMapper mapper,
+    I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository,
+    {{ entity.name | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules
+) : ICommandHandler<Create{{ entity.name | string.pascalcase }}Command, Created{{ entity.name | string.pascalcase }}Response>
+{
+    public async Task<Created{{ entity.name | string.pascalcase }}Response> Handle(Create{{ entity.name | string.pascalcase }}Command request, CancellationToken cancellationToken)
     {
-        private readonly IMapper _mapper;
-        private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
-        private readonly {{ entity.name | string.pascalcase }}BusinessRules _{{ entity.name | string.camelcase }}BusinessRules;
+        // Apply business rules for creation
+        // await {{ entity.name | string.camelcase }}BusinessRules.{{ entity.name | string.pascalcase }}ShouldNotExistWhenCreating(existingEntity);
 
-        public Create{{ entity.name | string.pascalcase }}CommandHandler(IMapper mapper, I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository,
-                                         {{ entity.name | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
-        {
-            _mapper = mapper;
-            _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
-            _{{ entity.name | string.camelcase }}BusinessRules = {{ entity.name | string.camelcase }}BusinessRules;
-        }
+        // Map command to entity
+        {{ entity.name | string.pascalcase }} {{ entity.name | string.camelcase }} = mapper.Map<{{ entity.name | string.pascalcase }}>(request);
 
-        public async Task<Created{{ entity.name | string.pascalcase }}Response> Handle(Create{{ entity.name | string.pascalcase }}Command request, CancellationToken cancellationToken)
-        {
-            {{ entity.name | string.pascalcase }} {{ entity.name | string.camelcase }} = _mapper.Map<{{ entity.name | string.pascalcase }}>(request);
+        // Add entity to repository
+        await {{ entity.name | string.camelcase }}Repository.AddAsync({{ entity.name | string.camelcase }});
 
-            await _{{ entity.name | string.camelcase }}Repository.AddAsync({{ entity.name | string.camelcase }});
-
-            Created{{ entity.name | string.pascalcase }}Response response = _mapper.Map<Created{{ entity.name | string.pascalcase }}Response>({{ entity.name | string.camelcase }});
-            return response;
-        }
+        // Map entity to response
+        Created{{ entity.name | string.pascalcase }}Response response = mapper.Map<Created{{ entity.name | string.pascalcase }}Response>({{ entity.name | string.camelcase }});
+        return response;
     }
 }

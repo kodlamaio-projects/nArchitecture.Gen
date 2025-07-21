@@ -40,6 +40,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                         IdType = entityIdType,
                         Properties = entityProperties.Where(property => property.AccessModifier == "public").ToArray()
                     },
+                    ProjectName = settings.ProjectName ?? "NArchitecture.Starter",
                     IsCachingUsed = settings.IsCachingUsed,
                     IsLoggingUsed = settings.IsLoggingUsed,
                     IsTransactionUsed = settings.IsTransactionUsed,

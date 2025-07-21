@@ -1,0 +1,1 @@
+group.Map{{ query_name | string.pascalcase }}Endpoint();

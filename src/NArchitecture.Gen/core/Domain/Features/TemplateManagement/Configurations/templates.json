@@ -12,7 +12,7 @@
     }
   ],
   "Settings": {
-    "IsDebugMode": false,
+    "IsDebugMode": true,
     "DefaultTemplateId": "minimal"
   }
 }

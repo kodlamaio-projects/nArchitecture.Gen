@@ -1,8 +1,11 @@
 using FluentValidation;
+using NArchitecture.Core.Validation.Abstractions;
 
-namespace Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
+namespace {{ project_name }}.Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
 
-public class {{ command_name | string.pascalcase }}CommandValidator : AbstractValidator<{{ command_name | string.pascalcase }}Command>
+public class {{ command_name | string.pascalcase }}CommandValidator : AbstractValidator<{{ command_name | string.pascalcase }}Command>, IValidationProfile<{{ command_name | string.pascalcase }}Command>
 {
-    public {{ command_name | string.pascalcase }}CommandValidator() { }
+    public {{ command_name | string.pascalcase }}CommandValidator()
+    {
+    }
 }

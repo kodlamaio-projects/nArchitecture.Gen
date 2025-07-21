@@ -28,9 +28,12 @@ public partial class GenerateQueryCliCommand
         [CommandOption("-s|--secured")]
         public bool IsSecuredOperationUsed { get; set; }
 
+        [CommandOption("--no-api")]
+        public bool NoApi { get; set; }
+
         public string ProjectPath =>
             ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
+                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName)
                 : Environment.CurrentDirectory;
 
         public void CheckQueryName()
@@ -52,9 +55,9 @@ public partial class GenerateQueryCliCommand
                 return;
             }
 
-            string[] features = Directory.GetDirectories($"{ProjectPath}/Application/Features").Select(Path.GetFileName).Where(f => f != null).Cast<string>().ToArray();
+            string[] features = Directory.GetDirectories($"{ProjectPath}/core/Application/Features").Select(Path.GetFileName).Where(f => f != null).Cast<string>().ToArray();
             if (features.Length == 0)
-                throw new BusinessException($"No feature found in \"{ProjectPath}/Application/Features\".");
+                throw new BusinessException($"No feature found in \"{ProjectPath}/core/Application/Features\".");
 
             FeatureName = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()

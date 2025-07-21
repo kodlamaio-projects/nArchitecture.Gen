@@ -1,0 +1,30 @@
+using Microsoft.AspNetCore.Http.HttpResults;
+using NArchitecture.Core.Mediator.Abstractions;
+using {{ project_name }}.Application.Features.{{ feature_name }}.Queries.{{ query_name | string.pascalcase }};
+
+namespace {{ project_name }}.WebApi.Features.{{ feature_name }}.Endpoints;
+
+public static class {{ query_name | string.pascalcase }}Endpoint
+{
+    public static RouteGroupBuilder Map{{ query_name | string.pascalcase }}Endpoint(this RouteGroupBuilder group)
+    {
+        group.MapGet("/{{ query_name | string.kebabcase }}", Handle)
+            .WithName("{{ query_name | string.pascalcase }}")
+            .WithOpenApi(operation =>
+            {
+                operation.Summary = "{{ query_name | string.pascalcase }}";
+                operation.Description = "{{ query_name | string.pascalcase }} operation";
+                return operation;
+            });
+
+        return group;
+    }
+
+    private static async Task<Results<Ok<{{ query_name | string.pascalcase }}Response>, BadRequest<string>>> Handle(
+        {{ query_name | string.pascalcase }}Query query,
+        IMediator mediator)
+    {
+        {{ query_name | string.pascalcase }}Response response = await mediator.SendAsync(query);
+        return TypedResults.Ok(response);
+    }
+}

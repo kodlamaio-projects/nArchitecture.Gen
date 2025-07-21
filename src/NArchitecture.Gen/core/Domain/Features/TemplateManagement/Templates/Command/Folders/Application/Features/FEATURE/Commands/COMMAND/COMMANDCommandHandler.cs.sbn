@@ -1,0 +1,14 @@
+using NArchitecture.Core.Mediator.Abstractions.CQRS;
+
+namespace {{ project_name }}.Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
+
+public class {{ command_name | string.pascalcase }}CommandHandler
+    : ICommandHandler<{{ command_name | string.pascalcase }}Command, {{ command_name | string.pascalcase }}Response>
+{
+    public async Task<{{ command_name | string.pascalcase }}Response> Handle({{ command_name | string.pascalcase }}Command request, CancellationToken cancellationToken)
+    {
+        {{ command_name | string.pascalcase }}Response response = new();
+
+        return response;
+    }
+}

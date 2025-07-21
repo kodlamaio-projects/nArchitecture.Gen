@@ -33,7 +33,7 @@ public partial class GenerateCrudCliCommand
 
         public string ProjectPath =>
             ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
+                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName)
                 : Environment.CurrentDirectory;
 
         public void CheckProjectName()

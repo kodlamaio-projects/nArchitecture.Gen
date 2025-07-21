@@ -1,8 +1,23 @@
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
 
 public static class {{ entity.name | string.pascalcase | string.plural }}BusinessMessages
 {
-    public const string SectionName = "{{ entity.name | string.pascalcase }}";
+    public const string SectionName = "{{ entity.name | string.pascalcase | string.plural }}";
 
-    public const string {{ entity.name | string.pascalcase }}NotExists = "{{ entity.name | string.pascalcase }}NotExists";
+    // Existence validation messages
+    public const string {{ entity.name | string.pascalcase }}NotExists = "{{ entity.name | string.pascalcase }}.NotExists";
+    public const string {{ entity.name | string.pascalcase }}AlreadyExists = "{{ entity.name | string.pascalcase }}.AlreadyExists";
+    
+    // Operation messages
+    public const string {{ entity.name | string.pascalcase }}CreatedSuccessfully = "{{ entity.name | string.pascalcase }}.CreatedSuccessfully";
+    public const string {{ entity.name | string.pascalcase }}UpdatedSuccessfully = "{{ entity.name | string.pascalcase }}.UpdatedSuccessfully";
+    public const string {{ entity.name | string.pascalcase }}DeletedSuccessfully = "{{ entity.name | string.pascalcase }}.DeletedSuccessfully";
+    
+    // Validation messages
+    public const string {{ entity.name | string.pascalcase }}IdRequired = "{{ entity.name | string.pascalcase }}.IdRequired";
+    public const string {{ entity.name | string.pascalcase }}IdMustBeGreaterThanZero = "{{ entity.name | string.pascalcase }}.IdMustBeGreaterThanZero";
+    
+    // Authorization messages
+    public const string {{ entity.name | string.pascalcase }}AccessDenied = "{{ entity.name | string.pascalcase }}.AccessDenied";
+    public const string {{ entity.name | string.pascalcase }}InsufficientPermissions = "{{ entity.name | string.pascalcase }}.InsufficientPermissions";
 }

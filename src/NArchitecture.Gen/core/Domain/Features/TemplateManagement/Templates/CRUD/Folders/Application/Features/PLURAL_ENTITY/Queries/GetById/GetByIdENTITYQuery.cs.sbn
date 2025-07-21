@@ -3,17 +3,26 @@
 using Application.Services.Repositories;
 using AutoMapper;
 using Domain.Entities;{{ if is_secured_operation_used }}
-using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}
+using NArchitecture.Core.Application.Pipelines.Auth;{{ end }}{{ if is_caching_used }}
+using NArchitecture.Core.Application.Pipelines.Caching;{{ end }}
 using MediatR;{{ if is_secured_operation_used }}
-using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
 
-public class GetById{{ entity.name | string.pascalcase }}Query : IRequest<GetById{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}
+public class GetById{{ entity.name | string.pascalcase }}Query : IRequest<GetById{{ entity.name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheableRequest{{ end }}
 {
     public {{ entity.id_type }} Id { get; set; }{{ if is_secured_operation_used }}
+    public required string[] IdentityRoles { get; set; }
 
-    public string[] Roles => [Admin, Read];{{ end }}
+    public static readonly string[] RequiredRoles = [{{ entity.name | string.pascalcase | string.plural }}OperationClaims.Admin, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Read];
+    public AuthOptions AuthOptions => new(IdentityRoles, RequiredRoles);{{ end }}{{ if is_caching_used }}
+
+    public CacheableOptions CacheOptions => new(
+        BypassCache: false,
+        CacheKey: $"GetById{{ entity.name | string.pascalcase }}({Id})",
+        CacheGroupKey: "Get{{ entity.name | string.pascalcase | string.plural }}",
+        SlidingExpiration: null
+    );{{ end }}
 
     public class GetById{{ entity.name | string.pascalcase }}QueryHandler : IRequestHandler<GetById{{ entity.name | string.pascalcase }}Query, GetById{{ entity.name | string.pascalcase }}Response>
     {

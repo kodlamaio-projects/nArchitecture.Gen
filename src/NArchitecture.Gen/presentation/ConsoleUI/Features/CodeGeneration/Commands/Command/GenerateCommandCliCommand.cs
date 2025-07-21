@@ -33,11 +33,13 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
                 {
                     CommandName = settings.CommandName!,
                     FeatureName = settings.FeatureName!,
+                    ProjectName = settings.ProjectName ?? "NArchitecture.Starter",
                     IsCachingUsed = settings.IsCachingUsed,
                     IsLoggingUsed = settings.IsLoggingUsed,
                     IsTransactionUsed = settings.IsTransactionUsed,
                     IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
-                    EndPointMethod = settings.EndPointMethod!
+                    EndPointMethod = settings.EndPointMethod!,
+                    IsApiEndpointUsed = !settings.NoApi
                 }
             };
 

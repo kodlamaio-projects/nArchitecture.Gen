@@ -1,8 +1,7 @@
 ﻿using NArchitecture.Core.Application.Responses;
 
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
 
-public class Deleted{{ entity.name | string.pascalcase }}Response : IResponse
-{
-    public {{ entity.id_type }} Id { get; set; }
-}
+public record Deleted{{ entity.name | string.pascalcase }}Response(
+    {{ entity.id_type }} Id
+) : IResponse;

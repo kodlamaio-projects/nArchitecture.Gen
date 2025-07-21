@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
 
 public class Delete{{ entity.name | string.pascalcase }}CommandValidator : AbstractValidator<Delete{{ entity.name | string.pascalcase }}Command>
 {

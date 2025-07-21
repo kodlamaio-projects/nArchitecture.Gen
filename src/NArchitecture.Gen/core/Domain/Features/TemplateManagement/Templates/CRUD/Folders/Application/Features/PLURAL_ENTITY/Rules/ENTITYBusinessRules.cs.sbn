@@ -5,7 +5,7 @@ using NArchitecture.Core.CrossCuttingConcerns.Exception.Types;
 using NArchitecture.Core.Localization.Abstraction;
 using Domain.Entities;
 
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
 
 public class {{ entity.name | string.pascalcase }}BusinessRules : BaseBusinessRules
 {
@@ -28,6 +28,18 @@ public class {{ entity.name | string.pascalcase }}BusinessRules : BaseBusinessRu
     {
         if ({{ entity.name | string.camelcase }} == null)
             await throwBusinessException({{ entity.name | string.pascalcase | string.plural }}BusinessMessages.{{ entity.name | string.pascalcase }}NotExists);
+    }
+
+    public async Task {{ entity.name | string.pascalcase }}ShouldNotExistWhenCreating({{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }})
+    {
+        if ({{ entity.name | string.camelcase }} != null)
+            await throwBusinessException({{ entity.name | string.pascalcase | string.plural }}BusinessMessages.{{ entity.name | string.pascalcase }}AlreadyExists);
+    }
+
+    public void {{ entity.name | string.pascalcase }}IdShouldBeValid({{ entity.id_type }} id)
+    {
+        if (id <= 0)
+            throw new BusinessException({{ entity.name | string.pascalcase | string.plural }}BusinessMessages.{{ entity.name | string.pascalcase }}IdMustBeGreaterThanZero);
     }
 
     public async Task {{ entity.name | string.pascalcase }}IdShouldExistWhenSelected({{ entity.id_type }} id, CancellationToken cancellationToken)

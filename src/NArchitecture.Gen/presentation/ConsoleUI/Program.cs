@@ -20,8 +20,6 @@ TypeRegistrar registrar = new(services);
 CommandApp app = new(registrar);
 app.Configure(config =>
 {
-    #region Controller
-
     config.AddBranch(
         name: "generate",
         action: config =>
@@ -53,8 +51,6 @@ app.Configure(config =>
         .AddCommand<ListTemplatesCliCommand>(name: "templates")
         .WithDescription(description: "List available project templates")
         .WithExample(args: new[] { "templates" });
-
-    #endregion
 });
 
 AnsiConsole.Write(new FigletText("NArchitecture").LeftJustified().Color(Color.Blue));

@@ -3,7 +3,7 @@ using Domain.Entities;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
 
-namespace Application.Services.{{ entity.name | string.pascalcase | string.plural }};
+namespace {{ project_name }}.Application.Services.{{ entity.name | string.pascalcase | string.plural }};
 
 public interface I{{ entity.name | string.pascalcase }}Service
 {

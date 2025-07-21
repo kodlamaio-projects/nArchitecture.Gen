@@ -1,0 +1,1 @@
+group.Map{{ command_name | string.pascalcase }}Endpoint();

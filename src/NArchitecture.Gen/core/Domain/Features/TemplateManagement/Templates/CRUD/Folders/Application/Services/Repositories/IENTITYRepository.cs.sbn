@@ -1,7 +1,7 @@
 ﻿using Domain.Entities;
 using NArchitecture.Core.Persistence.Repositories;
 
-namespace Application.Services.Repositories;
+namespace {{ project_name }}.Application.Services.Repositories;
 
 public interface I{{ entity.name | string.pascalcase }}Repository : IAsyncRepository<{{ entity.name | string.pascalcase }}, {{ entity.id_type }}>, IRepository<{{ entity.name | string.pascalcase }}, {{ entity.id_type }}>
 {

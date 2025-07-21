@@ -1,0 +1,16 @@
+using {{ project_name }}.WebApi.Features.{{ feature_name }}.Endpoints;
+
+namespace {{ project_name }}.WebApi.Features.{{ feature_name }};
+
+public static class {{ feature_name | string.pascalcase }}EndpointRegistration
+{
+    public static RouteGroupBuilder Map{{ feature_name | string.pascalcase }}Endpoints(this WebApplication app)
+    {
+        RouteGroupBuilder group = app.MapGroup("/api/{{ feature_name | string.kebabcase }}").WithTags("{{ feature_name | string.pascalcase }}");
+
+        // Register {{ feature_name }} endpoints
+        group.Map{{ command_name | string.pascalcase }}Endpoint();
+
+        return group;
+    }
+}

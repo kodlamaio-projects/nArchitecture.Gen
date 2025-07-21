@@ -12,7 +12,7 @@ public class GenerateBusinessRules
     public async Task EntityClassShouldBeInhreitEntityBaseClass(string projectPath, string entityName)
     {
         string[] fileContent = await File.ReadAllLinesAsync(
-            PlatformHelper.SecuredPathJoin(projectPath, "Domain", "Entities", $"{entityName}.cs")
+            PlatformHelper.SecuredPathJoin(projectPath, "core", "Domain", "Entities", $"{entityName}.cs")
         );
 
         string entityBaseClassNameSpaceUsingTemplate = await File.ReadAllTextAsync(

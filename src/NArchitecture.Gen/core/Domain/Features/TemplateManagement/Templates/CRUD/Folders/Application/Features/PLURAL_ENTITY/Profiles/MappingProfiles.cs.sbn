@@ -3,29 +3,40 @@ using Application.Features.{{ entity.name | string.pascalcase | string.plural }}
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
-using AutoMapper;
-using NArchitecture.Core.Application.Responses;
 using Domain.Entities;
+using Mapster;
+using NArchitecture.Core.Application.Responses;
 using NArchitecture.Core.Persistence.Paging;
 
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Profiles;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Profiles;
 
-public class MappingProfiles : Profile
+public class {{ entity.name | string.pascalcase }}MappingProfiles : IRegister
 {
-    public MappingProfiles()
+    public void Register(TypeAdapterConfig config)
     {
-        CreateMap<Create{{ entity.name | string.pascalcase }}Command, {{ entity.name | string.pascalcase }}>();
-        CreateMap<{{ entity.name | string.pascalcase }}, Created{{ entity.name | string.pascalcase }}Response>();
+        // Command to Entity mappings
+        config.NewConfig<Create{{ entity.name | string.pascalcase }}Command, {{ entity.name | string.pascalcase }}>()
+            .Map(dest => dest.Id, src => Guid.NewGuid())
+            .Map(dest => dest.CreatedDate, src => DateTime.UtcNow);
 
-        CreateMap<Update{{ entity.name | string.pascalcase }}Command, {{ entity.name | string.pascalcase }}>();
-        CreateMap<{{ entity.name | string.pascalcase }}, Updated{{ entity.name | string.pascalcase }}Response>();
+        config.NewConfig<Update{{ entity.name | string.pascalcase }}Command, {{ entity.name | string.pascalcase }}>()
+            .Map(dest => dest.UpdatedDate, src => DateTime.UtcNow);
 
-        CreateMap<Delete{{ entity.name | string.pascalcase }}Command, {{ entity.name | string.pascalcase }}>();
-        CreateMap<{{ entity.name | string.pascalcase }}, Deleted{{ entity.name | string.pascalcase }}Response>();
+        // Entity to Response mappings
+        config.NewConfig<{{ entity.name | string.pascalcase }}, Created{{ entity.name | string.pascalcase }}Response>();
+        config.NewConfig<{{ entity.name | string.pascalcase }}, Updated{{ entity.name | string.pascalcase }}Response>();
+        config.NewConfig<{{ entity.name | string.pascalcase }}, Deleted{{ entity.name | string.pascalcase }}Response>();
+        config.NewConfig<{{ entity.name | string.pascalcase }}, GetById{{ entity.name | string.pascalcase }}Response>();
 
-        CreateMap<{{ entity.name | string.pascalcase }}, GetById{{ entity.name | string.pascalcase }}Response>();
-
-        CreateMap<{{ entity.name | string.pascalcase }}, GetList{{ entity.name | string.pascalcase }}ListItemDto>();
-        CreateMap<IPaginate<{{ entity.name | string.pascalcase }}>, GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>();
+        // List mappings
+        config.NewConfig<{{ entity.name | string.pascalcase }}, GetList{{ entity.name | string.pascalcase }}ListItemDto>();
+        config.NewConfig<IPaginate<{{ entity.name | string.pascalcase }}>, GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>()
+            .Map(dest => dest.Items, src => src.Items.Adapt<IList<GetList{{ entity.name | string.pascalcase }}ListItemDto>>())
+            .Map(dest => dest.Index, src => src.Index)
+            .Map(dest => dest.Size, src => src.Size)
+            .Map(dest => dest.Count, src => src.Count)
+            .Map(dest => dest.Pages, src => src.Pages)
+            .Map(dest => dest.HasPrevious, src => src.HasPrevious)
+            .Map(dest => dest.HasNext, src => src.HasNext);
     }
 }

@@ -1,10 +1,9 @@
 ﻿using NArchitecture.Core.Application.Responses;{{ for propertyItem in entity.properties }}{{ if (propertyItem.name_space) }}
 using {{ propertyItem.name_space }};{{ end }}{{ end }}
 
-namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
+namespace {{ project_name }}.Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
 
-public class Updated{{ entity.name | string.pascalcase }}Response : IResponse
-{
-    public {{ entity.id_type }} Id { get; set; }{{ for propertyItem in entity.properties }}
-    public {{ propertyItem.type }} {{ propertyItem.name | string.pascalcase }} { get; set; }{{ end }}
-}
+public record Updated{{ entity.name | string.pascalcase }}Response(
+    {{ entity.id_type }} Id{{ for propertyItem in entity.properties }},
+    {{ propertyItem.type }} {{ propertyItem.name | string.pascalcase }}{{ end }}
+) : IResponse;

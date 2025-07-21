@@ -12,8 +12,42 @@ public static class DirectoryHelper
             string codeBase = PlatformHelper.GetDirectoryHeader() + Assembly.GetExecutingAssembly().Location;
             UriBuilder uri = new(codeBase);
             string path = Uri.UnescapeDataString(uri.Path);
-            return Path.GetDirectoryName(path)!;
+            string assemblyDir = Path.GetDirectoryName(path)!;
+            
+            // Check if we're running from the build output directory (bin/Debug/net9.0)
+            // If so, navigate back to the source directory to find templates
+            if (assemblyDir.Contains(Path.Combine("bin", "Debug")) || assemblyDir.Contains(Path.Combine("bin", "Release")))
+            {
+                // Navigate from bin/Debug/net9.0 back to the project root
+                string? projectRoot = FindProjectRoot(assemblyDir);
+                if (projectRoot != null)
+                {
+                    string templatesPath = Path.Combine(projectRoot, "src", "NArchitecture.Gen", "core", "Domain", "Features", "TemplateManagement");
+                    if (System.IO.Directory.Exists(templatesPath))
+                    {
+                        return templatesPath;
+                    }
+                }
+            }
+            
+            return assemblyDir;
         }
+    }
+    
+    private static string? FindProjectRoot(string startPath)
+    {
+        string? currentDir = startPath;
+        while (currentDir != null)
+        {
+            // Look for solution file or other project indicators
+            if (System.IO.File.Exists(Path.Combine(currentDir, "NArchitecture.Gen.slnx")) ||
+                System.IO.Directory.Exists(Path.Combine(currentDir, "src", "NArchitecture.Gen")))
+            {
+                return currentDir;
+            }
+            currentDir = Directory.GetParent(currentDir)?.FullName;
+        }
+        return null;
     }
 
     public static ICollection<string> GetFilesInDirectoryTree(string root, string searchPattern)

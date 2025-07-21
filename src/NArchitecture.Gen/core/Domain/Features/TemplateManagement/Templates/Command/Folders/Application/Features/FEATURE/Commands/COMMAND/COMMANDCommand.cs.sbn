@@ -1,39 +1,22 @@
-{{ if is_secured_operation_used }}using Application.Features.{{ feature_name }}.Constants;
-{{ end }}using Application.Features.{{ feature_name }}.Rules;
-using AutoMapper;{{ if is_secured_operation_used }}
-using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
-using NArchitecture.Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
-using NArchitecture.Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
-using NArchitecture.Core.Application.Pipelines.Transaction;{{ end }}
-using MediatR;{{ if is_secured_operation_used }}
-using static Application.Features.{{ feature_name }}.Constants.{{ feature_name }}OperationClaims;{{ end }}
+{{ if is_secured_operation_used }}using {{ project_name }}.Application.Features.{{ feature_name }}.Constants;
+{{ end }}{{ if is_logging_used }}using NArchitecture.Core.Application.Pipelines.Logging;
+{{ end }}{{ if is_transaction_used }}using NArchitecture.Core.Application.Pipelines.Transaction;
+{{ end }}{{ if is_secured_operation_used }}using NArchitecture.Core.Application.Pipelines.Auth;
+{{ end }}{{ if is_caching_used }}using NArchitecture.Core.Application.Pipelines.Caching;
+{{ end }}using NArchitecture.Core.Mediator.Abstractions.CQRS;
 
-namespace Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
+namespace {{ project_name }}.Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
 
-public class {{ command_name | string.pascalcase }}Command : IRequest<{{ command_name | string.pascalcase }}Response>{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_transaction_used }}, ITransactionalRequest{{ end }}
+public record {{ command_name | string.pascalcase }}Command({{ if is_secured_operation_used }}
+    string[] IdentityRoles{{ end }}
+) : ICommand<{{ command_name | string.pascalcase }}Response>{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_transaction_used }}, ITransactionalRequest{{ end }}{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}{{ if is_caching_used }}, ICacheRemoverRequest{{ end }}
 {%{{}%}{{ if is_secured_operation_used }}
-
-    public string[] Roles => [Admin, Write, {{ feature_name | string.pascalcase }}OperationClaims.{{ command_name }}];{{ end }}{{ if is_caching_used }}
-
-    public bool BypassCache { get; }
-    public string? CacheKey { get; }
-    public string[]? CacheGroupKey => ["Get{{ feature_name | string.pascalcase }}"];{{ end }}
-    
-    public class {{ command_name | string.pascalcase }}CommandHandler : IRequestHandler<{{ command_name | string.pascalcase }}Command, {{ command_name | string.pascalcase }}Response>
-    {
-        private readonly IMapper _mapper;
-        private readonly {{ feature_name | string.pascalcase | string.singular }}BusinessRules _{{ feature_name | string.camelcase | string.singular }}BusinessRules;
-
-        public {{ command_name | string.pascalcase }}CommandHandler(IMapper mapper, {{ feature_name | string.pascalcase | string.singular }}BusinessRules {{ feature_name | string.camelcase | string.singular }}BusinessRules)
-        {
-            _mapper = mapper;
-            _{{ feature_name | string.camelcase | string.singular }}BusinessRules = {{ feature_name | string.camelcase | string.singular }}BusinessRules;
-        }
-
-        public async Task<{{ command_name | string.pascalcase }}Response> Handle({{ command_name | string.pascalcase }}Command request, CancellationToken cancellationToken)
-        {
-            {{ command_name | string.pascalcase }}Response response = _mapper.Map<{{ command_name | string.pascalcase }}Response>(null);
-            return response;
-        }
-    }
+    public static readonly string[] RequiredRoles = [{{ feature_name }}OperationClaims.Admin, {{ feature_name }}OperationClaims.Write, {{ feature_name }}OperationClaims.{{ command_name | string.pascalcase }}];
+    public AuthOptions AuthOptions => new(IdentityRoles, RequiredRoles);{{ end }}{{ if is_logging_used }}
+    public LogOptions LogOptions => LogOptions.Default;{{ end }}{{ if is_caching_used }}
+    public CacheRemoverOptions CacheOptions => new(
+        BypassCache: false,
+        CacheKey: null,
+        CacheGroupKey: ["Get{{ feature_name | string.pascalcase }}"]
+    );{{ end }}
 }

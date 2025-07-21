@@ -1,8 +1,11 @@
 using FluentValidation;
+using NArchitecture.Core.Validation.Abstractions;
 
-namespace Application.Features.{{ feature_name }}.Queries.{{ query_name | string.pascalcase }};
+namespace {{ project_name }}.Application.Features.{{ feature_name }}.Queries.{{ query_name | string.pascalcase }};
 
-public class {{ query_name | string.pascalcase }}QueryValidator : AbstractValidator<{{ query_name | string.pascalcase }}Query>
+public class {{ query_name | string.pascalcase }}QueryValidator : AbstractValidator<{{ query_name | string.pascalcase }}Query>, IValidationProfile<{{ query_name | string.pascalcase }}Query>
 {
-    public {{ query_name | string.pascalcase }}QueryValidator() { }
+    public {{ query_name | string.pascalcase }}QueryValidator()
+    {
+    }
 }

@@ -1,0 +1,14 @@
+using NArchitecture.Core.Mediator.Abstractions.CQRS;
+
+namespace {{ project_name }}.Application.Features.{{ feature_name }}.Queries.{{ query_name | string.pascalcase }};
+
+public class {{ query_name | string.pascalcase }}QueryHandler
+    : IQueryHandler<{{ query_name | string.pascalcase }}Query, {{ query_name | string.pascalcase }}Response>
+{
+    public async Task<{{ query_name | string.pascalcase }}Response> Handle({{ query_name | string.pascalcase }}Query request, CancellationToken cancellationToken)
+    {
+        {{ query_name | string.pascalcase }}Response response = new();
+        
+        return response;
+    }
+}

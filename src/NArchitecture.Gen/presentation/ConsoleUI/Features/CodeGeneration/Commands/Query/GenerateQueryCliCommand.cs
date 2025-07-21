@@ -32,9 +32,11 @@ public partial class GenerateQueryCliCommand : AsyncCommand<GenerateQueryCliComm
                 {
                     QueryName = settings.QueryName!,
                     FeatureName = settings.FeatureName!,
+                    ProjectName = settings.ProjectName ?? "NArchitecture.Starter",
                     IsCachingUsed = settings.IsCachingUsed,
                     IsLoggingUsed = settings.IsLoggingUsed,
-                    IsSecuredOperationUsed = settings.IsSecuredOperationUsed
+                    IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
+                    IsApiEndpointUsed = !settings.NoApi
                 }
             };
 

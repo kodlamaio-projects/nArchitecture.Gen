@@ -18,16 +18,10 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
     public string ProjectPath { get; set; } = null!;
     public QueryTemplateData QueryTemplateData { get; set; } = null!;
 
-    public class GenerateQueryCommandHandler : IStreamRequestHandler<GenerateQueryCommand, GeneratedQueryResponse>
+    public class GenerateQueryCommandHandler(ITemplateEngine templateEngine, GenerateBusinessRules businessRules) : IStreamRequestHandler<GenerateQueryCommand, GeneratedQueryResponse>
     {
-        private readonly ITemplateEngine _templateEngine;
-        private readonly GenerateBusinessRules _businessRules;
-
-        public GenerateQueryCommandHandler(ITemplateEngine templateEngine, GenerateBusinessRules businessRules)
-        {
-            _templateEngine = templateEngine;
-            _businessRules = businessRules;
-        }
+        private readonly ITemplateEngine _templateEngine = templateEngine;
+        private readonly GenerateBusinessRules _businessRules = businessRules;
 
         public async IAsyncEnumerable<GeneratedQueryResponse> Handle(
             GenerateQueryCommand request,
@@ -37,8 +31,9 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             await _businessRules.FileShouldNotBeExists(
                 PlatformHelper.SecuredPathJoin(
                     request.ProjectPath,
+                    "core",
                     "Application",
-                    "features",
+                    "Features",
                     request.FeatureName.ToPascalCase(),
                     "Queries",
                     request.QueryName,
@@ -53,13 +48,27 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             response.CurrentStatusMessage = "Generating Application layer codes...";
             yield return response;
             newFilePaths.AddRange(await generateApplicationCodes(request.ProjectPath, request.QueryTemplateData));
-            updatedFilePaths.AddRange(await injectOperationClaims(request.ProjectPath, request.FeatureName, request.QueryTemplateData));
+
+            // Only inject operation claims if security is used
+            if (request.QueryTemplateData.IsSecuredOperationUsed)
+            {
+                updatedFilePaths.AddRange(await injectOperationClaims(request.ProjectPath, request.FeatureName, request.QueryTemplateData));
+            }
+
             response.LastOperationMessage = "Application layer codes have been generated.";
 
-            response.CurrentStatusMessage = "Adding endpoint to WebAPI...";
-            yield return response;
-            updatedFilePaths.AddRange(await injectWebApiEndpoint(request.ProjectPath, request.FeatureName, request.QueryTemplateData));
-            response.LastOperationMessage = $"New endpoint has been add to {request.FeatureName.ToPascalCase()}Controller.";
+            if (request.QueryTemplateData.IsApiEndpointUsed)
+            {
+                response.CurrentStatusMessage = "Generating WebAPI endpoint...";
+                yield return response;
+                newFilePaths.AddRange(await generateWebApiEndpoint(request.ProjectPath, request.FeatureName, request.QueryTemplateData));
+                updatedFilePaths.AddRange(await injectWebApiEndpoint(request.ProjectPath, request.FeatureName, request.QueryTemplateData));
+                response.LastOperationMessage = $"New endpoint has been generated for {request.FeatureName.ToPascalCase()}.";
+            }
+            else
+            {
+                response.LastOperationMessage = "API endpoint generation skipped.";
+            }
 
             response.CurrentStatusMessage = "Completed.";
             response.NewFilePathsResult = newFilePaths;
@@ -77,7 +86,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             );
             return await generateFolderCodes(
                 templateDir,
-                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
+                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "core", "Application"),
                 QueryTemplateData
             );
         }
@@ -90,12 +99,19 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
         {
             string featureOperationClaimFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
+                "core",
                 "Application",
                 "Features",
                 featureName,
                 "Constants",
                 $"{featureName}OperationClaims.cs"
             );
+
+            // Check if the operation claims file exists, if not create it
+            if (!File.Exists(featureOperationClaimFilePath))
+            {
+                await createOperationClaimsFile(projectPath, featureName, QueryTemplateData);
+            }
 
             string[] queryOperationClaimPropertyTemplateCodeLines = await File.ReadAllLinesAsync(
                 PlatformHelper.SecuredPathJoin(
@@ -114,13 +130,14 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
 
             string operationClaimsEntityConfigurationFilePath = PlatformHelper.SecuredPathJoin(
                 projectPath,
+                "infrastructure",
                 "Persistence",
-                "EntityConfigurations",
+                "Features",
                 "OperationClaimConfiguration.cs"
             );
 
             if (!File.Exists(operationClaimsEntityConfigurationFilePath))
-                return new[] { featureOperationClaimFilePath };
+                return [featureOperationClaimFilePath];
 
             string[] queryOperationClaimSeedTemplateCodeLines = await File.ReadAllLinesAsync(
                 PlatformHelper.SecuredPathJoin(
@@ -138,7 +155,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                 "getFeatureOperationClaims",
                 queryOperationClaimSeedCodeLines
             );
-            return new[] { featureOperationClaimFilePath, operationClaimsEntityConfigurationFilePath };
+            return [featureOperationClaimFilePath, operationClaimsEntityConfigurationFilePath];
         }
 
         private async Task<ICollection<string>> generateFolderCodes(
@@ -150,57 +167,206 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             var templateFilePaths = DirectoryHelper
                 .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
                 .ToList();
+
+            // Filter out operation claims template if security is not enabled
+            if (!QueryTemplateData.IsSecuredOperationUsed)
+            {
+                templateFilePaths = templateFilePaths
+                    .Where(static path => !path.Contains("FEATUREOperationClaims.cs.sbn"))
+                    .ToList();
+            }
+
             Dictionary<string, string> replacePathVariable =
                 new() { { "FEATURE", "{{ feature_name | string.pascalcase }}" }, { "QUERY", "{{ query_name | string.pascalcase }}" } };
-            ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
+            return await _templateEngine.RenderFileAsync(
                 templateFilePaths,
                 templateDir,
                 replacePathVariable,
                 outputDir,
                 QueryTemplateData
             );
-            return newRenderedFilePaths;
+        }
+
+        private async Task<ICollection<string>> generateWebApiEndpoint(string projectPath, string featureName, QueryTemplateData queryTemplateData)
+        {
+            List<string> newFiles = [];
+
+            // Check if feature registration file already exists
+            string featureRegistrationFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "presentation",
+                "WebApi",
+                "Features",
+                featureName.ToPascalCase(),
+                $"{featureName.ToPascalCase()}EndpointRegistration.cs"
+            );
+
+            if (File.Exists(featureRegistrationFilePath))
+            {
+                // Only generate the endpoint file if registration already exists
+                string endpointTemplateFilePath = PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Query,
+                    "Folders",
+                    "WebApi",
+                    "Features",
+                    "FEATURE",
+                    "Endpoints",
+                    "QUERYEndpoint.cs.sbn"
+                );
+
+                string endpointOutputFilePath = PlatformHelper.SecuredPathJoin(
+                    projectPath,
+                    "presentation",
+                    "WebApi",
+                    "Features",
+                    featureName.ToPascalCase(),
+                    "Endpoints",
+                    $"{queryTemplateData.QueryName.ToPascalCase()}Endpoint.cs"
+                );
+
+                // Ensure the directory exists
+                string? endpointOutputDir = Path.GetDirectoryName(endpointOutputFilePath);
+                if (endpointOutputDir != null && !Directory.Exists(endpointOutputDir))
+                {
+                    _ = Directory.CreateDirectory(endpointOutputDir);
+                }
+
+                // Read and render the template
+                string templateContent = await File.ReadAllTextAsync(endpointTemplateFilePath);
+                string renderedContent = await _templateEngine.RenderAsync(templateContent, queryTemplateData);
+
+                // Write the rendered content to the file
+                await File.WriteAllTextAsync(endpointOutputFilePath, renderedContent);
+                newFiles.Add(endpointOutputFilePath);
+            }
+            else
+            {
+                // Generate both endpoint and registration files
+                string templateDir = PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Query,
+                    "Folders",
+                    "WebApi"
+                );
+
+                newFiles.AddRange(await generateFolderCodes(
+                    templateDir,
+                    outputDir: PlatformHelper.SecuredPathJoin(projectPath, "presentation", "WebApi"),
+                    queryTemplateData
+                ));
+            }
+
+            return newFiles;
         }
 
         private async Task<ICollection<string>> injectWebApiEndpoint(
             string projectPath,
             string featureName,
-            QueryTemplateData QueryTemplateData
+            QueryTemplateData queryTemplateData
         )
         {
-            string controllerFilePath = PlatformHelper.SecuredPathJoin(projectPath, "WebAPI", "Controllers", $"{featureName}Controller.cs");
-            string[] controllerEndPointMethodTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(
-                    DirectoryHelper.AssemblyDirectory,
-                    Templates.Paths.Query,
-                    "Lines",
-                    "ControllerEndPointMethod.cs.sbn"
-                )
-            );
-            string[] controllerEndPointMethodRenderedCodeLines = await Task.WhenAll(
-                controllerEndPointMethodTemplateCodeLines.Select(async line => await _templateEngine.RenderAsync(line, QueryTemplateData))
+            List<string> updatedFiles = [];
+
+            // Path to the feature endpoint registration file
+            string featureRegistrationFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "presentation",
+                "WebApi",
+                "Features",
+                featureName.ToPascalCase(),
+                $"{featureName.ToPascalCase()}EndpointRegistration.cs"
             );
 
-            await CSharpCodeInjector.AddMethodToClass(
-                controllerFilePath,
-                className: $"{featureName.ToPascalCase()}Controller",
-                controllerEndPointMethodRenderedCodeLines
+            // If the feature registration file exists, inject the endpoint mapping
+            if (File.Exists(featureRegistrationFilePath))
+            {
+                // Check if the endpoint mapping already exists to prevent duplicates
+                string fileContent = await File.ReadAllTextAsync(featureRegistrationFilePath);
+
+                // Read endpoint mapping template to generate expected endpoint mapping
+                string[] endpointMappingTemplateCodeLines = await File.ReadAllLinesAsync(
+                    PlatformHelper.SecuredPathJoin(
+                        DirectoryHelper.AssemblyDirectory,
+                        Templates.Paths.Query,
+                        "Lines",
+                        "EndpointMapping.cs.sbn"
+                    )
+                );
+
+                // Generate expected endpoint mapping from template to avoid magic strings
+                string expectedEndpointMapping = await _templateEngine.RenderAsync(endpointMappingTemplateCodeLines[0], queryTemplateData);
+
+                if (!fileContent.Contains(expectedEndpointMapping))
+                {
+                    string[] endpointMappingRenderedCodeLines = await Task.WhenAll(
+                        endpointMappingTemplateCodeLines.Select(async line => await _templateEngine.RenderAsync(line, queryTemplateData))
+                    );
+
+                    // Find the method that registers endpoints and add the new mapping
+                    await CSharpCodeInjector.AddCodeLinesToMethodAsync(
+                        featureRegistrationFilePath,
+                        $"Map{featureName.ToPascalCase()}Endpoints",
+                        endpointMappingRenderedCodeLines
+                    );
+
+                    // Add using statement for the endpoint
+                    string[] endpointUsingNameSpaceTemplateCodeLines = await File.ReadAllLinesAsync(
+                        PlatformHelper.SecuredPathJoin(
+                            DirectoryHelper.AssemblyDirectory,
+                            Templates.Paths.Query,
+                            "Lines",
+                            "EndpointUsingNameSpaces.cs.sbn"
+                        )
+                    );
+                    string[] endpointUsingNameSpaceRenderedCodeLines = await Task.WhenAll(
+                        endpointUsingNameSpaceTemplateCodeLines.Select(async line => await _templateEngine.RenderAsync(line, queryTemplateData))
+                    );
+                    await CSharpCodeInjector.AddUsingToFile(featureRegistrationFilePath, endpointUsingNameSpaceRenderedCodeLines);
+
+                    updatedFiles.Add(featureRegistrationFilePath);
+                }
+            }
+
+            return updatedFiles;
+        }
+
+        private async Task createOperationClaimsFile(string projectPath, string featureName, QueryTemplateData queryTemplateData)
+        {
+            string operationClaimsTemplateFilePath = PlatformHelper.SecuredPathJoin(
+                DirectoryHelper.AssemblyDirectory,
+                Templates.Paths.Query,
+                "Folders",
+                "Application",
+                "Features",
+                "FEATURE",
+                "Constants",
+                "FEATUREOperationClaims.cs.sbn"
             );
 
-            string[] queryUsingNameSpaceTemplateCodeLines = await File.ReadAllLinesAsync(
-                PlatformHelper.SecuredPathJoin(
-                    DirectoryHelper.AssemblyDirectory,
-                    Templates.Paths.Query,
-                    "Lines",
-                    "QueryUsingNameSpaces.cs.sbn"
-                )
+            string operationClaimsOutputFilePath = PlatformHelper.SecuredPathJoin(
+                projectPath,
+                "core",
+                "Application",
+                "Features",
+                featureName,
+                "Constants",
+                $"{featureName}OperationClaims.cs"
             );
-            string[] queryUsingNameSpaceCodeLines = await Task.WhenAll(
-                queryUsingNameSpaceTemplateCodeLines.Select(async line => await _templateEngine.RenderAsync(line, QueryTemplateData))
-            );
-            await CSharpCodeInjector.AddUsingToFile(controllerFilePath, queryUsingNameSpaceCodeLines);
 
-            return new[] { controllerFilePath };
+            // Ensure the directory exists
+            string? operationClaimsOutputDir = Path.GetDirectoryName(operationClaimsOutputFilePath);
+            if (operationClaimsOutputDir != null && !Directory.Exists(operationClaimsOutputDir))
+            {
+                _ = Directory.CreateDirectory(operationClaimsOutputDir);
+            }
+
+            // Read and render the template
+            string templateContent = await File.ReadAllTextAsync(operationClaimsTemplateFilePath);
+            string renderedContent = await _templateEngine.RenderAsync(templateContent, queryTemplateData);
+
+            // Write the rendered content to the file
+            await File.WriteAllTextAsync(operationClaimsOutputFilePath, renderedContent);
         }
     }
 }
