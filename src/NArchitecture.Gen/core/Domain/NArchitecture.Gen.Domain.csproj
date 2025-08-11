@@ -5,17 +5,17 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\corePackages\Core.CodeGen\Core.CodeGen.csproj" />
-    <ProjectReference Include="..\..\..\corePackages\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
+    <ProjectReference Include="../../../corePackages/Core.CodeGen/Core.CodeGen.csproj" />
+    <ProjectReference Include="../../../corePackages/Core.CrossCuttingConcerns/Core.CrossCuttingConcerns.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ContentWithTargetPath Include="Templates\**">
+    <ContentWithTargetPath Include="Templates/**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>Templates\%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
+      <TargetPath>Templates/%(RecursiveDir)/%(Filename)%(Extension)</TargetPath>
     </ContentWithTargetPath>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Features\TemplateManagement\Configurations\templates.json">
+    <EmbeddedResource Include="Features/TemplateManagement/Configurations/templates.json">
       <LogicalName>templates.json</LogicalName>
     </EmbeddedResource>
   </ItemGroup>

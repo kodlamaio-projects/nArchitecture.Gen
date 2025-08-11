@@ -7,12 +7,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
     <!-- Pre-release -->
-    <ProjectReference Include="..\..\..\corePackages\Core.Application\Core.Application.csproj" />
-    <ProjectReference Include="..\..\..\corePackages\Core.CodeGen\Core.CodeGen.csproj" />
-    <ProjectReference Include="..\..\..\corePackages\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
-    <ProjectReference Include="/home/ac/Code/ahmet-cetinkaya/nArchitecture.Core/src/Mediator/NArchitecture.Core.Mediator.csproj" />
+    <ProjectReference Include="../../../corePackages/Core.Application/Core.Application.csproj" />
+    <ProjectReference Include="../../../corePackages/Core.CodeGen/Core.CodeGen.csproj" />
+    <ProjectReference Include="../../../corePackages/Core.CrossCuttingConcerns/Core.CrossCuttingConcerns.csproj" />
+    <ProjectReference Include="../../../../../narchitecture-core/src/Mediator/NArchitecture.Core.Mediator.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Domain\NArchitecture.Gen.Domain.csproj" />
+    <ProjectReference Include="../Domain/NArchitecture.Gen.Domain.csproj" />
   </ItemGroup>
 </Project>

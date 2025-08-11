@@ -22,17 +22,17 @@
 	<PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\..\docs\images\n-architecture-logo.png">
+    <None Include="../../../docs/images/n-architecture-logo.png">
       <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+      <PackagePath>/</PackagePath>
     </None>
-    <None Include="..\..\..\LICENSE">
+    <None Include="../../../LICENSE">
       <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+      <PackagePath>/</PackagePath>
     </None>
-    <None Include="..\..\..\README.md">
+    <None Include="../../../README.md">
       <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+      <PackagePath>/</PackagePath>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -41,13 +41,13 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\corePackages\Core.ConsoleUI\Core.ConsoleUI.csproj" />
-    <ProjectReference Include="..\..\core\Application\NArchitecture.Gen.Application.csproj" />
+    <ProjectReference Include="../../../corePackages/Core.ConsoleUI/Core.ConsoleUI.csproj" />
+    <ProjectReference Include="../../core/Application/NArchitecture.Gen.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Resources\Images\Logo.png">
+    <None Update="Resources/Images/Logo.png">
       <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
+      <PackagePath>/</PackagePath>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

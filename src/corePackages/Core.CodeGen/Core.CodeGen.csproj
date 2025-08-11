@@ -10,10 +10,10 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Code\CSharp\ValueObjects\" />
-    <Folder Include="File\" />
+    <Folder Include="Code/CSharp/ValueObjects/" />
+    <Folder Include="File/" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj" />
+    <ProjectReference Include="../Core.CrossCuttingConcerns/Core.CrossCuttingConcerns.csproj" />
   </ItemGroup>
 </Project>
