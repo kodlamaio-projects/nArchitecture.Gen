@@ -3,6 +3,10 @@ using Application.Features.{{ entity.name | string.pascalcase | string.plural }}
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
+{{~ if is_dynamic_query_used ~}}
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetListByDynamic;
+using NArchitecture.Core.Persistence.Dynamic;
+{{~ end ~}}
 using NArchitecture.Core.Application.Requests;
 using NArchitecture.Core.Application.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -58,4 +62,14 @@ public class {{ entity.name | string.pascalcase | string.plural }}Controller : B
 
         return Ok(response);
     }
+
+    {{~ if is_dynamic_query_used ~}}
+    [HttpPost("GetListByDynamic")]
+    public async Task<IActionResult> GetListByDynamic([FromQuery] PageRequest pageRequest, [FromBody] DynamicQuery dynamic)
+    {
+        GetListByDynamic{{ entity.name | string.pascalcase }}Query getListByDynamic{{ entity.name | string.pascalcase }}Query = new() { PageRequest = pageRequest, Dynamic = dynamic };
+        GetListResponse<GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto> response = await Mediator.Send(getListByDynamic{{ entity.name | string.pascalcase }}Query);
+        return Ok(response);
+    }
+    {{~ end ~}}
 }

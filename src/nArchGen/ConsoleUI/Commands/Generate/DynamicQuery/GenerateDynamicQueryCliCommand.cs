@@ -1,4 +1,4 @@
-﻿using Application.Features.Generate.Commands.Crud;
+using Application.Features.Generate.Commands.DynamicQuery;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.Code.CSharp.ValueObjects;
 using Core.CrossCuttingConcerns.Helpers;
@@ -7,13 +7,13 @@ using MediatR;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace ConsoleUI.Commands.Generate.Crud;
+namespace ConsoleUI.Commands.Generate.DynamicQuery;
 
-public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliCommand.Settings>
+public partial class GenerateDynamicQueryCliCommand : AsyncCommand<GenerateDynamicQueryCliCommand.Settings>
 {
     private readonly IMediator _mediator;
 
-    public GenerateCrudCliCommand(IMediator mediator)
+    public GenerateDynamicQueryCliCommand(IMediator mediator)
     {
         _mediator = mediator ?? throw new ArgumentNullException(paramName: nameof(mediator));
     }
@@ -22,16 +22,16 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
     {
         settings.CheckProjectName();
         settings.CheckEntityArgument();
-        settings.CheckDbContextArgument();
         settings.CheckMechanismOptions();
 
         string entityPath = PlatformHelper.SecuredPathJoin(settings.ProjectPath, "Domain", "Entities", $"{settings.EntityName}.cs");
         ICollection<PropertyInfo> entityProperties = await CSharpCodeReader.ReadClassPropertiesAsync(entityPath, settings.ProjectPath);
         string entityIdType = (await CSharpCodeReader.ReadBaseClassGenericArgumentsAsync(entityPath)).First();
-        GenerateCrudCommand generateCrudCommand =
+        
+        GenerateDynamicQueryCommand generateDynamicQueryCommand =
             new()
             {
-                CrudTemplateData = new CrudTemplateData
+                DynamicQueryTemplateData = new DynamicQueryTemplateData
                 {
                     Entity = new Entity
                     {
@@ -41,27 +41,22 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                     },
                     IsCachingUsed = settings.IsCachingUsed,
                     IsLoggingUsed = settings.IsLoggingUsed,
-                    IsTransactionUsed = settings.IsTransactionUsed,
-                    IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
-                    IsDynamicQueryUsed = settings.IsDynamicQueryUsed,
-                    CustomOperationClaimPath = settings.CustomOperationClaimPath,
-                    DbContextName = settings.DbContextName!
+                    IsSecuredOperationUsed = settings.IsSecuredOperationUsed
                 },
-                ProjectPath = settings.ProjectPath,
-                DbContextName = settings.DbContextName!
+                ProjectPath = settings.ProjectPath
             };
 
-        IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(request: generateCrudCommand);
+        IAsyncEnumerable<GeneratedDynamicQueryResponse> resultsStream = _mediator.CreateStream(request: generateDynamicQueryCommand);
 
         await AnsiConsole
             .Status()
             .Spinner(Spinner.Known.Dots2)
             .SpinnerStyle(style: Style.Parse(text: "blue"))
             .StartAsync(
-                status: "Generating...",
+                status: "Generating Dynamic Query...",
                 action: async ctx =>
                 {
-                    await foreach (GeneratedCrudResponse result in resultsStream)
+                    await foreach (GeneratedDynamicQueryResponse result in resultsStream)
                     {
                         ctx.Status(result.CurrentStatusMessage);
 

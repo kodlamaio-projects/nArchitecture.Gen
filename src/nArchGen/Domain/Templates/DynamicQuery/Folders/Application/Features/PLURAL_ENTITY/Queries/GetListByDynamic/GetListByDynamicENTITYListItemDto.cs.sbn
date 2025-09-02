@@ -1,0 +1,12 @@
+using NArchitecture.Core.Application.Dtos;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetListByDynamic;
+
+public class GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto : IDto
+{
+{{~ for property in entity.properties ~}}
+    {{~ if property.access_modifier == "public" ~}}
+    public {{ property.type }} {{ property.name }} { get; set; }
+    {{~ end ~}}
+{{~ end ~}}
+}

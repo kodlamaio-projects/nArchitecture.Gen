@@ -2,6 +2,7 @@
 using Application;
 using ConsoleUI.Commands.Generate.Command;
 using ConsoleUI.Commands.Generate.Crud;
+using ConsoleUI.Commands.Generate.DynamicQuery;
 using ConsoleUI.Commands.Generate.Query;
 using ConsoleUI.Commands.New;
 using Core.ConsoleUI.IoC.SpectreConsoleCli;
@@ -47,6 +48,10 @@ app.Configure(config =>
                 .AddCommand<GenerateQueryCliCommand>(name: "query")
                 .WithDescription(description: "Generate new query for a feature")
                 .WithExample(args: new[] { "generate", "query", "GetUserByEmail", "Users" });
+            config
+                .AddCommand<GenerateDynamicQueryCliCommand>(name: "dynamic-query")
+                .WithDescription(description: "Generate dynamic query for an entity")
+                .WithExample(args: new[] { "generate", "dynamic-query", "User" });
         }
     );
 

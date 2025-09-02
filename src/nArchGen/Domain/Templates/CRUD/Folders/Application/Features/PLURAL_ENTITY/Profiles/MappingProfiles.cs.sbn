@@ -3,6 +3,9 @@ using Application.Features.{{ entity.name | string.pascalcase | string.plural }}
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
+{{~ if is_dynamic_query_used ~}}
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetListByDynamic;
+{{~ end ~}}
 using AutoMapper;
 using NArchitecture.Core.Application.Responses;
 using Domain.Entities;
@@ -27,5 +30,10 @@ public class MappingProfiles : Profile
 
         CreateMap<{{ entity.name | string.pascalcase }}, GetList{{ entity.name | string.pascalcase }}ListItemDto>();
         CreateMap<IPaginate<{{ entity.name | string.pascalcase }}>, GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto>>();
+
+        {{~ if is_dynamic_query_used ~}}
+        CreateMap<{{ entity.name | string.pascalcase }}, GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto>();
+        CreateMap<IPaginate<{{ entity.name | string.pascalcase }}>, GetListResponse<GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto>>();
+        {{~ end ~}}
     }
 }

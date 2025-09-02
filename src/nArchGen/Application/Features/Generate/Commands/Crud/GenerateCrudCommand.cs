@@ -53,6 +53,14 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             newFilePaths.AddRange(await generateApplicationCodes(request.ProjectPath, request.CrudTemplateData));
             response.LastOperationMessage = "Application layer codes have been generated.";
 
+            if (request.CrudTemplateData.IsDynamicQueryUsed)
+            {
+                response.CurrentStatusMessage = "Generating Dynamic Query codes...";
+                yield return response;
+                newFilePaths.AddRange(await generateDynamicQueryCodes(request.ProjectPath, request.CrudTemplateData));
+                response.LastOperationMessage = "Dynamic Query codes have been generated.";
+            }
+
             response.CurrentStatusMessage = "Adding operation claims as seed data...";
             yield return response;
             updatedFilePaths.Add(await injectOperationClaims(request.ProjectPath, request.CrudTemplateData));
@@ -76,12 +84,21 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
 
         private async Task<string> injectOperationClaims(string projectPath, CrudTemplateData crudTemplateData)
         {
-            string operationClaimConfigurationFilePath = PlatformHelper.SecuredPathJoin(
-                projectPath,
-                "Persistence",
-                "EntityConfigurations",
-                "OperationClaimConfiguration.cs"
-            );
+            string operationClaimConfigurationFilePath;
+            
+            if (!string.IsNullOrEmpty(crudTemplateData.CustomOperationClaimPath))
+            {
+                operationClaimConfigurationFilePath = crudTemplateData.CustomOperationClaimPath;
+            }
+            else
+            {
+                operationClaimConfigurationFilePath = PlatformHelper.SecuredPathJoin(
+                    projectPath,
+                    "Persistence",
+                    "EntityConfigurations",
+                    "OperationClaimConfiguration.cs"
+                );
+            }
 
             if (!File.Exists(operationClaimConfigurationFilePath))
                 return $"Not Found: {operationClaimConfigurationFilePath}";
@@ -206,6 +223,51 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                 outputDir: PlatformHelper.SecuredPathJoin(projectPath, "WebAPI"),
                 crudTemplateData
             );
+        }
+
+        private async Task<ICollection<string>> generateDynamicQueryCodes(string projectPath, CrudTemplateData crudTemplateData)
+        {
+            string templateDir = PlatformHelper.SecuredPathJoin(
+                DirectoryHelper.AssemblyDirectory,
+                Templates.Paths.DynamicQuery,
+                "Folders",
+                "Application"
+            );
+            
+            DynamicQueryTemplateData dynamicQueryTemplateData = new()
+            {
+                Entity = crudTemplateData.Entity,
+                IsCachingUsed = crudTemplateData.IsCachingUsed,
+                IsLoggingUsed = crudTemplateData.IsLoggingUsed,
+                IsSecuredOperationUsed = crudTemplateData.IsSecuredOperationUsed
+            };
+
+            return await generateDynamicQueryFolderCodes(
+                templateDir,
+                outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
+                dynamicQueryTemplateData
+            );
+        }
+
+        private async Task<ICollection<string>> generateDynamicQueryFolderCodes(string templateDir, string outputDir, DynamicQueryTemplateData dynamicQueryTemplateData)
+        {
+            var templateFilePaths = DirectoryHelper
+                .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
+                .ToList();
+            Dictionary<string, string> replacePathVariable =
+                new()
+                {
+                    { "PLURAL_ENTITY", "{{ entity.name | string.pascalcase | string.plural }}" },
+                    { "ENTITY", "{{ entity.name | string.pascalcase }}" }
+                };
+            ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
+                templateFilePaths,
+                templateDir,
+                replacePathVariable,
+                outputDir,
+                dynamicQueryTemplateData
+            );
+            return newRenderedFilePaths;
         }
 
         private async Task<ICollection<string>> generateFolderCodes(string templateDir, string outputDir, CrudTemplateData crudTemplateData)

@@ -1,20 +1,17 @@
-﻿using Core.CodeGen.Code;
+using Core.CodeGen.Code;
 using Core.CrossCuttingConcerns.Exceptions;
 using Core.CrossCuttingConcerns.Helpers;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace ConsoleUI.Commands.Generate.Crud;
+namespace ConsoleUI.Commands.Generate.DynamicQuery;
 
-public partial class GenerateCrudCliCommand
+public partial class GenerateDynamicQueryCliCommand
 {
     public class Settings : CommandSettings
     {
         [CommandArgument(position: 0, template: "[EntityName]")]
         public string? EntityName { get; set; }
-
-        [CommandArgument(position: 1, template: "[DBContextName]")]
-        public string? DbContextName { get; set; }
 
         [CommandOption("-p|--project")]
         public string? ProjectName { get; set; }
@@ -25,17 +22,8 @@ public partial class GenerateCrudCliCommand
         [CommandOption("-l|--logging")]
         public bool IsLoggingUsed { get; set; }
 
-        [CommandOption("-t|--transaction")]
-        public bool IsTransactionUsed { get; set; }
-
         [CommandOption("-s|--secured")]
         public bool IsSecuredOperationUsed { get; set; }
-
-        [CommandOption("-d|--dynamic-query")]
-        public bool IsDynamicQueryUsed { get; set; }
-
-        [CommandOption("--operation-claim-path")]
-        public string? CustomOperationClaimPath { get; set; }
 
         public string ProjectPath =>
             ProjectName != null
@@ -98,26 +86,6 @@ public partial class GenerateCrudCliCommand
             );
         }
 
-        public void CheckDbContextArgument()
-        {
-            if (DbContextName is not null)
-            {
-                AnsiConsole.MarkupLine($"Selected [green]DbContext[/] is [blue]{DbContextName}[/].");
-                return;
-            }
-
-            string[] dbContexts = Directory
-                .GetFiles(path: PlatformHelper.SecuredPathJoin(ProjectPath, "Persistence", "Contexts"))
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToArray()!;
-            if (dbContexts.Length == 0)
-                throw new BusinessException($"No DbContexts found in \"{ProjectPath}\\Persistence\\Contexts\"");
-
-            DbContextName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>().Title("What's your [green]DbContext[/]?").PageSize(5).AddChoices(dbContexts)
-            );
-        }
-
         public void CheckMechanismOptions()
         {
             List<string> mechanismsToPrompt = [];
@@ -130,30 +98,19 @@ public partial class GenerateCrudCliCommand
                 AnsiConsole.MarkupLine("[green]Logging[/] is used.");
             else
                 mechanismsToPrompt.Add("Logging");
-            if (IsTransactionUsed)
-                AnsiConsole.MarkupLine("[green]Transaction[/] is used.");
-            else
-                mechanismsToPrompt.Add("Transaction");
             if (IsSecuredOperationUsed)
                 AnsiConsole.MarkupLine("[green]SecuredOperation[/] is used.");
             else
                 mechanismsToPrompt.Add("Secured Operation");
-            if (IsDynamicQueryUsed)
-                AnsiConsole.MarkupLine("[green]Dynamic Query[/] is used.");
-            else
-                mechanismsToPrompt.Add("Dynamic Query");
 
             if (mechanismsToPrompt.Count == 0)
-            {
-                CheckCustomOperationClaimPath();
                 return;
-            }
 
             List<string> selectedMechanisms = AnsiConsole.Prompt(
                 new MultiSelectionPrompt<string>()
                     .Title("What [green]mechanisms[/] do you want to use?")
                     .NotRequired()
-                    .PageSize(6)
+                    .PageSize(5)
                     .MoreChoicesText("[grey](Move up and down to reveal more mechanisms)[/]")
                     .InstructionsText("[grey](Press [blue]<space>[/] to toggle a mechanism, " + "[green]<enter>[/] to accept)[/]")
                     .AddChoices(mechanismsToPrompt)
@@ -171,36 +128,11 @@ public partial class GenerateCrudCliCommand
                         case "Logging":
                             IsLoggingUsed = true;
                             break;
-                        case "Transaction":
-                            IsTransactionUsed = true;
-                            break;
                         case "Secured Operation":
                             IsSecuredOperationUsed = true;
                             break;
-                        case "Dynamic Query":
-                            IsDynamicQueryUsed = true;
-                            break;
                     }
                 });
-
-            CheckCustomOperationClaimPath();
-        }
-
-        public void CheckCustomOperationClaimPath()
-        {
-            if (CustomOperationClaimPath is not null)
-            {
-                AnsiConsole.MarkupLine($"Custom Operation Claim Path: [blue]{CustomOperationClaimPath}[/].");
-                return;
-            }
-
-            bool useCustomPath = AnsiConsole.Confirm("Do you want to use a [green]custom path[/] for Operation Claims Configuration?");
-            
-            if (useCustomPath)
-            {
-                CustomOperationClaimPath = AnsiConsole.Ask<string>("Enter the [green]custom path[/] for OperationClaimConfiguration.cs:");
-                AnsiConsole.MarkupLine($"Custom Operation Claim Path: [blue]{CustomOperationClaimPath}[/].");
-            }
         }
     }
 }

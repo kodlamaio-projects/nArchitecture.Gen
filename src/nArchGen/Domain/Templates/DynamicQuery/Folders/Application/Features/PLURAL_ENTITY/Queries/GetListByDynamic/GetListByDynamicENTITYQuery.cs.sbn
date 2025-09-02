@@ -1,0 +1,53 @@
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+using Application.Services.Repositories;
+using AutoMapper;
+using Domain.Entities;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using NArchitecture.Core.Application.Pipelines.Caching;
+using NArchitecture.Core.Application.Pipelines.Logging;
+using NArchitecture.Core.Application.Requests;
+using NArchitecture.Core.Application.Responses;
+using NArchitecture.Core.Persistence.Dynamic;
+using NArchitecture.Core.Persistence.Paging;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetListByDynamic;
+
+public class GetListByDynamic{{ entity.name | string.pascalcase }}Query : IRequest<GetListResponse<GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto>>{{ if is_caching_used }}, ICachableRequest{{ end }}{{ if is_logging_used }}, ILoggableRequest{{ end }}{{ if is_secured_operation_used }}, ISecuredRequest{{ end }}
+{
+    public PageRequest PageRequest { get; set; }
+    public DynamicQuery Dynamic { get; set; }
+
+    {{ if is_secured_operation_used }}public string[] Roles => new[] { Admin, {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Read };
+    {{ end }}
+    {{ if is_caching_used }}public bool BypassCache { get; }
+    public string CacheKey => $"GetListByDynamic{{ entity.name | string.pascalcase }}-{PageRequest.PageIndex}-{PageRequest.PageSize}";
+    public string CacheGroupKey => "Get{{ entity.name | string.pascalcase | string.plural }}";
+    public TimeSpan? SlidingExpiration { get; }
+    {{ end }}
+
+    public class GetListByDynamic{{ entity.name | string.pascalcase }}QueryHandler : IRequestHandler<GetListByDynamic{{ entity.name | string.pascalcase }}Query, GetListResponse<GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto>>
+    {
+        private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
+        private readonly IMapper _mapper;
+
+        public GetListByDynamic{{ entity.name | string.pascalcase }}QueryHandler(I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository, IMapper mapper)
+        {
+            _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
+            _mapper = mapper;
+        }
+
+        public async Task<GetListResponse<GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto>> Handle(GetListByDynamic{{ entity.name | string.pascalcase }}Query request, CancellationToken cancellationToken)
+        {
+            IPaginate<{{ entity.name | string.pascalcase }}> {{ entity.name | string.camelcase | string.plural }} = await _{{ entity.name | string.camelcase }}Repository.GetListByDynamicAsync(
+                dynamic: request.Dynamic,
+                index: request.PageRequest.PageIndex,
+                size: request.PageRequest.PageSize,
+                cancellationToken: cancellationToken
+            );
+
+            GetListResponse<GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto> response = _mapper.Map<GetListResponse<GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto>>({{ entity.name | string.camelcase | string.plural }});
+            return response;
+        }
+    }
+}
