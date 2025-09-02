@@ -27,7 +27,7 @@ public partial class GenerateDynamicQueryCliCommand : AsyncCommand<GenerateDynam
         string entityPath = PlatformHelper.SecuredPathJoin(settings.ProjectPath, "Domain", "Entities", $"{settings.EntityName}.cs");
         ICollection<PropertyInfo> entityProperties = await CSharpCodeReader.ReadClassPropertiesAsync(entityPath, settings.ProjectPath);
         string entityIdType = (await CSharpCodeReader.ReadBaseClassGenericArgumentsAsync(entityPath)).First();
-        
+
         GenerateDynamicQueryCommand generateDynamicQueryCommand =
             new()
             {

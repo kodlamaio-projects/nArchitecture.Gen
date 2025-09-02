@@ -195,7 +195,7 @@ public partial class GenerateCrudCliCommand
             }
 
             bool useCustomPath = AnsiConsole.Confirm("Do you want to use a [green]custom path[/] for Operation Claims Configuration?");
-            
+
             if (useCustomPath)
             {
                 CustomOperationClaimPath = AnsiConsole.Ask<string>("Enter the [green]custom path[/] for OperationClaimConfiguration.cs:");

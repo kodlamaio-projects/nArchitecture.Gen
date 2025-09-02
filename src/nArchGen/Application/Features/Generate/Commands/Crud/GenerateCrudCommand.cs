@@ -85,7 +85,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
         private async Task<string> injectOperationClaims(string projectPath, CrudTemplateData crudTemplateData)
         {
             string operationClaimConfigurationFilePath;
-            
+
             if (!string.IsNullOrEmpty(crudTemplateData.CustomOperationClaimPath))
             {
                 operationClaimConfigurationFilePath = crudTemplateData.CustomOperationClaimPath;
@@ -237,14 +237,15 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                 "Folders",
                 "Application"
             );
-            
-            DynamicQueryTemplateData dynamicQueryTemplateData = new()
-            {
-                Entity = crudTemplateData.Entity,
-                IsCachingUsed = crudTemplateData.IsCachingUsed,
-                IsLoggingUsed = crudTemplateData.IsLoggingUsed,
-                IsSecuredOperationUsed = crudTemplateData.IsSecuredOperationUsed
-            };
+
+            DynamicQueryTemplateData dynamicQueryTemplateData =
+                new()
+                {
+                    Entity = crudTemplateData.Entity,
+                    IsCachingUsed = crudTemplateData.IsCachingUsed,
+                    IsLoggingUsed = crudTemplateData.IsLoggingUsed,
+                    IsSecuredOperationUsed = crudTemplateData.IsSecuredOperationUsed
+                };
 
             return await generateDynamicQueryFolderCodes(
                 templateDir,
@@ -253,7 +254,11 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             );
         }
 
-        private async Task<ICollection<string>> generateDynamicQueryFolderCodes(string templateDir, string outputDir, DynamicQueryTemplateData dynamicQueryTemplateData)
+        private async Task<ICollection<string>> generateDynamicQueryFolderCodes(
+            string templateDir,
+            string outputDir,
+            DynamicQueryTemplateData dynamicQueryTemplateData
+        )
         {
             var templateFilePaths = DirectoryHelper
                 .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")

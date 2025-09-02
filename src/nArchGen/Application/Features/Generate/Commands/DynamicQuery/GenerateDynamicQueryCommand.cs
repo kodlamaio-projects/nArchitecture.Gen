@@ -40,7 +40,10 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
             yield return response;
         }
 
-        private async Task<ICollection<string>> generateDynamicQueryCodes(string projectPath, DynamicQueryTemplateData dynamicQueryTemplateData)
+        private async Task<ICollection<string>> generateDynamicQueryCodes(
+            string projectPath,
+            DynamicQueryTemplateData dynamicQueryTemplateData
+        )
         {
             string templateDir = PlatformHelper.SecuredPathJoin(
                 DirectoryHelper.AssemblyDirectory,
@@ -55,7 +58,11 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
             );
         }
 
-        private async Task<ICollection<string>> generateFolderCodes(string templateDir, string outputDir, DynamicQueryTemplateData dynamicQueryTemplateData)
+        private async Task<ICollection<string>> generateFolderCodes(
+            string templateDir,
+            string outputDir,
+            DynamicQueryTemplateData dynamicQueryTemplateData
+        )
         {
             var templateFilePaths = DirectoryHelper
                 .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
