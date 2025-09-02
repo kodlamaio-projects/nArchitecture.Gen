@@ -1,12 +1,12 @@
 #region {{ entity.name | string.pascalcase | string.plural }} CRUD
 featureOperationClaims.AddRange(
     [
-        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Admin },
-        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Read },
-        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Write },
-        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Create },
-        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Update },
-        new() { Id = ++lastId, Name = {{ entity.name | string.pascalcase | string.plural }}OperationClaims.Delete },
+        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Admin" },
+        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Read" },
+        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Write" },
+        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Create" },
+        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Update" },
+        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Delete" },
     ]
 );
 #endregion

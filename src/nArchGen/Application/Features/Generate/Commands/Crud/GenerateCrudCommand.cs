@@ -126,21 +126,25 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                 codeLines: seedCodeLines.ToArray()
             );
 
-            string featureOperationClaimUsingTemplatePath = PlatformHelper.SecuredPathJoin(
-                DirectoryHelper.AssemblyDirectory,
-                Templates.Paths.Crud,
-                "Lines",
-                "EntityFeatureOperationClaimsNameSpaceUsing.cs.sbn"
-            );
-            string featureOperationClaimUsingTemplate = await File.ReadAllTextAsync(featureOperationClaimUsingTemplatePath);
-            string featureOperationClaimUsingRendered = await _templateEngine.RenderAsync(
-                featureOperationClaimUsingTemplate,
-                crudTemplateData
-            );
-            await CSharpCodeInjector.AddUsingToFile(
-                operationClaimConfigurationFilePath,
-                usingLines: featureOperationClaimUsingRendered.Split(Environment.NewLine)
-            );
+            // Using statement'ı sadece custom path kullanılmıyorsa ekle
+            if (!crudTemplateData.IsCustomOperationClaimPath)
+            {
+                string featureOperationClaimUsingTemplatePath = PlatformHelper.SecuredPathJoin(
+                    DirectoryHelper.AssemblyDirectory,
+                    Templates.Paths.Crud,
+                    "Lines",
+                    "EntityFeatureOperationClaimsNameSpaceUsing.cs.sbn"
+                );
+                string featureOperationClaimUsingTemplate = await File.ReadAllTextAsync(featureOperationClaimUsingTemplatePath);
+                string featureOperationClaimUsingRendered = await _templateEngine.RenderAsync(
+                    featureOperationClaimUsingTemplate,
+                    crudTemplateData
+                );
+                await CSharpCodeInjector.AddUsingToFile(
+                    operationClaimConfigurationFilePath,
+                    usingLines: featureOperationClaimUsingRendered.Split(Environment.NewLine)
+                );
+            }
             return operationClaimConfigurationFilePath;
         }
 
