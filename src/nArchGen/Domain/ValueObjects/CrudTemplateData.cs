@@ -13,4 +13,13 @@ public class CrudTemplateData : ITemplateData
     public bool IsDynamicQueryUsed { get; set; }
     public string? CustomOperationClaimPath { get; set; }
     public bool IsCustomOperationClaimPath => !string.IsNullOrEmpty(CustomOperationClaimPath);
+
+    public OperationClaimType OperationClaimType { get; set; } = OperationClaimType.Numeric;
+    public string OperationClaimTypeString { get; set; } = "Numeric";
+}
+
+public enum OperationClaimType
+{
+    Numeric,
+    Guid
 }

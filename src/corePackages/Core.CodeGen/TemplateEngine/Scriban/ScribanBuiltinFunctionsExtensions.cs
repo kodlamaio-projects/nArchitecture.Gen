@@ -9,6 +9,7 @@ public class ScribanBuiltinFunctionsExtensions : BuiltinFunctions
     public ScribanBuiltinFunctionsExtensions()
     {
         addStringFunctionsExtensions();
+        addGuidFunctionsExtensions();
     }
 
     private void addStringFunctionsExtensions()
@@ -19,5 +20,15 @@ public class ScribanBuiltinFunctionsExtensions : BuiltinFunctions
             renamer: member => member.Name.ToLower(CultureInfo.GetCultureInfo("en-EN"))
         );
         SetValue(member: "string", stringFunctions, readOnly: true);
+    }
+
+    private void addGuidFunctionsExtensions()
+    {
+        ScriptObject guidFunctions = [];
+        guidFunctions.Import(
+            obj: typeof(ScribanGuidFunctionsExtensions),
+            renamer: member => member.Name.ToLower(CultureInfo.GetCultureInfo("en-EN"))
+        );
+        SetValue(member: "guid", guidFunctions, readOnly: true);
     }
 }

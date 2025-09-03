@@ -1,12 +1,13 @@
 #region {{ entity.name | string.pascalcase | string.plural }} CRUD
+
 featureOperationClaims.AddRange(
     [
-        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Admin" },
-        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Read" },
-        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Write" },
-        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Create" },
-        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Update" },
-        new() { Id = ++lastId, Name = "{{ entity.name | string.pascalcase | string.plural }}.Delete" },
+        new() { Id = {{ if operation_claim_type_string == "Guid" }}Guid.Parse("{{ guid.new }}"){{ else }}++lastId{{ end }}, Name = "{{ entity.name | string.pascalcase | string.plural }}.Admin" },
+        new() { Id = {{ if operation_claim_type_string == "Guid" }}Guid.Parse("{{ guid.new }}"){{ else }}++lastId{{ end }}, Name = "{{ entity.name | string.pascalcase | string.plural }}.Read" },
+        new() { Id = {{ if operation_claim_type_string == "Guid" }}Guid.Parse("{{ guid.new }}"){{ else }}++lastId{{ end }}, Name = "{{ entity.name | string.pascalcase | string.plural }}.Write" },
+        new() { Id = {{ if operation_claim_type_string == "Guid" }}Guid.Parse("{{ guid.new }}"){{ else }}++lastId{{ end }}, Name = "{{ entity.name | string.pascalcase | string.plural }}.Create" },
+        new() { Id = {{ if operation_claim_type_string == "Guid" }}Guid.Parse("{{ guid.new }}"){{ else }}++lastId{{ end }}, Name = "{{ entity.name | string.pascalcase | string.plural }}.Update" },
+        new() { Id = {{ if operation_claim_type_string == "Guid" }}Guid.Parse("{{ guid.new }}"){{ else }}++lastId{{ end }}, Name = "{{ entity.name | string.pascalcase | string.plural }}.Delete" },
     ]
 );
 #endregion

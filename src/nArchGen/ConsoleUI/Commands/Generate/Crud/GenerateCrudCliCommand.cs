@@ -45,7 +45,9 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                     IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
                     IsDynamicQueryUsed = settings.IsDynamicQueryUsed,
                     CustomOperationClaimPath = settings.CustomOperationClaimPath,
-                    DbContextName = settings.DbContextName!
+                    DbContextName = settings.DbContextName!,
+                    OperationClaimType = settings.OperationClaimType ?? OperationClaimType.Numeric,
+                    OperationClaimTypeString = (settings.OperationClaimType ?? OperationClaimType.Numeric).ToString()
                 },
                 ProjectPath = settings.ProjectPath,
                 DbContextName = settings.DbContextName!

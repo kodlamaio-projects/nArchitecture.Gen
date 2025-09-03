@@ -1,6 +1,7 @@
 ﻿using Core.CodeGen.Code;
 using Core.CrossCuttingConcerns.Exceptions;
 using Core.CrossCuttingConcerns.Helpers;
+using Domain.ValueObjects;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -36,6 +37,9 @@ public partial class GenerateCrudCliCommand
 
         [CommandOption("--operation-claim-path")]
         public string? CustomOperationClaimPath { get; set; }
+
+        [CommandOption("--operation-claim-type")]
+        public OperationClaimType? OperationClaimType { get; set; }
 
         public string ProjectPath =>
             ProjectName != null
@@ -146,6 +150,7 @@ public partial class GenerateCrudCliCommand
             if (mechanismsToPrompt.Count == 0)
             {
                 CheckCustomOperationClaimPath();
+                CheckOperationClaimType();
                 return;
             }
 
@@ -184,6 +189,7 @@ public partial class GenerateCrudCliCommand
                 });
 
             CheckCustomOperationClaimPath();
+            CheckOperationClaimType();
         }
 
         public void CheckCustomOperationClaimPath()
@@ -201,6 +207,24 @@ public partial class GenerateCrudCliCommand
                 CustomOperationClaimPath = AnsiConsole.Ask<string>("Enter the [green]custom path[/] for OperationClaimConfiguration.cs:");
                 AnsiConsole.MarkupLine($"Custom Operation Claim Path: [blue]{CustomOperationClaimPath}[/].");
             }
+        }
+
+        public void CheckOperationClaimType()
+        {
+            if (OperationClaimType.HasValue)
+            {
+                AnsiConsole.MarkupLine($"Operation Claim Type: [blue]{OperationClaimType.Value}[/].");
+                return;
+            }
+
+            OperationClaimType = AnsiConsole.Prompt(
+                new SelectionPrompt<OperationClaimType>()
+                    .Title("What's your [green]Operation Claim type[/]?")
+                    .PageSize(3)
+                    .AddChoices(Domain.ValueObjects.OperationClaimType.Numeric, Domain.ValueObjects.OperationClaimType.Guid)
+            );
+
+            AnsiConsole.MarkupLine($"Operation Claim Type: [blue]{OperationClaimType.Value}[/].");
         }
     }
 }
