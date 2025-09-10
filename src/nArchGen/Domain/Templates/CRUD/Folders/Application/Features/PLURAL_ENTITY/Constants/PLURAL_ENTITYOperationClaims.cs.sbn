@@ -8,7 +8,9 @@ public static class {{ entity.name | string.pascalcase | string.plural }}Operati
 
     public const string Read = $"{_section}.Read";
     public const string Write = $"{_section}.Write";
-
+{{~ if is_menu_role_included ~}}
+    public const string Menu = $"{_section}.Menu";
+{{~ end ~}}
     public const string Create = $"{_section}.Create";
     public const string Update = $"{_section}.Update";
     public const string Delete = $"{_section}.Delete";

@@ -35,6 +35,9 @@ public partial class GenerateCrudCliCommand
         [CommandOption("-d|--dynamic-query")]
         public bool IsDynamicQueryUsed { get; set; }
 
+        [CommandOption("-m|--menu-role")]
+        public bool IsMenuRoleIncluded { get; set; }
+
         [CommandOption("--operation-claim-path")]
         public string? CustomOperationClaimPath { get; set; }
 
@@ -146,6 +149,10 @@ public partial class GenerateCrudCliCommand
                 AnsiConsole.MarkupLine("[green]Dynamic Query[/] is used.");
             else
                 mechanismsToPrompt.Add("Dynamic Query");
+            if (IsMenuRoleIncluded)
+                AnsiConsole.MarkupLine("[green]Menu Role[/] will be included.");
+            else
+                mechanismsToPrompt.Add("Menu Role");
 
             if (mechanismsToPrompt.Count == 0)
             {
@@ -184,6 +191,9 @@ public partial class GenerateCrudCliCommand
                             break;
                         case "Dynamic Query":
                             IsDynamicQueryUsed = true;
+                            break;
+                        case "Menu Role":
+                            IsMenuRoleIncluded = true;
                             break;
                     }
                 });
