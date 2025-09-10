@@ -11,6 +11,7 @@ public class CrudTemplateData : ITemplateData
     public bool IsTransactionUsed { get; set; }
     public bool IsSecuredOperationUsed { get; set; }
     public bool IsDynamicQueryUsed { get; set; }
+    public bool IsMenuRoleIncluded { get; set; }
     public string? CustomOperationClaimPath { get; set; }
     public bool IsCustomOperationClaimPath => !string.IsNullOrEmpty(CustomOperationClaimPath);
 
