@@ -23,3 +23,5 @@ jobs:
     steps:
       - name: GH Release
         uses: softprops/action-gh-release@v0.1.15
+      - name: Mark release complete
+        run: echo "Release created successfully"
