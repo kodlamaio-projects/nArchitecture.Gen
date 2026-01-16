@@ -1,28 +1,21 @@
 name: NuGet Publish
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_run:
+    workflows: ["Release"]
+    types:
+      - completed
+    branches: [main]
 
 jobs:
-  wait-for-release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for Release workflow
-        uses: lewagon/wait-on-check-action@v1.3.1
-        with:
-          ref: ${{ github.ref }}
-          check-name: 'create-release'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-
   publish-nuget:
-    needs: wait-for-release
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Build and publish NuGet package
         env:
