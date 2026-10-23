@@ -3,7 +3,7 @@ using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.Code.CSharp.ValueObjects;
 using Core.CrossCuttingConcerns.Helpers;
 using Domain.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -18,7 +18,7 @@ public partial class GenerateDynamicQueryCliCommand : AsyncCommand<GenerateDynam
         _mediator = mediator ?? throw new ArgumentNullException(paramName: nameof(mediator));
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         settings.CheckProjectName();
         settings.CheckEntityArgument();
@@ -28,25 +28,27 @@ public partial class GenerateDynamicQueryCliCommand : AsyncCommand<GenerateDynam
         ICollection<PropertyInfo> entityProperties = await CSharpCodeReader.ReadClassPropertiesAsync(entityPath, settings.ProjectPath);
         string entityIdType = (await CSharpCodeReader.ReadBaseClassGenericArgumentsAsync(entityPath)).First();
 
-        GenerateDynamicQueryCommand generateDynamicQueryCommand =
-            new()
+        GenerateDynamicQueryCommand generateDynamicQueryCommand = new()
+        {
+            DynamicQueryTemplateData = new DynamicQueryTemplateData
             {
-                DynamicQueryTemplateData = new DynamicQueryTemplateData
+                Entity = new Entity
                 {
-                    Entity = new Entity
-                    {
-                        Name = settings.EntityName!,
-                        IdType = entityIdType,
-                        Properties = entityProperties.Where(property => property.AccessModifier == "public").ToArray()
-                    },
-                    IsCachingUsed = settings.IsCachingUsed,
-                    IsLoggingUsed = settings.IsLoggingUsed,
-                    IsSecuredOperationUsed = settings.IsSecuredOperationUsed
+                    Name = settings.EntityName!,
+                    IdType = entityIdType,
+                    Properties = entityProperties.Where(property => property.AccessModifier == "public").ToArray(),
                 },
-                ProjectPath = settings.ProjectPath
-            };
+                IsCachingUsed = settings.IsCachingUsed,
+                IsLoggingUsed = settings.IsLoggingUsed,
+                IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
+            },
+            ProjectPath = settings.ProjectPath,
+        };
 
-        IAsyncEnumerable<GeneratedDynamicQueryResponse> resultsStream = _mediator.CreateStream(request: generateDynamicQueryCommand);
+        IAsyncEnumerable<GeneratedDynamicQueryResponse> resultsStream = _mediator.CreateStream(
+            request: generateDynamicQueryCommand,
+            cancellationToken
+        );
 
         await AnsiConsole
             .Status()

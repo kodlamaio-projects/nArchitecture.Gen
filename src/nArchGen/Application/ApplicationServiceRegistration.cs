@@ -1,8 +1,9 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Application.Features.Generate.Rules;
 using Core.CodeGen.TemplateEngine;
 using Core.CodeGen.TemplateEngine.Scriban;
 using Microsoft.Extensions.DependencyInjection;
+using NArchitecture.Core.Mediator.DependencyInjection;
 
 namespace Application;
 
@@ -10,7 +11,7 @@ public static class ApplicationServiceRegistration
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        services.AddMediatR(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        services.AddMediator(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
         services.AddSingleton<ITemplateRenderer, ScribanTemplateRenderer>();
         services.AddSingleton<ITemplateEngine, TemplateEngine>();

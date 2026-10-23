@@ -12,16 +12,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
 
       - name: Build and publish NuGet package
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           dotnet restore
-          dotnet build --configuration Release
-          dotnet pack --configuration Release --no-build
+          dotnet build --configuration Release --no-restore
+          dotnet pack src/nArchGen/ConsoleUI/ConsoleUI.csproj --configuration Release --no-build
           dotnet nuget push src/nArchGen/ConsoleUI/nupkg/*.nupkg --api-key $NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
-

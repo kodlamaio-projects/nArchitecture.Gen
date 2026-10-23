@@ -1,5 +1,5 @@
-﻿using Application.Features.Create.Commands.New;
-using MediatR;
+using Application.Features.Create.Commands.New;
+using NArchitecture.Core.Mediator;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -14,15 +14,18 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
         _mediator = mediator ?? throw new ArgumentNullException(paramName: nameof(mediator));
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         settings.CheckProjectNameArgument();
         settings.CheckIsThereSecurityMechanismArgument();
 
-        CreateNewProjectCommand request =
-            new(projectName: settings.ProjectName!, isThereSecurityMechanism: settings.IsThereSecurityMechanism);
+        CreateNewProjectCommand request = new(
+            projectName: settings.ProjectName!,
+            isThereSecurityMechanism: settings.IsThereSecurityMechanism,
+            starterPath: settings.StarterPath
+        );
 
-        IAsyncEnumerable<CreatedNewProjectResponse> resultsStream = _mediator.CreateStream(request);
+        IAsyncEnumerable<CreatedNewProjectResponse> resultsStream = _mediator.CreateStream(request, cancellationToken);
 
         await AnsiConsole
             .Status()

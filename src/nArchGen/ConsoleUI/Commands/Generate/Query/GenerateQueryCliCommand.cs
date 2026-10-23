@@ -1,6 +1,6 @@
-﻿using Application.Features.Generate.Commands.Query;
+using Application.Features.Generate.Commands.Query;
 using Domain.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -15,30 +15,29 @@ public partial class GenerateQueryCliCommand : AsyncCommand<GenerateQueryCliComm
         _mediator = mediator ?? throw new ArgumentNullException(paramName: nameof(mediator));
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         settings.CheckQueryName();
         settings.CheckProjectName();
         settings.CheckFeatureName();
         settings.CheckMechanismOptions();
 
-        GenerateQueryCommand generateQueryCommand =
-            new()
+        GenerateQueryCommand generateQueryCommand = new()
+        {
+            QueryName = settings.QueryName!,
+            FeatureName = settings.FeatureName!,
+            ProjectPath = settings.ProjectPath,
+            QueryTemplateData = new QueryTemplateData
             {
                 QueryName = settings.QueryName!,
                 FeatureName = settings.FeatureName!,
-                ProjectPath = settings.ProjectPath,
-                QueryTemplateData = new QueryTemplateData
-                {
-                    QueryName = settings.QueryName!,
-                    FeatureName = settings.FeatureName!,
-                    IsCachingUsed = settings.IsCachingUsed,
-                    IsLoggingUsed = settings.IsLoggingUsed,
-                    IsSecuredOperationUsed = settings.IsSecuredOperationUsed
-                }
-            };
+                IsCachingUsed = settings.IsCachingUsed,
+                IsLoggingUsed = settings.IsLoggingUsed,
+                IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
+            },
+        };
 
-        IAsyncEnumerable<GeneratedQueryResponse> resultsStream = _mediator.CreateStream(request: generateQueryCommand);
+        IAsyncEnumerable<GeneratedQueryResponse> resultsStream = _mediator.CreateStream(request: generateQueryCommand, cancellationToken);
 
         await AnsiConsole
             .Status()

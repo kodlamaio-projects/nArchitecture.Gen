@@ -1,11 +1,10 @@
 {{ if is_secured_operation_used }}using Application.Features.{{ feature_name }}.Constants;
-{{ end }}using Application.Features.{{ feature_name }}.Rules;
-using AutoMapper;{{ if is_secured_operation_used }}
+{{ end }}using Application.Features.{{ feature_name }}.Rules;{{ if is_secured_operation_used }}
 using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
 using NArchitecture.Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
 using NArchitecture.Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
 using NArchitecture.Core.Application.Pipelines.Transaction;{{ end }}
-using MediatR;{{ if is_secured_operation_used }}
+using NArchitecture.Core.Mediator;{{ if is_secured_operation_used }}
 using static Application.Features.{{ feature_name }}.Constants.{{ feature_name }}OperationClaims;{{ end }}
 
 namespace Application.Features.{{ feature_name }}.Commands.{{ command_name | string.pascalcase }};
@@ -18,21 +17,20 @@ public class {{ command_name | string.pascalcase }}Command : IRequest<{{ command
     public bool BypassCache { get; }
     public string? CacheKey { get; }
     public string[]? CacheGroupKey => ["Get{{ feature_name | string.pascalcase }}"];{{ end }}
-    
+
     public class {{ command_name | string.pascalcase }}CommandHandler : IRequestHandler<{{ command_name | string.pascalcase }}Command, {{ command_name | string.pascalcase }}Response>
     {
-        private readonly IMapper _mapper;
         private readonly {{ feature_name | string.pascalcase | string.singular }}BusinessRules _{{ feature_name | string.camelcase | string.singular }}BusinessRules;
 
-        public {{ command_name | string.pascalcase }}CommandHandler(IMapper mapper, {{ feature_name | string.pascalcase | string.singular }}BusinessRules {{ feature_name | string.camelcase | string.singular }}BusinessRules)
+        public {{ command_name | string.pascalcase }}CommandHandler({{ feature_name | string.pascalcase | string.singular }}BusinessRules {{ feature_name | string.camelcase | string.singular }}BusinessRules)
         {
-            _mapper = mapper;
             _{{ feature_name | string.camelcase | string.singular }}BusinessRules = {{ feature_name | string.camelcase | string.singular }}BusinessRules;
         }
 
         public async Task<{{ command_name | string.pascalcase }}Response> Handle({{ command_name | string.pascalcase }}Command request, CancellationToken cancellationToken)
         {
-            {{ command_name | string.pascalcase }}Response response = _mapper.Map<{{ command_name | string.pascalcase }}Response>(null);
+            // TODO: Implement the command. Map the result with a Mapperly mapper (e.g. {{ feature_name | string.pascalcase | string.singular }}Mapper) when needed.
+            {{ command_name | string.pascalcase }}Response response = new();
             return response;
         }
     }

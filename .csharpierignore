@@ -1,0 +1,2 @@
+# The 1.x sample solution used by the upgrade tests is kept exactly as nArchGen 1.2.2 generated it.
+tests/NArchGen.Upgrade.Tests/Fixtures/

@@ -1,13 +1,13 @@
 ﻿{{ if is_secured_operation_used }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
-{{ end }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
+{{ end }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Mappers;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
 using Application.Services.Repositories;
-using AutoMapper;
 using Domain.Entities;{{ if is_secured_operation_used }}
 using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
 using NArchitecture.Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
 using NArchitecture.Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
 using NArchitecture.Core.Application.Pipelines.Transaction;{{ end }}
-using MediatR;{{ for propertyItem in entity.properties }}{{ if (propertyItem.name_space) }}
+using NArchitecture.Core.Mediator;{{ for propertyItem in entity.properties }}{{ if (propertyItem.name_space) }}
 using {{ propertyItem.name_space }};{{ end }}{{ end }}{{ if is_secured_operation_used }}
 using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 
@@ -26,14 +26,12 @@ public class Update{{ entity.name | string.pascalcase }}Command : IRequest<Updat
 
     public class Update{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Update{{ entity.name | string.pascalcase }}Command, Updated{{ entity.name | string.pascalcase }}Response>
     {
-        private readonly IMapper _mapper;
         private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
         private readonly {{ entity.name | string.pascalcase }}BusinessRules _{{ entity.name | string.camelcase }}BusinessRules;
 
-        public Update{{ entity.name | string.pascalcase }}CommandHandler(IMapper mapper, I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository,
+        public Update{{ entity.name | string.pascalcase }}CommandHandler(I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository,
                                          {{ entity.name | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
         {
-            _mapper = mapper;
             _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
             _{{ entity.name | string.camelcase }}BusinessRules = {{ entity.name | string.camelcase }}BusinessRules;
         }
@@ -42,11 +40,11 @@ public class Update{{ entity.name | string.pascalcase }}Command : IRequest<Updat
         {
             {{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }} = await _{{ entity.name | string.camelcase }}Repository.GetAsync(predicate: {{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id == request.Id, cancellationToken: cancellationToken);
             await _{{ entity.name | string.camelcase }}BusinessRules.{{ entity.name | string.pascalcase }}ShouldExistWhenSelected({{ entity.name | string.camelcase }});
-            {{ entity.name | string.camelcase }} = _mapper.Map(request, {{ entity.name | string.camelcase }});
+            {{ entity.name | string.pascalcase }}Mapper.UpdateEntity(request, {{ entity.name | string.camelcase }}!);
 
-            await _{{ entity.name | string.camelcase }}Repository.UpdateAsync({{ entity.name | string.camelcase }}!);
+            await _{{ entity.name | string.camelcase }}Repository.UpdateAsync({{ entity.name | string.camelcase }}!, cancellationToken);
 
-            Updated{{ entity.name | string.pascalcase }}Response response = _mapper.Map<Updated{{ entity.name | string.pascalcase }}Response>({{ entity.name | string.camelcase }});
+            Updated{{ entity.name | string.pascalcase }}Response response = {{ entity.name | string.pascalcase }}Mapper.ToUpdatedResponse({{ entity.name | string.camelcase }}!);
             return response;
         }
     }

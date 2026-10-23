@@ -1,6 +1,6 @@
-﻿using Application.Features.Generate.Commands.Command;
+using Application.Features.Generate.Commands.Command;
 using Domain.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -15,7 +15,7 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
         _mediator = mediator ?? throw new ArgumentNullException(paramName: nameof(mediator));
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         settings.CheckProjectName();
         settings.CheckCommandName();
@@ -23,25 +23,27 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
         settings.CheckMechanismOptions();
         settings.CheckEndPointMethod();
 
-        GenerateCommandCommand generateCommandCommand =
-            new()
+        GenerateCommandCommand generateCommandCommand = new()
+        {
+            CommandName = settings.CommandName!,
+            FeatureName = settings.FeatureName!,
+            ProjectPath = settings.ProjectPath,
+            CommandTemplateData = new CommandTemplateData
             {
                 CommandName = settings.CommandName!,
                 FeatureName = settings.FeatureName!,
-                ProjectPath = settings.ProjectPath,
-                CommandTemplateData = new CommandTemplateData
-                {
-                    CommandName = settings.CommandName!,
-                    FeatureName = settings.FeatureName!,
-                    IsCachingUsed = settings.IsCachingUsed,
-                    IsLoggingUsed = settings.IsLoggingUsed,
-                    IsTransactionUsed = settings.IsTransactionUsed,
-                    IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
-                    EndPointMethod = settings.EndPointMethod!
-                }
-            };
+                IsCachingUsed = settings.IsCachingUsed,
+                IsLoggingUsed = settings.IsLoggingUsed,
+                IsTransactionUsed = settings.IsTransactionUsed,
+                IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
+                EndPointMethod = settings.EndPointMethod!,
+            },
+        };
 
-        IAsyncEnumerable<GeneratedCommandResponse> resultsStream = _mediator.CreateStream(request: generateCommandCommand);
+        IAsyncEnumerable<GeneratedCommandResponse> resultsStream = _mediator.CreateStream(
+            request: generateCommandCommand,
+            cancellationToken
+        );
 
         await AnsiConsole
             .Status()

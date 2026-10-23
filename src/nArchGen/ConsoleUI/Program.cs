@@ -5,6 +5,7 @@ using ConsoleUI.Commands.Generate.Crud;
 using ConsoleUI.Commands.Generate.DynamicQuery;
 using ConsoleUI.Commands.Generate.Query;
 using ConsoleUI.Commands.New;
+using ConsoleUI.Commands.Upgrade;
 using Core.ConsoleUI.IoC.SpectreConsoleCli;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
@@ -59,6 +60,12 @@ app.Configure(config =>
         .AddCommand<CreateNewProjectCliCommand>(name: "new")
         .WithDescription(description: "Create a new project")
         .WithExample(args: new[] { "new", "ExampleProject" });
+
+    config
+        .AddCommand<UpgradeCliCommand>(name: "upgrade")
+        .WithDescription(description: "Upgrade a nArchitecture 1.x solution to 2.0 (.NET 10, Core.Mediator, Mapperly)")
+        .WithExample(args: new[] { "upgrade", "--dry-run" })
+        .WithExample(args: new[] { "upgrade", "--project", "exampleProject" });
 
     #endregion
 });

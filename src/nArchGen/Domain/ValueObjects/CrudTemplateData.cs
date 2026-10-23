@@ -22,5 +22,5 @@ public class CrudTemplateData : ITemplateData
 public enum OperationClaimType
 {
     Numeric,
-    Guid
+    Guid,
 }

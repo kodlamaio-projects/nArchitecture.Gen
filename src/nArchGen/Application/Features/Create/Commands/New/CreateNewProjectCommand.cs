@@ -1,9 +1,9 @@
-﻿using System.IO.Compression;
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using Core.CodeGen.Code;
 using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
-using MediatR;
+using NArchitecture.Core.Mediator;
 
 namespace Application.Features.Create.Commands.New;
 
@@ -12,19 +12,32 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
     public string ProjectName { get; set; }
     public bool IsThereSecurityMechanism { get; set; } = true;
 
+    /// <summary>
+    /// Optional local checkout of the starter to copy instead of downloading the <see cref="CreateNewProjectCommandHandler.StarterVersion"/> release.
+    /// Useful for testing a starter that is not tagged yet.
+    /// </summary>
+    public string? StarterPath { get; set; }
+
     public CreateNewProjectCommand()
     {
         ProjectName = string.Empty;
     }
 
-    public CreateNewProjectCommand(string projectName, bool isThereSecurityMechanism)
+    public CreateNewProjectCommand(string projectName, bool isThereSecurityMechanism, string? starterPath = null)
     {
         ProjectName = projectName;
         IsThereSecurityMechanism = isThereSecurityMechanism;
+        StarterPath = starterPath;
     }
 
     public class CreateNewProjectCommandHandler : IStreamRequestHandler<CreateNewProjectCommand, CreatedNewProjectResponse>
     {
+        /// <summary>Tag of the kodlamaio-projects/nArchitecture starter release that is downloaded by <c>nArchGen new</c>.</summary>
+        public const string StarterVersion = "2.0.0";
+        private const string _starterReleaseUrl =
+            $"https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v{StarterVersion}.zip";
+        private const string _starterExtractedDirectoryName = $"nArchitecture-{StarterVersion}";
+
         public async IAsyncEnumerable<CreatedNewProjectResponse> Handle(
             CreateNewProjectCommand request,
             [EnumeratorCancellation] CancellationToken cancellationToken
@@ -36,8 +49,17 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             response.CurrentStatusMessage = "Cloning starter project and core packages...";
             yield return response;
             response.OutputMessage = null;
-            await downloadStarterProject(request.ProjectName);
-            response.LastOperationMessage = "Starter project has been cloned from 'https://github.com/kodlamaio-projects/nArchitecture'.";
+            if (request.StarterPath is not null)
+            {
+                copyLocalStarterProject(request.StarterPath, request.ProjectName);
+                response.LastOperationMessage = $"Starter project has been copied from '{request.StarterPath}'.";
+            }
+            else
+            {
+                await downloadStarterProject(request.ProjectName);
+                response.LastOperationMessage =
+                    "Starter project has been cloned from 'https://github.com/kodlamaio-projects/nArchitecture'.";
+            }
 
             response.CurrentStatusMessage = "Preparing project...";
             yield return response;
@@ -63,10 +85,36 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             yield return response;
         }
 
+        private static readonly string[] _localStarterExcludedDirectories = [".git", ".vs", "bin", "obj", "artifacts", "TestResults"];
+
+        private static void copyLocalStarterProject(string starterPath, string projectName)
+        {
+            if (!Directory.Exists(starterPath))
+                throw new DirectoryNotFoundException($"Starter path '{starterPath}' does not exist.");
+
+            string sourceRoot = Path.GetFullPath(starterPath);
+            string targetRoot = Path.GetFullPath($"{Environment.CurrentDirectory}/{projectName}");
+
+            foreach (string sourceFile in Directory.EnumerateFiles(sourceRoot, "*", SearchOption.AllDirectories))
+            {
+                string relativePath = Path.GetRelativePath(sourceRoot, sourceFile);
+                if (
+                    relativePath
+                        .Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                        .Any(_localStarterExcludedDirectories.Contains)
+                )
+                    continue;
+
+                string targetFile = Path.Combine(targetRoot, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(targetFile)!);
+                File.Copy(sourceFile, targetFile, overwrite: true);
+            }
+        }
+
         private async Task downloadStarterProject(string projectName)
         {
             // Download zip on url
-            string releaseUrl = "https://github.com/kodlamaio-projects/nArchitecture/archive/refs/tags/v1.2.0.zip";
+            string releaseUrl = _starterReleaseUrl;
             using HttpClient client = new();
             using HttpResponseMessage response = await client.GetAsync(releaseUrl);
             response.EnsureSuccessStatusCode();
@@ -78,7 +126,7 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             ZipFile.ExtractToDirectory(zipPath, Environment.CurrentDirectory);
             File.Delete(zipPath);
             Directory.Move(
-                sourceDirName: $"{Environment.CurrentDirectory}/nArchitecture-1.2.0",
+                sourceDirName: $"{Environment.CurrentDirectory}/{_starterExtractedDirectoryName}",
                 $"{Environment.CurrentDirectory}/{projectName}"
             );
         }
@@ -268,14 +316,11 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             await FileHelper.RemoveLinesAsync(
                 filePath: $"{projectSourcePath}/Application/Application.csproj",
                 predicate: line =>
-                    (new[] { "<PackageReference Include=\"NArchitecture.Core.Security.DependencyInjection\" Version=\"1.0.0\" />", }).Any(
-                        line.Contains
-                    )
+                    (new[] { "<PackageReference Include=\"NArchitecture.Core.Security.DependencyInjection\"" }).Any(line.Contains)
             );
             await FileHelper.RemoveLinesAsync(
                 filePath: $"{projectSourcePath}/Domain/Domain.csproj",
-                predicate: line =>
-                    (new[] { "<PackageReference Include=\"NArchitecture.Core.Security\" Version=\"1.1.1\" />" }).Any(line.Contains)
+                predicate: line => (new[] { "<PackageReference Include=\"NArchitecture.Core.Security\"" }).Any(line.Contains)
             );
             await FileHelper.RemoveLinesAsync(
                 filePath: $"{projectSourcePath}/Persistence/Contexts/BaseDbContext.cs",
@@ -330,22 +375,22 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
                 filePath: $"{projectSourcePath}/WebAPI/Program.cs",
                 contents: new[]
                 {
-                    "using Core.Security;\n",
-                    "using Core.Security.Encryption;\n",
-                    "using Core.Security.JWT;\n",
-                    "using Core.WebAPI.Extensions.Swagger;\n",
+                    // Keep in sync with src/starterProject/WebAPI/Program.cs of the starter release in StarterVersion.
+                    // `using NArchitecture.Core.Security.JWT;` stays: TokenOptions is still passed to AddApplicationServices.
                     "using Microsoft.AspNetCore.Authentication.JwtBearer;\n",
                     "using Microsoft.IdentityModel.Tokens;\n",
-                    "using Microsoft.OpenApi.Models;\n",
-                    "const string tokenOptionsConfigurationSection = \"TokenOptions\";\nTokenOptions tokenOptions =\n    builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()\n    ?? throw new InvalidOperationException($\"\\\"{tokenOptionsConfigurationSection}\\\" section cannot found in configuration.\");\nbuilder\n    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)\n    .AddJwtBearer(options =>\n    {\n        options.TokenValidationParameters = new TokenValidationParameters\n        {\n            ValidateIssuer = true,\n            ValidateAudience = true,\n            ValidateLifetime = true,\n            ValidIssuer = tokenOptions.Issuer,\n            ValidAudience = tokenOptions.Audience,\n            ValidateIssuerSigningKey = true,\n            IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey)\n        };\n    });\n\n",
-                    "    opt.AddSecurityDefinition(\n        name: \"Bearer\",\n        securityScheme: new OpenApiSecurityScheme\n        {\n            Name = \"Authorization\",\n            Type = SecuritySchemeType.Http,\n            Scheme = \"Bearer\",\n            BearerFormat = \"JWT\",\n            In = ParameterLocation.Header,\n            Description =\n                \"JWT Authorization header using the Bearer scheme. Example: \\\"Authorization: Bearer YOUR_TOKEN\\\". \\r\\n\\r\\n\"\n                + \"`Enter your token in the text input below.`\"\n        }\n    );\n    opt.OperationFilter<BearerSecurityRequirementOperationFilter>();\n",
+                    "using Microsoft.OpenApi;\n",
+                    "using NArchitecture.Core.Security.Encryption;\n",
+                    "using NArchitecture.Core.Security.WebApi.Swagger.Extensions;\n",
+                    "const string tokenOptionsConfigurationSection = \"TokenOptions\";\nTokenOptions tokenOptions =\n    builder.Configuration.GetSection(tokenOptionsConfigurationSection).Get<TokenOptions>()\n    ?? throw new InvalidOperationException($\"\\\"{tokenOptionsConfigurationSection}\\\" section cannot found in configuration.\");\nbuilder\n    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)\n    .AddJwtBearer(options =>\n    {\n        options.TokenValidationParameters = new TokenValidationParameters\n        {\n            ValidateIssuer = true,\n            ValidateAudience = true,\n            ValidateLifetime = true,\n            ValidIssuer = tokenOptions.Issuer,\n            ValidAudience = tokenOptions.Audience,\n            ValidateIssuerSigningKey = true,\n            IssuerSigningKey = SecurityKeyHelper.CreateSecurityKey(tokenOptions.SecurityKey),\n        };\n    });\n\n",
+                    "    opt.AddSecurityDefinition(\n        name: \"Bearer\",\n        securityScheme: new OpenApiSecurityScheme\n        {\n            Name = \"Authorization\",\n            Type = SecuritySchemeType.Http,\n            Scheme = \"Bearer\",\n            BearerFormat = \"JWT\",\n            In = ParameterLocation.Header,\n            Description =\n                \"JWT Authorization header using the Bearer scheme. Example: \\\"Authorization: Bearer YOUR_TOKEN\\\". \\r\\n\\r\\n\"\n                + \"`Enter your token in the text input below.`\",\n        }\n    );\n    opt.OperationFilter<BearerSecurityRequirementOperationFilter>();\n",
                     "app.UseAuthentication();\n",
-                    "app.UseAuthorization();\n"
+                    "app.UseAuthorization();\n",
                 }
             );
-            await FileHelper.RemoveContentAsync(
+            await FileHelper.RemoveLinesAsync(
                 filePath: $"{projectSourcePath}/WebAPI/WebAPI.csproj",
-                contents: new[] { "<PackageReference Include=\"NArchitecture.Core.Security.WebApi.Swagger\" Version=\"1.0.0\" />;", }
+                predicate: line => line.Contains("<PackageReference Include=\"NArchitecture.Core.Security.WebApi.Swagger\"")
             );
         }
 

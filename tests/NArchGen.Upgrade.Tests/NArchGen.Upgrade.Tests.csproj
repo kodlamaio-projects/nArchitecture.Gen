@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\nArchGen\Application\Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The 1.x sample solution is data, not code: keep it out of the compilation and copy it next to the test binary. -->
+    <Compile Remove="Fixtures\**" />
+    <None Remove="Fixtures\**" />
+    <Content Include="Fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>
