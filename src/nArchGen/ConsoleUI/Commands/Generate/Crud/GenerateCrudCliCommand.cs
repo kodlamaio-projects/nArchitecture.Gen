@@ -1,9 +1,9 @@
-﻿using Application.Features.Generate.Commands.Crud;
+using Application.Features.Generate.Commands.Crud;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.Code.CSharp.ValueObjects;
 using Core.CrossCuttingConcerns.Helpers;
 using Domain.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -18,7 +18,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
         _mediator = mediator ?? throw new ArgumentNullException(paramName: nameof(mediator));
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         settings.CheckProjectName();
         settings.CheckEntityArgument();
@@ -28,33 +28,32 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
         string entityPath = PlatformHelper.SecuredPathJoin(settings.ProjectPath, "Domain", "Entities", $"{settings.EntityName}.cs");
         ICollection<PropertyInfo> entityProperties = await CSharpCodeReader.ReadClassPropertiesAsync(entityPath, settings.ProjectPath);
         string entityIdType = (await CSharpCodeReader.ReadBaseClassGenericArgumentsAsync(entityPath)).First();
-        GenerateCrudCommand generateCrudCommand =
-            new()
+        GenerateCrudCommand generateCrudCommand = new()
+        {
+            CrudTemplateData = new CrudTemplateData
             {
-                CrudTemplateData = new CrudTemplateData
+                Entity = new Entity
                 {
-                    Entity = new Entity
-                    {
-                        Name = settings.EntityName!,
-                        IdType = entityIdType,
-                        Properties = entityProperties.Where(property => property.AccessModifier == "public").ToArray()
-                    },
-                    IsCachingUsed = settings.IsCachingUsed,
-                    IsLoggingUsed = settings.IsLoggingUsed,
-                    IsTransactionUsed = settings.IsTransactionUsed,
-                    IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
-                    IsDynamicQueryUsed = settings.IsDynamicQueryUsed,
-                    IsMenuRoleIncluded = settings.IsMenuRoleIncluded,
-                    CustomOperationClaimPath = settings.CustomOperationClaimPath,
-                    DbContextName = settings.DbContextName!,
-                    OperationClaimType = settings.OperationClaimType ?? OperationClaimType.Numeric,
-                    OperationClaimTypeString = (settings.OperationClaimType ?? OperationClaimType.Numeric).ToString()
+                    Name = settings.EntityName!,
+                    IdType = entityIdType,
+                    Properties = entityProperties.Where(property => property.AccessModifier == "public").ToArray(),
                 },
-                ProjectPath = settings.ProjectPath,
-                DbContextName = settings.DbContextName!
-            };
+                IsCachingUsed = settings.IsCachingUsed,
+                IsLoggingUsed = settings.IsLoggingUsed,
+                IsTransactionUsed = settings.IsTransactionUsed,
+                IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
+                IsDynamicQueryUsed = settings.IsDynamicQueryUsed,
+                IsMenuRoleIncluded = settings.IsMenuRoleIncluded,
+                CustomOperationClaimPath = settings.CustomOperationClaimPath,
+                DbContextName = settings.DbContextName!,
+                OperationClaimType = settings.OperationClaimType ?? OperationClaimType.Numeric,
+                OperationClaimTypeString = (settings.OperationClaimType ?? OperationClaimType.Numeric).ToString(),
+            },
+            ProjectPath = settings.ProjectPath,
+            DbContextName = settings.DbContextName!,
+        };
 
-        IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(request: generateCrudCommand);
+        IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(request: generateCrudCommand, cancellationToken);
 
         await AnsiConsole
             .Status()

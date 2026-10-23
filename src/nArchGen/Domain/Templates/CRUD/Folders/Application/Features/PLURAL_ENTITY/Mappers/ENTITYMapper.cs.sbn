@@ -1,0 +1,39 @@
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Create;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Update;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetList;
+using Domain.Entities;
+using NArchitecture.Core.Application.Responses;
+using NArchitecture.Core.Persistence.Paging;
+using Riok.Mapperly.Abstractions;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Mappers;
+
+[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+public static partial class {{ entity.name | string.pascalcase }}Mapper
+{
+    [MapperIgnoreTarget(nameof({{ entity.name | string.pascalcase }}.Id))]
+    [MapperIgnoreTarget(nameof({{ entity.name | string.pascalcase }}.CreatedDate))]
+    [MapperIgnoreTarget(nameof({{ entity.name | string.pascalcase }}.UpdatedDate))]
+    [MapperIgnoreTarget(nameof({{ entity.name | string.pascalcase }}.DeletedDate))]
+    public static partial {{ entity.name | string.pascalcase }} ToEntity(Create{{ entity.name | string.pascalcase }}Command command);
+
+    public static partial Created{{ entity.name | string.pascalcase }}Response ToCreatedResponse({{ entity.name | string.pascalcase }} entity);
+
+    [MapperIgnoreTarget(nameof({{ entity.name | string.pascalcase }}.Id))]
+    [MapperIgnoreTarget(nameof({{ entity.name | string.pascalcase }}.CreatedDate))]
+    [MapperIgnoreTarget(nameof({{ entity.name | string.pascalcase }}.UpdatedDate))]
+    [MapperIgnoreTarget(nameof({{ entity.name | string.pascalcase }}.DeletedDate))]
+    public static partial void UpdateEntity(Update{{ entity.name | string.pascalcase }}Command command, {{ entity.name | string.pascalcase }} entity);
+
+    public static partial Updated{{ entity.name | string.pascalcase }}Response ToUpdatedResponse({{ entity.name | string.pascalcase }} entity);
+
+    public static partial Deleted{{ entity.name | string.pascalcase }}Response ToDeletedResponse({{ entity.name | string.pascalcase }} entity);
+
+    public static partial GetById{{ entity.name | string.pascalcase }}Response ToGetByIdResponse({{ entity.name | string.pascalcase }} entity);
+
+    public static partial GetList{{ entity.name | string.pascalcase }}ListItemDto ToGetListItemDto({{ entity.name | string.pascalcase }} entity);
+
+    public static partial GetListResponse<GetList{{ entity.name | string.pascalcase }}ListItemDto> ToGetListResponse(IPaginate<{{ entity.name | string.pascalcase }}> paginate);
+}

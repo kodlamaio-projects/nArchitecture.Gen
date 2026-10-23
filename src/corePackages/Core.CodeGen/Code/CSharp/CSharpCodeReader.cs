@@ -47,15 +47,13 @@ public static class CSharpCodeReader
     public static async Task<ICollection<PropertyInfo>> ReadClassPropertiesAsync(string filePath, string projectPath)
     {
         string fileContent = await System.IO.File.ReadAllTextAsync(filePath);
-        Regex propertyRegex =
-            new(
-                @"(public|protected|internal|protected internal|private protected|private)?\s+(?:const|static|required)?\s*((?:\w\.?)+\??)\s+(\w+)\s*\{.*\}"
-            );
-        Regex builtInTypeRegex =
-            new(
-                pattern: @"^(bool|byte|sbyte|char|decimal|double|float|int|uint|long|ulong|object|short|ushort|string)$",
-                RegexOptions.IgnoreCase
-            );
+        Regex propertyRegex = new(
+            @"(public|protected|internal|protected internal|private protected|private)?\s+(?:const|static|required)?\s*((?:\w\.?)+\??)\s+(\w+)\s*\{.*\}"
+        );
+        Regex builtInTypeRegex = new(
+            pattern: @"^(bool|byte|sbyte|char|decimal|double|float|int|uint|long|ulong|object|short|ushort|string)$",
+            RegexOptions.IgnoreCase
+        );
 
         MatchCollection matches = propertyRegex.Matches(fileContent);
         List<PropertyInfo> result = [];
@@ -91,14 +89,13 @@ public static class CSharpCodeReader
                 }
             }
 
-            PropertyInfo propertyInfo =
-                new()
-                {
-                    AccessModifier = string.IsNullOrEmpty(accessModifier) ? "private" : accessModifier,
-                    Type = type,
-                    Name = name,
-                    NameSpace = nameSpace
-                };
+            PropertyInfo propertyInfo = new()
+            {
+                AccessModifier = string.IsNullOrEmpty(accessModifier) ? "private" : accessModifier,
+                Type = type,
+                Name = name,
+                NameSpace = nameSpace,
+            };
             result.Add(propertyInfo);
         }
 

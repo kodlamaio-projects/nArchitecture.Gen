@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Application.Features.Generate.Rules;
 using Core.CodeGen.Code;
 using Core.CodeGen.Code.CSharp;
@@ -7,7 +7,7 @@ using Core.CodeGen.TemplateEngine;
 using Core.CrossCuttingConcerns.Helpers;
 using Domain.Constants;
 using Domain.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator;
 
 namespace Application.Features.Generate.Commands.Query;
 
@@ -150,8 +150,11 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             var templateFilePaths = DirectoryHelper
                 .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
                 .ToList();
-            Dictionary<string, string> replacePathVariable =
-                new() { { "FEATURE", "{{ feature_name | string.pascalcase }}" }, { "QUERY", "{{ query_name | string.pascalcase }}" } };
+            Dictionary<string, string> replacePathVariable = new()
+            {
+                { "FEATURE", "{{ feature_name | string.pascalcase }}" },
+                { "QUERY", "{{ query_name | string.pascalcase }}" },
+            };
             ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
                 templateFilePaths,
                 templateDir,

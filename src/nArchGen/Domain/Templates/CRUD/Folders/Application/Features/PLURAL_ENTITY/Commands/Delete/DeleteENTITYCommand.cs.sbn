@@ -1,14 +1,13 @@
-﻿{{ if is_secured_operation_used }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
-{{ end }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+﻿using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Mappers;
 using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
 using Application.Services.Repositories;
-using AutoMapper;
 using Domain.Entities;{{ if is_secured_operation_used }}
 using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}{{ if is_caching_used }}
 using NArchitecture.Core.Application.Pipelines.Caching;{{ end }}{{ if is_logging_used }}
 using NArchitecture.Core.Application.Pipelines.Logging;{{ end }}{{ if is_transaction_used }}
 using NArchitecture.Core.Application.Pipelines.Transaction;{{ end }}
-using MediatR;{{ if is_secured_operation_used }}
+using NArchitecture.Core.Mediator;{{ if is_secured_operation_used }}
 using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 
 namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Commands.Delete;
@@ -25,14 +24,12 @@ public class Delete{{ entity.name | string.pascalcase }}Command : IRequest<Delet
 
     public class Delete{{ entity.name | string.pascalcase }}CommandHandler : IRequestHandler<Delete{{ entity.name | string.pascalcase }}Command, Deleted{{ entity.name | string.pascalcase }}Response>
     {
-        private readonly IMapper _mapper;
         private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
         private readonly {{ entity.name | string.pascalcase }}BusinessRules _{{ entity.name | string.camelcase }}BusinessRules;
 
-        public Delete{{ entity.name | string.pascalcase }}CommandHandler(IMapper mapper, I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository,
+        public Delete{{ entity.name | string.pascalcase }}CommandHandler(I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository,
                                          {{ entity.name | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
         {
-            _mapper = mapper;
             _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
             _{{ entity.name | string.camelcase }}BusinessRules = {{ entity.name | string.camelcase }}BusinessRules;
         }
@@ -42,9 +39,9 @@ public class Delete{{ entity.name | string.pascalcase }}Command : IRequest<Delet
             {{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }} = await _{{ entity.name | string.camelcase }}Repository.GetAsync(predicate: {{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id == request.Id, cancellationToken: cancellationToken);
             await _{{ entity.name | string.camelcase }}BusinessRules.{{ entity.name | string.pascalcase }}ShouldExistWhenSelected({{ entity.name | string.camelcase }});
 
-            await _{{ entity.name | string.camelcase }}Repository.DeleteAsync({{ entity.name | string.camelcase }}!);
+            await _{{ entity.name | string.camelcase }}Repository.DeleteAsync({{ entity.name | string.camelcase }}!, cancellationToken: cancellationToken);
 
-            Deleted{{ entity.name | string.pascalcase }}Response response = _mapper.Map<Deleted{{ entity.name | string.pascalcase }}Response>({{ entity.name | string.camelcase }});
+            Deleted{{ entity.name | string.pascalcase }}Response response = {{ entity.name | string.pascalcase }}Mapper.ToDeletedResponse({{ entity.name | string.camelcase }}!);
             return response;
         }
     }

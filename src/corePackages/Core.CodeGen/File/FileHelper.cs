@@ -19,11 +19,22 @@ public static class FileHelper
         await System.IO.File.WriteAllLinesAsync(filePath, fileLines);
     }
 
+    /// <summary>
+    /// Removes each snippet from the file. Snippets are written with <c>\n</c> line endings; the file is matched after
+    /// normalizing its line endings and written back with the line endings it originally had.
+    /// </summary>
     public static async Task RemoveContentAsync(string filePath, IEnumerable<string> contents)
     {
         string fileContent = await System.IO.File.ReadAllTextAsync(filePath);
+        bool usesCrLf = fileContent.Contains("\r\n");
+        if (usesCrLf)
+            fileContent = fileContent.Replace("\r\n", "\n");
+
         foreach (string content in contents)
-            fileContent = fileContent.Replace(content, string.Empty);
+            fileContent = fileContent.Replace(content.Replace("\r\n", "\n"), string.Empty);
+
+        if (usesCrLf)
+            fileContent = fileContent.Replace("\n", "\r\n");
         await System.IO.File.WriteAllTextAsync(filePath, fileContent);
     }
 }

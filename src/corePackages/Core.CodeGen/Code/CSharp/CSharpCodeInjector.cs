@@ -199,8 +199,9 @@ public static class CSharpCodeInjector
     public static async Task AddMethodToClass(string filePath, string className, string[] codeLines)
     {
         var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
-        Regex classStartRegex =
-            new(@$"((public|protected|internal|protected internal|private protected|private)\s+)?(static\s+)?\s+\b{className}");
+        Regex classStartRegex = new(
+            @$"((public|protected|internal|protected internal|private protected|private)\s+)?(static\s+)?\s+\b{className}"
+        );
         Regex scopeBlockStartRegex = new(@"\{");
         Regex scopeBlockEndRegex = new(@"\}");
 

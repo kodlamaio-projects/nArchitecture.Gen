@@ -1,10 +1,10 @@
 ﻿{{ if is_secured_operation_used }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants;
-{{ end }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
+{{ end }}using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Mappers;
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Rules;
 using Application.Services.Repositories;
-using AutoMapper;
 using Domain.Entities;{{ if is_secured_operation_used }}
 using NArchitecture.Core.Application.Pipelines.Authorization;{{ end }}
-using MediatR;{{ if is_secured_operation_used }}
+using NArchitecture.Core.Mediator;{{ if is_secured_operation_used }}
 using static Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Constants.{{ entity.name | string.pascalcase | string.plural }}OperationClaims;{{ end }}
 
 namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetById;
@@ -17,13 +17,11 @@ public class GetById{{ entity.name | string.pascalcase }}Query : IRequest<GetByI
 
     public class GetById{{ entity.name | string.pascalcase }}QueryHandler : IRequestHandler<GetById{{ entity.name | string.pascalcase }}Query, GetById{{ entity.name | string.pascalcase }}Response>
     {
-        private readonly IMapper _mapper;
         private readonly I{{ entity.name | string.pascalcase }}Repository _{{ entity.name | string.camelcase }}Repository;
         private readonly {{ entity.name | string.pascalcase }}BusinessRules _{{ entity.name | string.camelcase }}BusinessRules;
 
-        public GetById{{ entity.name | string.pascalcase }}QueryHandler(IMapper mapper, I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository, {{ entity.name | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
+        public GetById{{ entity.name | string.pascalcase }}QueryHandler(I{{ entity.name | string.pascalcase }}Repository {{ entity.name | string.camelcase }}Repository, {{ entity.name | string.pascalcase }}BusinessRules {{ entity.name | string.camelcase }}BusinessRules)
         {
-            _mapper = mapper;
             _{{ entity.name | string.camelcase }}Repository = {{ entity.name | string.camelcase }}Repository;
             _{{ entity.name | string.camelcase }}BusinessRules = {{ entity.name | string.camelcase }}BusinessRules;
         }
@@ -33,7 +31,7 @@ public class GetById{{ entity.name | string.pascalcase }}Query : IRequest<GetByI
             {{ entity.name | string.pascalcase }}? {{ entity.name | string.camelcase }} = await _{{ entity.name | string.camelcase }}Repository.GetAsync(predicate: {{ entity.name | string.abbreviation }} => {{ entity.name | string.abbreviation }}.Id == request.Id, cancellationToken: cancellationToken);
             await _{{ entity.name | string.camelcase }}BusinessRules.{{ entity.name | string.pascalcase }}ShouldExistWhenSelected({{ entity.name | string.camelcase }});
 
-            GetById{{ entity.name | string.pascalcase }}Response response = _mapper.Map<GetById{{ entity.name | string.pascalcase }}Response>({{ entity.name | string.camelcase }});
+            GetById{{ entity.name | string.pascalcase }}Response response = {{ entity.name | string.pascalcase }}Mapper.ToGetByIdResponse({{ entity.name | string.camelcase }}!);
             return response;
         }
     }

@@ -1,0 +1,14 @@
+using Domain.Entities;
+using NArchitecture.Core.Application.Responses;
+using NArchitecture.Core.Persistence.Paging;
+using Riok.Mapperly.Abstractions;
+
+namespace Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetListByDynamic;
+
+[Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+public static partial class GetListByDynamic{{ entity.name | string.pascalcase }}Mapper
+{
+    public static partial GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto ToListItemDto({{ entity.name | string.pascalcase }} entity);
+
+    public static partial GetListResponse<GetListByDynamic{{ entity.name | string.pascalcase }}ListItemDto> ToGetListResponse(IPaginate<{{ entity.name | string.pascalcase }}> paginate);
+}

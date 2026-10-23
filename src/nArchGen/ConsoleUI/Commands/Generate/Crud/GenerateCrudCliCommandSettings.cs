@@ -210,6 +210,10 @@ public partial class GenerateCrudCliCommand
                 return;
             }
 
+            // Non-interactive terminals (CI, scripts) cannot answer the confirm; the default configuration path is used.
+            if (!AnsiConsole.Profile.Capabilities.Interactive)
+                return;
+
             bool useCustomPath = AnsiConsole.Confirm("Do you want to use a [green]custom path[/] for Operation Claims Configuration?");
 
             if (useCustomPath)

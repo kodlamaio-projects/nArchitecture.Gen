@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\corePackages\Core.CodeGen\Core.CodeGen.csproj" />
+    <ProjectReference Include="..\..\src\nArchGen\Domain\Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ContentWithTargetPath Include="..\..\src\nArchGen\Domain\Templates\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>Templates\%(RecursiveDir)\%(Filename)%(Extension)</TargetPath>
+      <Visible>false</Visible>
+    </ContentWithTargetPath>
+  </ItemGroup>
+</Project>

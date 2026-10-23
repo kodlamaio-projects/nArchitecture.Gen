@@ -1,0 +1,2 @@
+using Application.Features.{{ entity.name | string.pascalcase | string.plural }}.Queries.GetListByDynamic;
+using NArchitecture.Core.Persistence.Dynamic;

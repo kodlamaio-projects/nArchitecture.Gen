@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Application.Features.Generate.Rules;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.File;
@@ -6,7 +6,7 @@ using Core.CodeGen.TemplateEngine;
 using Core.CrossCuttingConcerns.Helpers;
 using Domain.Constants;
 using Domain.ValueObjects;
-using MediatR;
+using NArchitecture.Core.Mediator;
 
 namespace Application.Features.Generate.Commands.Crud;
 
@@ -238,14 +238,13 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                 "Application"
             );
 
-            DynamicQueryTemplateData dynamicQueryTemplateData =
-                new()
-                {
-                    Entity = crudTemplateData.Entity,
-                    IsCachingUsed = crudTemplateData.IsCachingUsed,
-                    IsLoggingUsed = crudTemplateData.IsLoggingUsed,
-                    IsSecuredOperationUsed = crudTemplateData.IsSecuredOperationUsed
-                };
+            DynamicQueryTemplateData dynamicQueryTemplateData = new()
+            {
+                Entity = crudTemplateData.Entity,
+                IsCachingUsed = crudTemplateData.IsCachingUsed,
+                IsLoggingUsed = crudTemplateData.IsLoggingUsed,
+                IsSecuredOperationUsed = crudTemplateData.IsSecuredOperationUsed,
+            };
 
             return await generateDynamicQueryFolderCodes(
                 templateDir,
@@ -263,12 +262,11 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             var templateFilePaths = DirectoryHelper
                 .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
                 .ToList();
-            Dictionary<string, string> replacePathVariable =
-                new()
-                {
-                    { "PLURAL_ENTITY", "{{ entity.name | string.pascalcase | string.plural }}" },
-                    { "ENTITY", "{{ entity.name | string.pascalcase }}" }
-                };
+            Dictionary<string, string> replacePathVariable = new()
+            {
+                { "PLURAL_ENTITY", "{{ entity.name | string.pascalcase | string.plural }}" },
+                { "ENTITY", "{{ entity.name | string.pascalcase }}" },
+            };
             ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
                 templateFilePaths,
                 templateDir,
@@ -284,12 +282,11 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             var templateFilePaths = DirectoryHelper
                 .GetFilesInDirectoryTree(templateDir, searchPattern: $"*.{_templateEngine.TemplateExtension}")
                 .ToList();
-            Dictionary<string, string> replacePathVariable =
-                new()
-                {
-                    { "PLURAL_ENTITY", "{{ entity.name | string.pascalcase | string.plural }}" },
-                    { "ENTITY", "{{ entity.name | string.pascalcase }}" }
-                };
+            Dictionary<string, string> replacePathVariable = new()
+            {
+                { "PLURAL_ENTITY", "{{ entity.name | string.pascalcase | string.plural }}" },
+                { "ENTITY", "{{ entity.name | string.pascalcase }}" },
+            };
             ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
                 templateFilePaths,
                 templateDir,

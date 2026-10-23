@@ -9,24 +9,23 @@ public static class CommandLineHelper
         {
             PlatformID.Unix => "/bin/bash",
             PlatformID.MacOSX => "/bin/sh",
-            _ => "cmd.exe"
+            _ => "cmd.exe",
         };
 
     public static async Task RunCommandAsync(string command)
     {
         try
         {
-            Process process =
-                new()
+            Process process = new()
+            {
+                StartInfo = new ProcessStartInfo
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = GetOSCommandLine(),
-                        RedirectStandardInput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
+                    FileName = GetOSCommandLine(),
+                    RedirectStandardInput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                },
+            };
 
             process.Start();
             await process.StandardInput.WriteLineAsync(command);
