@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Core.CodeGen.File;
 
 namespace Core.CodeGen.Code.CSharp;
 
@@ -6,7 +7,7 @@ public static class CSharpCodeInjector
 {
     public static async Task AddCodeLinesToMethodAsync(string filePath, string methodName, string[] codeLines)
     {
-        var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        var fileContent = (await CodeFile.ReadAllLinesAsync(filePath)).ToList();
         if (isAlreadyInjected(fileContent, codeLines))
             return;
         string methodStartRegex =
@@ -79,12 +80,12 @@ public static class CSharpCodeInjector
                 : methodContent.Where(line => !string.IsNullOrEmpty(line)).Min(line => line.TakeWhile(char.IsWhiteSpace).Count());
 
         fileContent.InsertRange(methodEndIndex, collection: codeLines.Select(line => new string(' ', minimumSpaceCountInMethod) + line));
-        await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
+        await CodeFile.WriteAllLinesAsync(filePath, lines: fileContent.ToArray());
     }
 
     public static async Task AddCodeLinesAsPropertyAsync(string filePath, string[] codeLines)
     {
-        string[] fileContent = await System.IO.File.ReadAllLinesAsync(filePath);
+        string[] fileContent = await CodeFile.ReadAllLinesAsync(filePath);
         if (isAlreadyInjected(fileContent, codeLines))
             return;
         const string propertyStartRegex =
@@ -132,12 +133,12 @@ public static class CSharpCodeInjector
             collection: codeLines.Select(line => new string(' ', propertySpaceCountInClass) + line)
         );
 
-        await System.IO.File.WriteAllLinesAsync(filePath, contents: updatedFileContent.ToArray());
+        await CodeFile.WriteAllLinesAsync(filePath, lines: updatedFileContent.ToArray());
     }
 
     public static async Task AddCodeLinesToRegionAsync(string filePath, IEnumerable<string> linesToAdd, string regionName)
     {
-        var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        var fileContent = (await CodeFile.ReadAllLinesAsync(filePath)).ToList();
         string regionStartRegex = @$"^\s*#region\s*{regionName}\s*";
         const string regionEndRegex = @"^\s*#endregion\s*.*";
 
@@ -174,14 +175,14 @@ public static class CSharpCodeInjector
                 index: indexToAdd,
                 collection: linesToAdd.Select(line => new string(' ', minimumSpaceCountInRegion) + line)
             );
-            await System.IO.File.WriteAllLinesAsync(filePath, fileContent);
+            await CodeFile.WriteAllLinesAsync(filePath, fileContent);
             break;
         }
     }
 
     public static async Task AddUsingToFile(string filePath, IEnumerable<string> usingLines)
     {
-        var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        var fileContent = (await CodeFile.ReadAllLinesAsync(filePath)).ToList();
 
         IEnumerable<string> usingLinesToAdd = usingLines.Where(usingLine => !fileContent.Contains(usingLine));
 
@@ -197,12 +198,12 @@ public static class CSharpCodeInjector
         }
 
         fileContent.InsertRange(indexToAdd, usingLinesToAdd);
-        await System.IO.File.WriteAllLinesAsync(filePath, fileContent);
+        await CodeFile.WriteAllLinesAsync(filePath, fileContent);
     }
 
     public static async Task AddMethodToClass(string filePath, string className, string[] codeLines)
     {
-        var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        var fileContent = (await CodeFile.ReadAllLinesAsync(filePath)).ToList();
         if (isAlreadyInjected(fileContent, codeLines))
             return;
         Regex classStartRegex = new(
@@ -257,7 +258,7 @@ public static class CSharpCodeInjector
                 : classContent.Where(line => !string.IsNullOrEmpty(line)).Min(line => line.TakeWhile(char.IsWhiteSpace).Count());
 
         fileContent.InsertRange(classEndIndex, collection: codeLines.Select(line => new string(' ', minimumSpaceCountInClass) + line));
-        await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
+        await CodeFile.WriteAllLinesAsync(filePath, lines: fileContent.ToArray());
     }
 
     /// <summary>

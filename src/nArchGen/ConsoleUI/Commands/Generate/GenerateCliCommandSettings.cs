@@ -17,6 +17,10 @@ public abstract class GenerateCliCommandSettings : InteractiveCliCommandSettings
     [Description("Overwrite files that already exist. Without it nothing is written when any generated file exists (exit code 3).")]
     public bool Force { get; set; }
 
+    [CommandOption("--dry-run")]
+    [Description("Run every step without writing anything; list the files that would be created and show a diff of the updated ones.")]
+    public bool DryRun { get; set; }
+
     public string ProjectPath =>
         ProjectName != null
             ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
