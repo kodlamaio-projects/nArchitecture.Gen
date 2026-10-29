@@ -54,9 +54,28 @@ To get a local copy up and running follow these simple steps.
 | Command | What it does |
 |---|---|
 | `nArchGen new <Name> [--security] [--starter-path <dir>]` | Creates a solution from the nArchitecture starter (`--starter-path` copies a local checkout instead of downloading the tagged release). |
-| `nArchGen generate crud <Entity> <DbContext> [-c -l -t -s -d -m]` | CRUD feature: commands, queries, Mapperly mapper, repository, controller, operation claims. |
-| `nArchGen generate command <Name> <Feature>` / `generate query <Name> <Feature>` / `generate dynamic-query <Entity>` | Single command, query or dynamic query inside an existing feature. |
+| `nArchGen generate crud <Entity> <DbContext> [-c -l -t -s -d -m] [--force]` | CRUD feature: commands, queries, Mapperly mapper, repository, controller, operation claims. |
+| `nArchGen generate command <Name> <Feature> [-e Post\|Put\|Delete]` / `generate query <Name> <Feature>` / `generate dynamic-query <Entity>` | Single command, query or dynamic query inside an existing feature. |
 | `nArchGen upgrade [--dry-run] [--project <name>] [--keep-test-framework] [--skip <steps>] [--no-build] [--force]` | Upgrades a 1.x solution to 2.0, see below. |
+
+`generate` commands never overwrite files: if any file they would create already exists, nothing is written and the
+command lists the existing files. Pass `--force` to regenerate them; registrations, operation claim seeds and endpoints that
+are already in place are not added a second time.
+
+### Scripts, CI and AI agents
+
+Every command runs without prompts when `--no-interactive` is passed, when its input is redirected or when the `CI`
+environment variable is set. Pass the values as arguments; optional ones (mechanism flags, operation claim type) fall back
+to their defaults, and a missing required one fails with the available choices instead of waiting for input. Errors go to
+stderr and the exit code tells what happened:
+
+| Exit code | Meaning |
+|---|---|
+| `0` | Success. |
+| `1` | The command failed: a business rule was violated, or the upgraded solution does not build. |
+| `2` | Invalid or missing arguments. |
+| `3` | Files to be generated (or the project folder for `new`) already exist; nothing has been written. |
+| `4` | Unexpected error, please [open an issue](https://github.com/kodlamaio-projects/nArchitecture.Gen/issues). |
 
 ### Upgrading a 1.x project
 

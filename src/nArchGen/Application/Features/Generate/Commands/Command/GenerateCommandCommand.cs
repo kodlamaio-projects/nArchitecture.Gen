@@ -17,6 +17,7 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
     public string FeatureName { get; set; } = null!;
     public string ProjectPath { get; set; } = null!;
     public CommandTemplateData CommandTemplateData { get; set; } = null!;
+    public bool Force { get; set; }
 
     public class GenerateCommandCommandHandler : IStreamRequestHandler<GenerateCommandCommand, GeneratedCommandResponse>
     {
@@ -34,16 +35,9 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             [EnumeratorCancellation] CancellationToken cancellationToken
         )
         {
-            await _businessRules.FileShouldNotBeExists(
-                PlatformHelper.SecuredPathJoin(
-                    request.ProjectPath,
-                    "Application",
-                    "features",
-                    request.FeatureName.ToPascalCase(),
-                    "Commands",
-                    request.CommandName,
-                    $"{request.CommandName}Command.cs"
-                )
+            await _businessRules.FilesShouldNotExistUnlessForced(
+                await generateApplicationCodes(request.ProjectPath, request.CommandTemplateData, pathsOnly: true),
+                request.Force
             );
 
             GeneratedCommandResponse response = new();
@@ -67,7 +61,11 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             yield return response;
         }
 
-        private async Task<ICollection<string>> generateApplicationCodes(string projectPath, CommandTemplateData commandTemplateData)
+        private async Task<ICollection<string>> generateApplicationCodes(
+            string projectPath,
+            CommandTemplateData commandTemplateData,
+            bool pathsOnly = false
+        )
         {
             string templateDir = PlatformHelper.SecuredPathJoin(
                 DirectoryHelper.AssemblyDirectory,
@@ -78,7 +76,8 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             return await generateFolderCodes(
                 templateDir,
                 outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
-                commandTemplateData
+                commandTemplateData,
+                pathsOnly
             );
         }
 
@@ -146,7 +145,8 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
         private async Task<ICollection<string>> generateFolderCodes(
             string templateDir,
             string outputDir,
-            CommandTemplateData commandTemplateData
+            CommandTemplateData commandTemplateData,
+            bool pathsOnly = false
         )
         {
             var templateFilePaths = DirectoryHelper
@@ -157,13 +157,21 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
                 { "FEATURE", "{{ feature_name | string.pascalcase }}" },
                 { "COMMAND", "{{ command_name | string.pascalcase }}" },
             };
-            ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
-                templateFilePaths,
-                templateDir,
-                replacePathVariable,
-                outputDir,
-                commandTemplateData
-            );
+            ICollection<string> newRenderedFilePaths = pathsOnly
+                ? await _templateEngine.RenderFilePathsAsync(
+                    templateFilePaths,
+                    templateDir,
+                    replacePathVariable,
+                    outputDir,
+                    commandTemplateData
+                )
+                : await _templateEngine.RenderFileAsync(
+                    templateFilePaths,
+                    templateDir,
+                    replacePathVariable,
+                    outputDir,
+                    commandTemplateData
+                );
             return newRenderedFilePaths;
         }
 

@@ -43,6 +43,7 @@ public partial class GenerateDynamicQueryCliCommand : AsyncCommand<GenerateDynam
                 IsSecuredOperationUsed = settings.IsSecuredOperationUsed,
             },
             ProjectPath = settings.ProjectPath,
+            Force = settings.Force,
         };
 
         IAsyncEnumerable<GeneratedDynamicQueryResponse> resultsStream = _mediator.CreateStream(
@@ -85,6 +86,6 @@ public partial class GenerateDynamicQueryCliCommand : AsyncCommand<GenerateDynam
                 }
             );
 
-        return 0;
+        return CliExitCodes.Success;
     }
 }

@@ -27,6 +27,7 @@ public partial class GenerateQueryCliCommand : AsyncCommand<GenerateQueryCliComm
             QueryName = settings.QueryName!,
             FeatureName = settings.FeatureName!,
             ProjectPath = settings.ProjectPath,
+            Force = settings.Force,
             QueryTemplateData = new QueryTemplateData
             {
                 QueryName = settings.QueryName!,
@@ -74,6 +75,6 @@ public partial class GenerateQueryCliCommand : AsyncCommand<GenerateQueryCliComm
                 }
             );
 
-        return 0;
+        return CliExitCodes.Success;
     }
 }

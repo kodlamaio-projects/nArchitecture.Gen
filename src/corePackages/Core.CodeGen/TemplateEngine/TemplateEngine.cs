@@ -54,6 +54,26 @@ public class TemplateEngine : ITemplateEngine
         return newRenderedFilePaths;
     }
 
+    public async Task<ICollection<string>> RenderFilePathsAsync(
+        IList<string> templateFilePaths,
+        string templateDir,
+        Dictionary<string, string> replacePathVariable,
+        string outputDir,
+        ITemplateData templateData
+    )
+    {
+        List<string> renderedFilePaths = [];
+        foreach (string templateFilePath in templateFilePaths)
+            renderedFilePaths.Add(
+                await _templateRenderer.RenderAsync(
+                    template: getOutputFilePath(templateFilePath, templateDir, replacePathVariable, outputDir),
+                    templateData
+                )
+            );
+
+        return renderedFilePaths;
+    }
+
     private string getOutputFilePath(
         string templateFilePath,
         string templateDir,

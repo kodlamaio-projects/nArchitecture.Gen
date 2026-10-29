@@ -31,10 +31,15 @@ public class GenerateBusinessRules
             throw new BusinessException(GenerateBusinessMessages.EntityClassShouldBeInheritEntityBaseClass(entityName));
     }
 
-    public Task FileShouldNotBeExists(string filePath)
+    /// <summary>Fails before anything is written when any of the files to be generated already exists, unless overwriting is allowed.</summary>
+    public Task FilesShouldNotExistUnlessForced(IEnumerable<string> filePaths, bool force)
     {
-        if (Directory.Exists(filePath))
-            throw new BusinessException(GenerateBusinessMessages.FileAlreadyExists(filePath));
+        if (force)
+            return Task.CompletedTask;
+
+        string[] existingFilePaths = filePaths.Where(File.Exists).ToArray();
+        if (existingFilePaths.Length > 0)
+            throw new ConflictException(GenerateBusinessMessages.FilesAlreadyExist(existingFilePaths.Length), existingFilePaths);
         return Task.CompletedTask;
     }
 }

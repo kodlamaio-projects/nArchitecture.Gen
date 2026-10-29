@@ -1,6 +1,4 @@
-﻿using Core.CodeGen.Code;
-using Core.CrossCuttingConcerns.Exceptions;
-using Core.CrossCuttingConcerns.Helpers;
+﻿using ConsoleUI.Exceptions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -8,16 +6,13 @@ namespace ConsoleUI.Commands.Generate.Query;
 
 public partial class GenerateQueryCliCommand
 {
-    public class Settings : CommandSettings
+    public class Settings : GenerateCliCommandSettings
     {
         [CommandArgument(position: 0, template: "[QueryName]")]
         public string? QueryName { get; set; }
 
-        [CommandArgument(position: 0, template: "[FeatureName]")]
+        [CommandArgument(position: 1, template: "[FeatureName]")]
         public string? FeatureName { get; set; }
-
-        [CommandOption("-p|--project")]
-        public string? ProjectName { get; set; }
 
         [CommandOption("-c|--caching")]
         public bool IsCachingUsed { get; set; }
@@ -28,11 +23,6 @@ public partial class GenerateQueryCliCommand
         [CommandOption("-s|--secured")]
         public bool IsSecuredOperationUsed { get; set; }
 
-        public string ProjectPath =>
-            ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
-                : Environment.CurrentDirectory;
-
         public void CheckQueryName()
         {
             if (QueryName is not null)
@@ -41,62 +31,36 @@ public partial class GenerateQueryCliCommand
                 return;
             }
 
+            EnsureInteractive("Missing <QueryName> argument.");
             QueryName = AnsiConsole.Prompt(new TextPrompt<string>("[blue]What is [green]new query name[/]?[/]"));
         }
 
         public void CheckFeatureName()
         {
+            string featuresPath = $"{ProjectPath}/Application/Features";
+            string[] features = Directory.Exists(featuresPath)
+                ? Directory.GetDirectories(featuresPath).Select(path => Path.GetFileName(path)).ToArray()
+                : [];
+
             if (FeatureName is not null)
             {
+                if (!features.Contains(FeatureName))
+                    throw new UsageException(
+                        $"Feature \"{FeatureName}\" not found in \"{featuresPath}\". Available: {FormatChoices(features)}."
+                    );
                 AnsiConsole.MarkupLine($"[green]Feature[/] name that the query will be in is [blue]{FeatureName}[/].");
                 return;
             }
 
-            string?[] features = Directory.GetDirectories($"{ProjectPath}/Application/Features").Select(Path.GetFileName).ToArray()!;
             if (features.Length == 0)
-                throw new BusinessException($"No feature found in \"{ProjectPath}/Application/Features\".");
+                throw new UsageException($"No feature found in \"{featuresPath}\".");
+            EnsureInteractive($"Missing <FeatureName> argument. Available: {FormatChoices(features)}.");
 
             FeatureName = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("[blue]Which is [green]feature name[/] that the command will be in?[/]")
                     .PageSize(10)
                     .AddChoices(features)
-            );
-        }
-
-        public void CheckProjectName()
-        {
-            if (ProjectName != null)
-            {
-                if (!Directory.Exists(ProjectPath))
-                    throw new BusinessException("Project not found");
-                AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
-                return;
-            }
-
-            string[] layerFolders = { "Application", "Domain", "Persistence", "WebAPI" };
-            if (layerFolders.All(folder => Directory.Exists($"{Environment.CurrentDirectory}/{folder}")))
-                return;
-
-            string[] projects = Directory
-                .GetDirectories($"{Environment.CurrentDirectory}/src")
-                .Select(Path.GetFileName)
-                .Where(project => project != "corePackages")
-                .ToArray()!;
-            if (projects.Length == 0)
-                throw new BusinessException("No projects found in src");
-            if (projects.Length == 1)
-            {
-                ProjectName = projects.First();
-                AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
-                return;
-            }
-
-            ProjectName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]project[/] in [blue]src[/] folder?")
-                    .PageSize(10)
-                    .AddChoices(projects)
             );
         }
 
@@ -117,7 +81,8 @@ public partial class GenerateQueryCliCommand
             else
                 mechanismsToPrompt.Add("Secured Operation");
 
-            if (mechanismsToPrompt.Count == 0)
+            // Without a terminal to ask, mechanisms that were not passed as flags stay off.
+            if (mechanismsToPrompt.Count == 0 || !IsInteractive)
                 return;
 
             List<string> selectedMechanisms = AnsiConsole.Prompt(

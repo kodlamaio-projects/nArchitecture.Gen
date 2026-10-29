@@ -20,4 +20,13 @@ public interface ITemplateEngine
         string outputDir,
         ITemplateData templateData
     );
+
+    /// <summary>Returns the paths <see cref="RenderFileAsync(IList{string},string,Dictionary{string,string},string,ITemplateData)"/> would write, without writing them.</summary>
+    public Task<ICollection<string>> RenderFilePathsAsync(
+        IList<string> templateFilePaths,
+        string templateDir,
+        Dictionary<string, string> replacePathVariable,
+        string outputDir,
+        ITemplateData templateData
+    );
 }

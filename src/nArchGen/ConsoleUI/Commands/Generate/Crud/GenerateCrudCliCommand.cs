@@ -50,6 +50,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                 OperationClaimTypeString = (settings.OperationClaimType ?? OperationClaimType.Numeric).ToString(),
             },
             ProjectPath = settings.ProjectPath,
+            Force = settings.Force,
             DbContextName = settings.DbContextName!,
         };
 
@@ -90,6 +91,6 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
                 }
             );
 
-        return 0;
+        return CliExitCodes.Success;
     }
 }

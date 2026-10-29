@@ -28,6 +28,7 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
             CommandName = settings.CommandName!,
             FeatureName = settings.FeatureName!,
             ProjectPath = settings.ProjectPath,
+            Force = settings.Force,
             CommandTemplateData = new CommandTemplateData
             {
                 CommandName = settings.CommandName!,
@@ -80,6 +81,6 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
                 }
             );
 
-        return 0;
+        return CliExitCodes.Success;
     }
 }

@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Application.Features.Generate.Rules;
 using Core.CodeGen.Code;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.File;
@@ -14,14 +15,17 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
 {
     public required string ProjectPath { get; set; }
     public required DynamicQueryTemplateData DynamicQueryTemplateData { get; set; }
+    public bool Force { get; set; }
 
     public class GenerateDynamicQueryCommandHandler : IStreamRequestHandler<GenerateDynamicQueryCommand, GeneratedDynamicQueryResponse>
     {
         private readonly ITemplateEngine _templateEngine;
+        private readonly GenerateBusinessRules _businessRules;
 
-        public GenerateDynamicQueryCommandHandler(ITemplateEngine templateEngine)
+        public GenerateDynamicQueryCommandHandler(ITemplateEngine templateEngine, GenerateBusinessRules businessRules)
         {
             _templateEngine = templateEngine;
+            _businessRules = businessRules;
         }
 
         public async IAsyncEnumerable<GeneratedDynamicQueryResponse> Handle(
@@ -29,6 +33,11 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
             [EnumeratorCancellation] CancellationToken cancellationToken
         )
         {
+            await _businessRules.FilesShouldNotExistUnlessForced(
+                await generateDynamicQueryCodes(request.ProjectPath, request.DynamicQueryTemplateData, pathsOnly: true),
+                request.Force
+            );
+
             GeneratedDynamicQueryResponse response = new();
             List<string> newFilePaths = [];
 
@@ -87,7 +96,8 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
 
         private async Task<ICollection<string>> generateDynamicQueryCodes(
             string projectPath,
-            DynamicQueryTemplateData dynamicQueryTemplateData
+            DynamicQueryTemplateData dynamicQueryTemplateData,
+            bool pathsOnly = false
         )
         {
             string templateDir = PlatformHelper.SecuredPathJoin(
@@ -99,14 +109,16 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
             return await generateFolderCodes(
                 templateDir,
                 outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
-                dynamicQueryTemplateData
+                dynamicQueryTemplateData,
+                pathsOnly
             );
         }
 
         private async Task<ICollection<string>> generateFolderCodes(
             string templateDir,
             string outputDir,
-            DynamicQueryTemplateData dynamicQueryTemplateData
+            DynamicQueryTemplateData dynamicQueryTemplateData,
+            bool pathsOnly = false
         )
         {
             var templateFilePaths = DirectoryHelper
@@ -117,13 +129,21 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
                 { "PLURAL_ENTITY", "{{ entity.name | string.pascalcase | string.plural }}" },
                 { "ENTITY", "{{ entity.name | string.pascalcase }}" },
             };
-            ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
-                templateFilePaths,
-                templateDir,
-                replacePathVariable,
-                outputDir,
-                dynamicQueryTemplateData
-            );
+            ICollection<string> newRenderedFilePaths = pathsOnly
+                ? await _templateEngine.RenderFilePathsAsync(
+                    templateFilePaths,
+                    templateDir,
+                    replacePathVariable,
+                    outputDir,
+                    dynamicQueryTemplateData
+                )
+                : await _templateEngine.RenderFileAsync(
+                    templateFilePaths,
+                    templateDir,
+                    replacePathVariable,
+                    outputDir,
+                    dynamicQueryTemplateData
+                );
             return newRenderedFilePaths;
         }
     }

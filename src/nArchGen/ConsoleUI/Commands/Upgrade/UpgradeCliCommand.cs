@@ -63,6 +63,6 @@ public partial class UpgradeCliCommand : AsyncCommand<UpgradeCliCommand.Settings
         if (last?.OutputMessage is not null)
             AnsiConsole.MarkupLine(last.OutputMessage.EscapeMarkup().Replace(":check_mark_button:", "✅").Replace(":warning:", "⚠️"));
 
-        return last?.BuildSucceeded == false ? 1 : 0;
+        return last?.BuildSucceeded == false ? CliExitCodes.Failure : CliExitCodes.Success;
     }
 }
