@@ -88,8 +88,9 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
 
             response.CurrentStatusMessage = "Completed.";
             response.NewFilePathsResult = newFiles;
-            response.OutputMessage =
-                $":warning: Check the configuration that has name 'appsettings.json' in 'src/{request.ProjectName.ToCamelCase()}/WebAPI'.";
+            response.Warnings.Add(
+                $"Check the configuration that has name 'appsettings.json' in 'src/{request.ProjectName.ToCamelCase()}/WebAPI'."
+            );
             yield return response;
         }
 

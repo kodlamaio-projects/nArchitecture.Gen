@@ -38,9 +38,11 @@ public class NonInteractiveGenerateTests
     {
         using SampleProject project = new();
 
-        NArchGenResult result = await NArchGenProcess.RunAsync(project.Path, "generate", "crud", "--no-such-option");
+        NArchGenResult result = await NArchGenProcess.RunAsync(project.Path, "generate", "dynamic-query", "Brand", "--forse");
 
         Assert.Equal(CliExitCodes.UsageError, result.ExitCode);
+        Assert.Contains("Unknown option 'forse'", result.StandardError);
+        Assert.False(Directory.Exists(project.Combine("Application/Features/Brands/Queries")));
     }
 
     [Fact]

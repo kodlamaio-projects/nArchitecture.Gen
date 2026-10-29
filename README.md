@@ -77,6 +77,28 @@ stderr and the exit code tells what happened:
 | `3` | Files to be generated (or the project folder for `new`) already exist; nothing has been written. |
 | `4` | Unexpected error, please [open an issue](https://github.com/kodlamaio-projects/nArchitecture.Gen/issues). |
 
+Unknown options are rejected (exit code `2`), so a mistyped flag never runs with defaults.
+
+Add `--json` to any command to get a single JSON document on stdout, on success and on failure alike; progress and
+messages go to stderr and no prompt is shown. Paths are absolute.
+
+```json
+{
+  "command": "generate crud",
+  "status": "success",
+  "exitCode": 0,
+  "created": ["/repo/src/app/Application/Features/Brands/Commands/Create/CreateBrandCommand.cs"],
+  "updated": ["/repo/src/app/Persistence/Contexts/BaseDbContext.cs"],
+  "warnings": [],
+  "error": null,
+  "details": null
+}
+```
+
+On failure `status` is `error` and `error` holds `type` (`usage`, `conflict`, `failure` or `unexpected`), `message` and
+`paths` (for a conflict, the files that already exist). `details` carries command specific values: `projectPath` for
+`new`; `dryRun`, `changesPlanned`, `buildSucceeded`, `manualWorkCount` and `reportFile` for `upgrade`.
+
 ### Upgrading a 1.x project
 
 Run `nArchGen upgrade` in the solution folder of a project created with Gen 1.x. It moves the projects to `net10.0`, swaps

@@ -65,7 +65,11 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
 
             response.CurrentStatusMessage = "Adding operation claims as seed data...";
             yield return response;
-            updatedFilePaths.Add(await injectOperationClaims(request.ProjectPath, request.CrudTemplateData));
+            string? operationClaimConfigurationFilePath = await injectOperationClaims(request.ProjectPath, request.CrudTemplateData);
+            if (operationClaimConfigurationFilePath is not null)
+                updatedFilePaths.Add(operationClaimConfigurationFilePath);
+            else
+                response.Warnings.Add("OperationClaimConfiguration.cs not found; operation claim seeds have not been added.");
             response.LastOperationMessage = "Operation claims have been added.";
 
             response.CurrentStatusMessage = "Adding service registrations...";
@@ -97,7 +101,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             return newFilePaths;
         }
 
-        private async Task<string> injectOperationClaims(string projectPath, CrudTemplateData crudTemplateData)
+        private async Task<string?> injectOperationClaims(string projectPath, CrudTemplateData crudTemplateData)
         {
             string operationClaimConfigurationFilePath;
 
@@ -116,7 +120,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
             }
 
             if (!File.Exists(operationClaimConfigurationFilePath))
-                return $"Not Found: {operationClaimConfigurationFilePath}";
+                return null;
 
             string[] seedTemplateCodeLines = await File.ReadAllLinesAsync(
                 PlatformHelper.SecuredPathJoin(

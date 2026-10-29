@@ -11,8 +11,13 @@ public abstract class InteractiveCliCommandSettings : CommandSettings
     [Description("Never prompt. A missing required value fails with exit code 2. Implied when input is redirected or CI is set.")]
     public bool NoInteractive { get; set; }
 
+    [CommandOption("--json")]
+    [Description("Write only a JSON result to stdout (progress goes to stderr). Implies --no-interactive.")]
+    public bool Json { get; set; }
+
     public bool IsInteractive =>
         !NoInteractive
+        && !Json
         && AnsiConsole.Profile.Capabilities.Interactive
         && !Console.IsInputRedirected
         && string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI"));

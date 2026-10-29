@@ -10,4 +10,8 @@
     <!-- Brings nArchGen.dll and its Templates folder next to the test binary so the tool can be run as a process. -->
     <ProjectReference Include="..\..\src\nArchGen\ConsoleUI\ConsoleUI.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The 1.x sample solution of the upgrade tests, to run `upgrade` as a process. -->
+    <Content Include="..\NArchGen.Upgrade.Tests\Fixtures\**" LinkBase="Fixtures" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
 </Project>

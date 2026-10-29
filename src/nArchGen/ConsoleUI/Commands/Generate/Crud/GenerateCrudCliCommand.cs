@@ -1,4 +1,5 @@
 using Application.Features.Generate.Commands.Crud;
+using ConsoleUI.Output;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.Code.CSharp.ValueObjects;
 using Core.CrossCuttingConcerns.Helpers;
@@ -56,40 +57,49 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
 
         IAsyncEnumerable<GeneratedCrudResponse> resultsStream = _mediator.CreateStream(request: generateCrudCommand, cancellationToken);
 
-        await AnsiConsole
-            .Status()
-            .Spinner(Spinner.Known.Dots2)
-            .SpinnerStyle(style: Style.Parse(text: "blue"))
-            .StartAsync(
-                status: "Generating...",
-                action: async ctx =>
+        GeneratedCrudResponse? last = null;
+
+        await CliOutput.RunWithStatusAsync(
+            status: "Generating...",
+            action: async setStatus =>
+            {
+                await foreach (GeneratedCrudResponse result in resultsStream)
                 {
-                    await foreach (GeneratedCrudResponse result in resultsStream)
+                    last = result;
+                    setStatus(result.CurrentStatusMessage);
+
+                    if (result.OutputMessage is not null)
+                        AnsiConsole.MarkupLine(result.OutputMessage);
+
+                    if (result.LastOperationMessage is not null)
+                        AnsiConsole.MarkupLine($":check_mark_button: {result.LastOperationMessage}");
+
+                    if (result.NewFilePathsResult is not null)
                     {
-                        ctx.Status(result.CurrentStatusMessage);
+                        AnsiConsole.MarkupLine(":new_button: [green]Generated files:[/]");
+                        foreach (string filePath in result.NewFilePathsResult)
+                            CliOutput.WriteFilePath(filePath);
+                    }
 
-                        if (result.OutputMessage is not null)
-                            AnsiConsole.MarkupLine(result.OutputMessage);
-
-                        if (result.LastOperationMessage is not null)
-                            AnsiConsole.MarkupLine($":check_mark_button: {result.LastOperationMessage}");
-
-                        if (result.NewFilePathsResult is not null)
-                        {
-                            AnsiConsole.MarkupLine(":new_button: [green]Generated files:[/]");
-                            foreach (string filePath in result.NewFilePathsResult)
-                                AnsiConsole.Write(new TextPath(filePath).StemColor(Color.Yellow).LeafColor(Color.Blue));
-                        }
-
-                        if (result.UpdatedFilePathsResult is not null)
-                        {
-                            AnsiConsole.MarkupLine(":up_button: [green]Updated files:[/]");
-                            foreach (string filePath in result.UpdatedFilePathsResult)
-                                AnsiConsole.Write(new TextPath(filePath).StemColor(Color.Yellow).LeafColor(Color.Blue));
-                        }
+                    if (result.UpdatedFilePathsResult is not null)
+                    {
+                        AnsiConsole.MarkupLine(":up_button: [green]Updated files:[/]");
+                        foreach (string filePath in result.UpdatedFilePathsResult)
+                            CliOutput.WriteFilePath(filePath);
                     }
                 }
-            );
+            }
+        );
+
+        CliOutput.WriteResult(
+            new CliResult
+            {
+                Command = "generate crud",
+                Created = CliResult.FullPaths(last?.NewFilePathsResult),
+                Updated = CliResult.FullPaths(last?.UpdatedFilePathsResult),
+                Warnings = last?.Warnings.ToArray() ?? [],
+            }
+        );
 
         return CliExitCodes.Success;
     }
