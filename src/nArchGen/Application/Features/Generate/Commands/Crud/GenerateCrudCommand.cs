@@ -119,7 +119,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                 );
             }
 
-            if (!File.Exists(operationClaimConfigurationFilePath))
+            if (!CodeFile.Exists(operationClaimConfigurationFilePath))
                 return null;
 
             string[] seedTemplateCodeLines = await File.ReadAllLinesAsync(
@@ -195,7 +195,7 @@ public class GenerateCrudCommand : IStreamRequest<GeneratedCrudResponse>
                 )
             );
             string dbSetPropertyCodeLine = await _templateEngine.RenderAsync(dbSetPropertyTemplateCodeLine, crudTemplateData);
-            bool isExists = (await File.ReadAllLinesAsync(contextFilePath)).Any(line => line.Contains(dbSetPropertyCodeLine));
+            bool isExists = (await CodeFile.ReadAllLinesAsync(contextFilePath)).Any(line => line.Contains(dbSetPropertyCodeLine));
             if (!isExists)
                 await CSharpCodeInjector.AddCodeLinesAsPropertyAsync(contextFilePath, codeLines: [dbSetPropertyCodeLine]);
 

@@ -54,13 +54,17 @@ To get a local copy up and running follow these simple steps.
 | Command | What it does |
 |---|---|
 | `nArchGen new <Name> [--security] [--starter-path <dir>]` | Creates a solution from the nArchitecture starter (`--starter-path` copies a local checkout instead of downloading the tagged release). |
-| `nArchGen generate crud <Entity> <DbContext> [-c -l -t -s -d -m] [--force]` | CRUD feature: commands, queries, Mapperly mapper, repository, controller, operation claims. |
+| `nArchGen generate crud <Entity> <DbContext> [-c -l -t -s -d -m] [--force] [--dry-run]` | CRUD feature: commands, queries, Mapperly mapper, repository, controller, operation claims. |
 | `nArchGen generate command <Name> <Feature> [-e Post\|Put\|Delete]` / `generate query <Name> <Feature>` / `generate dynamic-query <Entity>` | Single command, query or dynamic query inside an existing feature. |
 | `nArchGen upgrade [--dry-run] [--project <name>] [--keep-test-framework] [--skip <steps>] [--no-build] [--force]` | Upgrades a 1.x solution to 2.0, see below. |
 
 `generate` commands never overwrite files: if any file they would create already exists, nothing is written and the
 command lists the existing files. Pass `--force` to regenerate them; registrations, operation claim seeds and endpoints that
-are already in place are not added a second time.
+are already in place are not added a second time. Files they change keep their encoding and line endings.
+
+Add `--dry-run` to any `generate` command to see what it would do without writing anything: it runs every step in memory,
+lists the files it would create and prints a diff of the files it would update. It fails exactly where the real run would
+(for example with exit code `3` when a file exists), and `--force --dry-run` shows what overwriting would change.
 
 ### Scripts, CI and AI agents
 
@@ -97,7 +101,9 @@ messages go to stderr and no prompt is shown. Paths are absolute.
 
 On failure `status` is `error` and `error` holds `type` (`usage`, `conflict`, `failure` or `unexpected`), `message` and
 `paths` (for a conflict, the files that already exist). `details` carries command specific values: `projectPath` for
-`new`; `dryRun`, `changesPlanned`, `buildSucceeded`, `manualWorkCount` and `reportFile` for `upgrade`.
+`new`; `dryRun`, `plannedCreated`, `plannedUpdated` and `diffs` (unified diff per updated file) for `generate --dry-run`;
+`dryRun`, `changesPlanned`, `buildSucceeded`, `manualWorkCount` and `reportFile` for `upgrade`. A dry run leaves `created`
+and `updated` empty, since nothing is written.
 
 ### Upgrading a 1.x project
 

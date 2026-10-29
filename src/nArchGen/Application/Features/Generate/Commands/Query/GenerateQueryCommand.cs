@@ -121,7 +121,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                 "OperationClaimConfiguration.cs"
             );
 
-            if (!File.Exists(operationClaimsEntityConfigurationFilePath))
+            if (!CodeFile.Exists(operationClaimsEntityConfigurationFilePath))
             {
                 warnings.Add("OperationClaimConfiguration.cs not found; the operation claim seed has not been added.");
                 return new[] { featureOperationClaimFilePath };

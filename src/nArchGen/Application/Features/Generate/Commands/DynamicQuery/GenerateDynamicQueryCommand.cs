@@ -66,7 +66,7 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
         {
             string controllerName = $"{dynamicQueryTemplateData.Entity.Name.ToPascalCase().ToPlural()}Controller";
             string controllerFilePath = PlatformHelper.SecuredPathJoin(projectPath, "WebAPI", "Controllers", $"{controllerName}.cs");
-            if (!File.Exists(controllerFilePath))
+            if (!CodeFile.Exists(controllerFilePath))
                 return null;
 
             string[] endpointTemplateCodeLines = await File.ReadAllLinesAsync(

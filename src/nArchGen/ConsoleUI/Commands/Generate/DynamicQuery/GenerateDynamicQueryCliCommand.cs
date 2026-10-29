@@ -1,11 +1,9 @@
 using Application.Features.Generate.Commands.DynamicQuery;
-using ConsoleUI.Output;
 using Core.CodeGen.Code.CSharp;
 using Core.CodeGen.Code.CSharp.ValueObjects;
 using Core.CrossCuttingConcerns.Helpers;
 using Domain.ValueObjects;
 using NArchitecture.Core.Mediator;
-using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace ConsoleUI.Commands.Generate.DynamicQuery;
@@ -47,55 +45,11 @@ public partial class GenerateDynamicQueryCliCommand : AsyncCommand<GenerateDynam
             Force = settings.Force,
         };
 
-        IAsyncEnumerable<GeneratedDynamicQueryResponse> resultsStream = _mediator.CreateStream(
-            request: generateDynamicQueryCommand,
-            cancellationToken
-        );
-
-        GeneratedDynamicQueryResponse? last = null;
-
-        await CliOutput.RunWithStatusAsync(
+        return await GenerateCommandRunner.RunAsync(
+            command: "generate dynamic-query",
             status: "Generating Dynamic Query...",
-            action: async setStatus =>
-            {
-                await foreach (GeneratedDynamicQueryResponse result in resultsStream)
-                {
-                    last = result;
-                    setStatus(result.CurrentStatusMessage);
-
-                    if (result.OutputMessage is not null)
-                        AnsiConsole.MarkupLine(result.OutputMessage);
-
-                    if (result.LastOperationMessage is not null)
-                        AnsiConsole.MarkupLine($":check_mark_button: {result.LastOperationMessage}");
-
-                    if (result.NewFilePathsResult is not null)
-                    {
-                        AnsiConsole.MarkupLine(":new_button: [green]Generated files:[/]");
-                        foreach (string filePath in result.NewFilePathsResult)
-                            CliOutput.WriteFilePath(filePath);
-                    }
-
-                    if (result.UpdatedFilePathsResult is not null)
-                    {
-                        AnsiConsole.MarkupLine(":up_button: [green]Updated files:[/]");
-                        foreach (string filePath in result.UpdatedFilePathsResult)
-                            CliOutput.WriteFilePath(filePath);
-                    }
-                }
-            }
+            settings,
+            createStream: () => _mediator.CreateStream(request: generateDynamicQueryCommand, cancellationToken)
         );
-
-        CliOutput.WriteResult(
-            new CliResult
-            {
-                Command = "generate dynamic-query",
-                Created = CliResult.FullPaths(last?.NewFilePathsResult),
-                Updated = CliResult.FullPaths(last?.UpdatedFilePathsResult),
-                Warnings = last?.Warnings.ToArray() ?? [],
-            }
-        );
-
-        return CliExitCodes.Success;
     }
 }

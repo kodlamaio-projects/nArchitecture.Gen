@@ -120,7 +120,7 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
                 "OperationClaimConfiguration.cs"
             );
 
-            if (!File.Exists(operationClaimsEntityConfigurationFilePath))
+            if (!CodeFile.Exists(operationClaimsEntityConfigurationFilePath))
             {
                 warnings.Add("OperationClaimConfiguration.cs not found; the operation claim seed has not been added.");
                 return new[] { featureOperationClaimFilePath };
