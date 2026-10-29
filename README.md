@@ -124,6 +124,23 @@ companion guide with the manual steps lives in the Core repo:
 dotnet restore --source https://api.nuget.org/v3/index.json --source ../nArchitecture.Core/artifacts/packages
 ```
 
+## 🆕 What's new in 2.1
+
+nArchGen can now be driven by scripts, CI and AI agents (see [Scripts, CI and AI agents](#scripts-ci-and-ai-agents)).
+
+- Every command runs without prompts when `--no-interactive` is passed, input is redirected or `CI` is set; a missing required value fails with the available choices.
+- Exit codes tell what happened: `0` success, `1` failure, `2` usage error, `3` conflict, `4` unexpected error.
+- `--json` on every command writes a single JSON result to stdout (created/updated files, warnings, error).
+- `--dry-run` on `generate` commands runs every step in memory, lists the files that would be created and shows a diff of the ones that would be updated.
+- Skipped steps (missing `OperationClaimConfiguration.cs`, missing controller) are reported as warnings.
+- Fixed: `generate command`/`query` positional arguments, the never-firing "file already exists" check, and generated edits removing the UTF-8 BOM or rewriting LF files with CRLF.
+
+**Behavior changes**
+
+- `generate` no longer overwrites existing files: if any file it would create exists, nothing is written (exit code `3`). Pass `--force` to regenerate; registrations, claim seeds and endpoints already in place are not added twice.
+- Unknown options are rejected instead of ignored.
+- Without a terminal, `generate command` requires `-e/--endpoint-method` and `upgrade` requires `--project` when `src/` has several projects.
+
 ## 🆕 What's new in 2.0
 
 - Requires the **.NET 10 SDK**; generated code targets nArchitecture starter **2.0** and `NArchitecture.Core.*` **2.0.0**.
