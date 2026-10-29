@@ -1,12 +1,16 @@
 using System.Reflection;
 using ConsoleUI.Exceptions;
+using ConsoleUI.Output;
 using Core.CrossCuttingConcerns.Exceptions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace ConsoleUI;
 
-/// <summary>Reports a failed command on stderr and maps it to one of the <see cref="CliExitCodes"/>.</summary>
+/// <summary>
+/// Reports a failed command on stderr, and as a <see cref="CliResult"/> on stdout in <c>--json</c> mode, and maps it to one of
+/// the <see cref="CliExitCodes"/>.
+/// </summary>
 public static class CliExceptionHandler
 {
     public static int Handle(Exception exception, IAnsiConsole errorConsole)
@@ -36,7 +40,29 @@ public static class CliExceptionHandler
                 break;
         }
 
+        if (CliOutput.IsJson)
+            CliOutput.WriteJson(
+                new CliResult
+                {
+                    Command = CliOutput.CommandName,
+                    ExitCode = exitCode,
+                    Error = GetError(exception),
+                }
+            );
+
         return exitCode;
+    }
+
+    public static CliError GetError(Exception exception)
+    {
+        exception = unwrap(exception);
+        return exception switch
+        {
+            ConflictException conflictException => new CliError("conflict", exception.Message, conflictException.ConflictingPaths),
+            UsageException or CommandAppException => new CliError("usage", exception.Message, []),
+            BusinessException => new CliError("failure", exception.Message, []),
+            _ => new CliError("unexpected", $"{exception.GetType().Name}: {exception.Message}", []),
+        };
     }
 
     public static int GetExitCode(Exception exception) =>

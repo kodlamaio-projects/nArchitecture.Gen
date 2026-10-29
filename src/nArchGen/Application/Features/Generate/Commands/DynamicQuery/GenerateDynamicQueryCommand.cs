@@ -52,6 +52,10 @@ public class GenerateDynamicQueryCommand : IStreamRequest<GeneratedDynamicQueryR
                 response.LastOperationMessage = "GetListByDynamic endpoint has been added to the controller.";
                 response.UpdatedFilePathsResult = [updatedControllerPath];
             }
+            else
+                response.Warnings.Add(
+                    $"{request.DynamicQueryTemplateData.Entity.Name.ToPascalCase().ToPlural()}Controller not found; the GetListByDynamic endpoint has not been added."
+                );
 
             response.CurrentStatusMessage = "Completed.";
             response.NewFilePathsResult = newFilePaths;

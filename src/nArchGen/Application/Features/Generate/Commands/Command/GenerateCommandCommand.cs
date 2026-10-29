@@ -47,7 +47,9 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             response.CurrentStatusMessage = "Generating Application layer codes...";
             yield return response;
             newFilePaths.AddRange(await generateApplicationCodes(request.ProjectPath, request.CommandTemplateData));
-            updatedFilePaths.AddRange(await injectOperationClaims(request.ProjectPath, request.FeatureName, request.CommandTemplateData));
+            updatedFilePaths.AddRange(
+                await injectOperationClaims(request.ProjectPath, request.FeatureName, request.CommandTemplateData, response.Warnings)
+            );
             response.LastOperationMessage = "Application layer codes have been generated.";
 
             response.CurrentStatusMessage = "Adding endpoint to WebAPI...";
@@ -84,7 +86,8 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
         private async Task<ICollection<string>> injectOperationClaims(
             string projectPath,
             string featureName,
-            CommandTemplateData commandTemplateData
+            CommandTemplateData commandTemplateData,
+            ICollection<string> warnings
         )
         {
             string featureOperationClaimFilePath = PlatformHelper.SecuredPathJoin(
@@ -118,7 +121,10 @@ public class GenerateCommandCommand : IStreamRequest<GeneratedCommandResponse>
             );
 
             if (!File.Exists(operationClaimsEntityConfigurationFilePath))
+            {
+                warnings.Add("OperationClaimConfiguration.cs not found; the operation claim seed has not been added.");
                 return new[] { featureOperationClaimFilePath };
+            }
 
             string[] commandOperationClaimSeedTemplateCodeLines = await File.ReadAllLinesAsync(
                 PlatformHelper.SecuredPathJoin(

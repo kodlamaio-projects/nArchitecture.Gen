@@ -1,4 +1,5 @@
 using Application.Features.Create.Commands.New;
+using ConsoleUI.Output;
 using NArchitecture.Core.Mediator;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -27,33 +28,42 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
 
         IAsyncEnumerable<CreatedNewProjectResponse> resultsStream = _mediator.CreateStream(request, cancellationToken);
 
-        await AnsiConsole
-            .Status()
-            .Spinner(Spinner.Known.Dots2)
-            .SpinnerStyle(style: Style.Parse(text: "blue"))
-            .StartAsync(
-                status: "Creating...",
-                action: async ctx =>
+        CreatedNewProjectResponse? last = null;
+
+        await CliOutput.RunWithStatusAsync(
+            status: "Creating...",
+            action: async setStatus =>
+            {
+                await foreach (CreatedNewProjectResponse result in resultsStream)
                 {
-                    await foreach (CreatedNewProjectResponse result in resultsStream)
+                    last = result;
+                    setStatus(result.CurrentStatusMessage);
+
+                    if (result.LastOperationMessage is not null)
+                        AnsiConsole.MarkupLine($":check_mark_button: {result.LastOperationMessage}");
+
+                    if (result.NewFilePathsResult is not null)
                     {
-                        ctx.Status(result.CurrentStatusMessage);
-
-                        if (result.LastOperationMessage is not null)
-                            AnsiConsole.MarkupLine($":check_mark_button: {result.LastOperationMessage}");
-
-                        if (result.NewFilePathsResult is not null)
-                        {
-                            AnsiConsole.MarkupLine(":new_button: [green]Generated files:[/]");
-                            foreach (string filePath in result.NewFilePathsResult)
-                                AnsiConsole.Write(new TextPath(filePath).StemColor(Color.Yellow).LeafColor(Color.Blue));
-                        }
-
-                        if (result.OutputMessage is not null)
-                            AnsiConsole.MarkupLine(result.OutputMessage);
+                        AnsiConsole.MarkupLine(":new_button: [green]Generated files:[/]");
+                        foreach (string filePath in result.NewFilePathsResult)
+                            CliOutput.WriteFilePath(filePath);
                     }
+
+                    if (result.OutputMessage is not null)
+                        AnsiConsole.MarkupLine(result.OutputMessage);
                 }
-            );
+            }
+        );
+
+        CliOutput.WriteResult(
+            new CliResult
+            {
+                Command = "new",
+                Created = CliResult.FullPaths(last?.NewFilePathsResult),
+                Warnings = last?.Warnings.ToArray() ?? [],
+                Details = new Dictionary<string, object?> { ["projectPath"] = Path.GetFullPath(settings.ProjectName!) },
+            }
+        );
 
         return CliExitCodes.Success;
     }

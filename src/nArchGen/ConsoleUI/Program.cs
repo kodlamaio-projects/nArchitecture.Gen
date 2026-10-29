@@ -7,6 +7,7 @@ using ConsoleUI.Commands.Generate.DynamicQuery;
 using ConsoleUI.Commands.Generate.Query;
 using ConsoleUI.Commands.New;
 using ConsoleUI.Commands.Upgrade;
+using ConsoleUI.Output;
 using Core.ConsoleUI.IoC.SpectreConsoleCli;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
@@ -27,16 +28,14 @@ TypeRegistrar registrar = new(services);
 
 #endregion
 
-IAnsiConsole errorConsole = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(Console.Error) });
-
-// Redirected output is read by scripts and agents: do not wrap messages and file paths at the default 80 columns.
-if (Console.IsErrorRedirected)
-    errorConsole.Profile.Width = short.MaxValue;
+CliOutput.Configure(args);
 
 CommandApp app = new(registrar);
 app.Configure(config =>
 {
-    config.SetExceptionHandler((exception, _) => CliExceptionHandler.Handle(exception, errorConsole));
+    config.SetExceptionHandler((exception, _) => CliExceptionHandler.Handle(exception, CliOutput.ErrorConsole));
+    // Reject unknown options instead of ignoring them, so a mistyped flag such as --forse fails with exit code 2.
+    config.UseStrictParsing();
 
     #region Controller
 
@@ -79,6 +78,7 @@ app.Configure(config =>
     #endregion
 });
 
-AnsiConsole.Write(new FigletText("nArchitecture").LeftJustified().Color(Color.Blue));
+if (!CliOutput.IsJson && !Console.IsOutputRedirected)
+    AnsiConsole.Write(new FigletText("nArchitecture").LeftJustified().Color(Color.Blue));
 
 return app.Run(args);
