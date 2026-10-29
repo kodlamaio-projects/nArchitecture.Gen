@@ -1,5 +1,4 @@
-using Core.CodeGen.Code;
-using Core.CrossCuttingConcerns.Exceptions;
+using ConsoleUI.Exceptions;
 using Core.CrossCuttingConcerns.Helpers;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -8,13 +7,10 @@ namespace ConsoleUI.Commands.Generate.DynamicQuery;
 
 public partial class GenerateDynamicQueryCliCommand
 {
-    public class Settings : CommandSettings
+    public class Settings : GenerateCliCommandSettings
     {
         [CommandArgument(position: 0, template: "[EntityName]")]
         public string? EntityName { get; set; }
-
-        [CommandOption("-p|--project")]
-        public string? ProjectName { get; set; }
 
         [CommandOption("-c|--caching")]
         public bool IsCachingUsed { get; set; }
@@ -25,61 +21,26 @@ public partial class GenerateDynamicQueryCliCommand
         [CommandOption("-s|--secured")]
         public bool IsSecuredOperationUsed { get; set; }
 
-        public string ProjectPath =>
-            ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
-                : Environment.CurrentDirectory;
-
-        public void CheckProjectName()
-        {
-            if (ProjectName != null)
-            {
-                if (!Directory.Exists(ProjectPath))
-                    throw new BusinessException($"Project not found in \"{ProjectPath}\".");
-                AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
-                return;
-            }
-
-            string[] layerFolders = { "Application", "Domain", "Persistence", "WebAPI" };
-            if (layerFolders.All(folder => Directory.Exists($"{Environment.CurrentDirectory}/{folder}")))
-                return;
-
-            string[] projects = Directory
-                .GetDirectories($"{Environment.CurrentDirectory}/src")
-                .Select(Path.GetFileName)
-                .Where(project => project != "corePackages")
-                .ToArray()!;
-            if (projects.Length == 0)
-                throw new BusinessException("No projects found in src");
-            if (projects.Length == 1)
-            {
-                ProjectName = projects.First();
-                AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
-                return;
-            }
-
-            ProjectName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]project[/] in [blue]src[/] folder?")
-                    .PageSize(10)
-                    .AddChoices(projects)
-            );
-        }
-
         public void CheckEntityArgument()
         {
+            string entitiesPath = PlatformHelper.SecuredPathJoin(ProjectPath, "Domain", "Entities");
+            string[] entities = Directory.Exists(entitiesPath)
+                ? Directory.GetFiles(entitiesPath).Select(path => Path.GetFileNameWithoutExtension(path)).ToArray()
+                : [];
+
             if (EntityName is not null)
             {
+                if (!entities.Contains(EntityName))
+                    throw new UsageException(
+                        $"Entity \"{EntityName}\" not found in \"{entitiesPath}\". Available: {FormatChoices(entities)}."
+                    );
                 AnsiConsole.MarkupLine($"Selected [green]entity[/] is [blue]{EntityName}[/].");
                 return;
             }
 
-            string[] entities = Directory
-                .GetFiles(path: PlatformHelper.SecuredPathJoin(ProjectPath, "Domain", "Entities"))
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToArray()!;
             if (entities.Length == 0)
-                throw new BusinessException($"No entities found in \"{ProjectPath}\\Domain\\Entities\"");
+                throw new UsageException($"No entities found in \"{entitiesPath}\".");
+            EnsureInteractive($"Missing <EntityName> argument. Available: {FormatChoices(entities)}.");
 
             EntityName = AnsiConsole.Prompt(
                 new SelectionPrompt<string>().Title("What's your [green]entity[/]?").PageSize(10).AddChoices(entities)
@@ -103,7 +64,8 @@ public partial class GenerateDynamicQueryCliCommand
             else
                 mechanismsToPrompt.Add("Secured Operation");
 
-            if (mechanismsToPrompt.Count == 0)
+            // Without a terminal to ask, mechanisms that were not passed as flags stay off.
+            if (mechanismsToPrompt.Count == 0 || !IsInteractive)
                 return;
 
             List<string> selectedMechanisms = AnsiConsole.Prompt(

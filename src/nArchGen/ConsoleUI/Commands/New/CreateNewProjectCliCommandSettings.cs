@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using ConsoleUI.Exceptions;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -6,7 +7,7 @@ namespace ConsoleUI.Commands.New;
 
 public partial class CreateNewProjectCliCommand
 {
-    public class Settings : CommandSettings
+    public class Settings : InteractiveCliCommandSettings
     {
         [CommandArgument(position: 0, template: "[ProjectName]")]
         public string? ProjectName { get; set; }
@@ -20,21 +21,22 @@ public partial class CreateNewProjectCliCommand
 
         public void CheckProjectNameArgument()
         {
-            if (ProjectName != null)
-                return;
-
-            ProjectName = AnsiConsole.Ask<string>("What's project name?");
+            if (ProjectName == null)
+            {
+                EnsureInteractive("Missing <ProjectName> argument.");
+                ProjectName = AnsiConsole.Ask<string>("What's project name?");
+            }
 
             if (string.IsNullOrWhiteSpace(ProjectName))
-                throw new ArgumentNullException(nameof(ProjectName));
+                throw new UsageException("Project name cannot be empty.");
         }
 
         public void CheckIsThereSecurityMechanismArgument()
         {
             if (IsThereSecurityMechanism)
                 return;
-            // Non-interactive terminals (CI, scripts) cannot answer the confirm; the project is created without security.
-            if (!AnsiConsole.Profile.Capabilities.Interactive)
+            // Without a terminal to ask, the project is created without security.
+            if (!IsInteractive)
                 return;
             IsThereSecurityMechanism = AnsiConsole.Confirm(
                 prompt: "Do you want to add security mechanism to your project?",

@@ -1,6 +1,6 @@
 using System.ComponentModel;
+using ConsoleUI.Exceptions;
 using Core.CodeGen.Code;
-using Core.CrossCuttingConcerns.Exceptions;
 using Core.CrossCuttingConcerns.Helpers;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -9,7 +9,7 @@ namespace ConsoleUI.Commands.Upgrade;
 
 public partial class UpgradeCliCommand
 {
-    public class Settings : CommandSettings
+    public class Settings : InteractiveCliCommandSettings
     {
         [CommandOption("-p|--project")]
         [Description("Project folder under src/ (auto-detected when there is only one).")]
@@ -49,25 +49,26 @@ public partial class UpgradeCliCommand
             if (ProjectName != null)
             {
                 if (!Directory.Exists(ProjectPath))
-                    throw new BusinessException($"Project not found in \"{ProjectPath}\".");
+                    throw new UsageException($"Project not found in \"{ProjectPath}\".");
                 AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
                 return;
             }
 
             string srcPath = PlatformHelper.SecuredPathJoin(SolutionPath, "src");
             if (!Directory.Exists(srcPath))
-                throw new BusinessException("Run `nArchGen upgrade` from the solution root; no src folder found here.");
+                throw new UsageException("Run `nArchGen upgrade` from the solution root; no src folder found here.");
 
             string[] projects = Directory.GetDirectories(srcPath).Select(Path.GetFileName).Where(p => p != "corePackages").ToArray()!;
             if (projects.Length == 0)
-                throw new BusinessException("No projects found in src");
-            if (projects.Length == 1 || !AnsiConsole.Profile.Capabilities.Interactive)
+                throw new UsageException("No projects found in src");
+            if (projects.Length == 1)
             {
                 ProjectName = projects.First();
                 AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
                 return;
             }
 
+            EnsureInteractive($"Multiple projects found in src; pass one with --project. Available: {FormatChoices(projects)}.");
             ProjectName = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("What's your [green]project[/] in [blue]src[/] folder?")

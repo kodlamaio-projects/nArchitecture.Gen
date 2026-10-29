@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Core.CodeGen.Code;
 using Core.CodeGen.CommandLine.Git;
 using Core.CodeGen.File;
+using Core.CrossCuttingConcerns.Exceptions;
 using NArchitecture.Core.Mediator;
 
 namespace Application.Features.Create.Commands.New;
@@ -43,6 +44,13 @@ public class CreateNewProjectCommand : IStreamRequest<CreatedNewProjectResponse>
             [EnumeratorCancellation] CancellationToken cancellationToken
         )
         {
+            string projectDirectory = Path.Combine(Environment.CurrentDirectory, request.ProjectName);
+            if (Directory.Exists(projectDirectory))
+                throw new ConflictException(
+                    $"Directory \"{projectDirectory}\" already exists. Nothing has been created.",
+                    [projectDirectory]
+                );
+
             CreatedNewProjectResponse response = new();
             List<string> newFilePaths = [];
 

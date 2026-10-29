@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Application;
+using ConsoleUI;
 using ConsoleUI.Commands.Generate.Command;
 using ConsoleUI.Commands.Generate.Crud;
 using ConsoleUI.Commands.Generate.DynamicQuery;
@@ -26,9 +27,17 @@ TypeRegistrar registrar = new(services);
 
 #endregion
 
+IAnsiConsole errorConsole = AnsiConsole.Create(new AnsiConsoleSettings { Out = new AnsiConsoleOutput(Console.Error) });
+
+// Redirected output is read by scripts and agents: do not wrap messages and file paths at the default 80 columns.
+if (Console.IsErrorRedirected)
+    errorConsole.Profile.Width = short.MaxValue;
+
 CommandApp app = new(registrar);
 app.Configure(config =>
 {
+    config.SetExceptionHandler((exception, _) => CliExceptionHandler.Handle(exception, errorConsole));
+
     #region Controller
 
     config.AddBranch(

@@ -17,6 +17,7 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
     public string FeatureName { get; set; } = null!;
     public string ProjectPath { get; set; } = null!;
     public QueryTemplateData QueryTemplateData { get; set; } = null!;
+    public bool Force { get; set; }
 
     public class GenerateQueryCommandHandler : IStreamRequestHandler<GenerateQueryCommand, GeneratedQueryResponse>
     {
@@ -34,16 +35,9 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             [EnumeratorCancellation] CancellationToken cancellationToken
         )
         {
-            await _businessRules.FileShouldNotBeExists(
-                PlatformHelper.SecuredPathJoin(
-                    request.ProjectPath,
-                    "Application",
-                    "features",
-                    request.FeatureName.ToPascalCase(),
-                    "Queries",
-                    request.QueryName,
-                    $"{request.QueryName}Query.cs"
-                )
+            await _businessRules.FilesShouldNotExistUnlessForced(
+                await generateApplicationCodes(request.ProjectPath, request.QueryTemplateData, pathsOnly: true),
+                request.Force
             );
 
             GeneratedQueryResponse response = new();
@@ -67,7 +61,11 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             yield return response;
         }
 
-        private async Task<ICollection<string>> generateApplicationCodes(string projectPath, QueryTemplateData QueryTemplateData)
+        private async Task<ICollection<string>> generateApplicationCodes(
+            string projectPath,
+            QueryTemplateData QueryTemplateData,
+            bool pathsOnly = false
+        )
         {
             string templateDir = PlatformHelper.SecuredPathJoin(
                 DirectoryHelper.AssemblyDirectory,
@@ -78,7 +76,8 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
             return await generateFolderCodes(
                 templateDir,
                 outputDir: PlatformHelper.SecuredPathJoin(projectPath, "Application"),
-                QueryTemplateData
+                QueryTemplateData,
+                pathsOnly
             );
         }
 
@@ -144,7 +143,8 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
         private async Task<ICollection<string>> generateFolderCodes(
             string templateDir,
             string outputDir,
-            QueryTemplateData QueryTemplateData
+            QueryTemplateData QueryTemplateData,
+            bool pathsOnly = false
         )
         {
             var templateFilePaths = DirectoryHelper
@@ -155,13 +155,15 @@ public class GenerateQueryCommand : IStreamRequest<GeneratedQueryResponse>
                 { "FEATURE", "{{ feature_name | string.pascalcase }}" },
                 { "QUERY", "{{ query_name | string.pascalcase }}" },
             };
-            ICollection<string> newRenderedFilePaths = await _templateEngine.RenderFileAsync(
-                templateFilePaths,
-                templateDir,
-                replacePathVariable,
-                outputDir,
-                QueryTemplateData
-            );
+            ICollection<string> newRenderedFilePaths = pathsOnly
+                ? await _templateEngine.RenderFilePathsAsync(
+                    templateFilePaths,
+                    templateDir,
+                    replacePathVariable,
+                    outputDir,
+                    QueryTemplateData
+                )
+                : await _templateEngine.RenderFileAsync(templateFilePaths, templateDir, replacePathVariable, outputDir, QueryTemplateData);
             return newRenderedFilePaths;
         }
 

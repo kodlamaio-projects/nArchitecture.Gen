@@ -55,6 +55,6 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
                 }
             );
 
-        return 0;
+        return CliExitCodes.Success;
     }
 }

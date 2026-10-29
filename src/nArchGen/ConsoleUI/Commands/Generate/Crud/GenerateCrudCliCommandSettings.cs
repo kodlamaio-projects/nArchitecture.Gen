@@ -1,5 +1,4 @@
-﻿using Core.CodeGen.Code;
-using Core.CrossCuttingConcerns.Exceptions;
+﻿using ConsoleUI.Exceptions;
 using Core.CrossCuttingConcerns.Helpers;
 using Domain.ValueObjects;
 using Spectre.Console;
@@ -9,16 +8,13 @@ namespace ConsoleUI.Commands.Generate.Crud;
 
 public partial class GenerateCrudCliCommand
 {
-    public class Settings : CommandSettings
+    public class Settings : GenerateCliCommandSettings
     {
         [CommandArgument(position: 0, template: "[EntityName]")]
         public string? EntityName { get; set; }
 
         [CommandArgument(position: 1, template: "[DBContextName]")]
         public string? DbContextName { get; set; }
-
-        [CommandOption("-p|--project")]
-        public string? ProjectName { get; set; }
 
         [CommandOption("-c|--caching")]
         public bool IsCachingUsed { get; set; }
@@ -44,61 +40,26 @@ public partial class GenerateCrudCliCommand
         [CommandOption("--operation-claim-type")]
         public OperationClaimType? OperationClaimType { get; set; }
 
-        public string ProjectPath =>
-            ProjectName != null
-                ? PlatformHelper.SecuredPathJoin(Environment.CurrentDirectory, "src", ProjectName.ToCamelCase())
-                : Environment.CurrentDirectory;
-
-        public void CheckProjectName()
-        {
-            if (ProjectName != null)
-            {
-                if (!Directory.Exists(ProjectPath))
-                    throw new BusinessException($"Project not found in \"{ProjectPath}\".");
-                AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
-                return;
-            }
-
-            string[] layerFolders = { "Application", "Domain", "Persistence", "WebAPI" };
-            if (layerFolders.All(folder => Directory.Exists($"{Environment.CurrentDirectory}/{folder}")))
-                return;
-
-            string[] projects = Directory
-                .GetDirectories($"{Environment.CurrentDirectory}/src")
-                .Select(Path.GetFileName)
-                .Where(project => project != "corePackages")
-                .ToArray()!;
-            if (projects.Length == 0)
-                throw new BusinessException("No projects found in src");
-            if (projects.Length == 1)
-            {
-                ProjectName = projects.First();
-                AnsiConsole.MarkupLine($"Selected [green]project[/] is [blue]{ProjectName}[/].");
-                return;
-            }
-
-            ProjectName = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("What's your [green]project[/] in [blue]src[/] folder?")
-                    .PageSize(10)
-                    .AddChoices(projects)
-            );
-        }
-
         public void CheckEntityArgument()
         {
+            string entitiesPath = PlatformHelper.SecuredPathJoin(ProjectPath, "Domain", "Entities");
+            string[] entities = Directory.Exists(entitiesPath)
+                ? Directory.GetFiles(entitiesPath).Select(path => Path.GetFileNameWithoutExtension(path)).ToArray()
+                : [];
+
             if (EntityName is not null)
             {
+                if (!entities.Contains(EntityName))
+                    throw new UsageException(
+                        $"Entity \"{EntityName}\" not found in \"{entitiesPath}\". Available: {FormatChoices(entities)}."
+                    );
                 AnsiConsole.MarkupLine($"Selected [green]entity[/] is [blue]{EntityName}[/].");
                 return;
             }
 
-            string[] entities = Directory
-                .GetFiles(path: PlatformHelper.SecuredPathJoin(ProjectPath, "Domain", "Entities"))
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToArray()!;
             if (entities.Length == 0)
-                throw new BusinessException($"No entities found in \"{ProjectPath}\\Domain\\Entities\"");
+                throw new UsageException($"No entities found in \"{entitiesPath}\".");
+            EnsureInteractive($"Missing <EntityName> argument. Available: {FormatChoices(entities)}.");
 
             EntityName = AnsiConsole.Prompt(
                 new SelectionPrompt<string>().Title("What's your [green]entity[/]?").PageSize(10).AddChoices(entities)
@@ -107,18 +68,24 @@ public partial class GenerateCrudCliCommand
 
         public void CheckDbContextArgument()
         {
+            string contextsPath = PlatformHelper.SecuredPathJoin(ProjectPath, "Persistence", "Contexts");
+            string[] dbContexts = Directory.Exists(contextsPath)
+                ? Directory.GetFiles(contextsPath).Select(path => Path.GetFileNameWithoutExtension(path)).ToArray()
+                : [];
+
             if (DbContextName is not null)
             {
+                if (!dbContexts.Contains(DbContextName))
+                    throw new UsageException(
+                        $"DbContext \"{DbContextName}\" not found in \"{contextsPath}\". Available: {FormatChoices(dbContexts)}."
+                    );
                 AnsiConsole.MarkupLine($"Selected [green]DbContext[/] is [blue]{DbContextName}[/].");
                 return;
             }
 
-            string[] dbContexts = Directory
-                .GetFiles(path: PlatformHelper.SecuredPathJoin(ProjectPath, "Persistence", "Contexts"))
-                .Select(Path.GetFileNameWithoutExtension)
-                .ToArray()!;
             if (dbContexts.Length == 0)
-                throw new BusinessException($"No DbContexts found in \"{ProjectPath}\\Persistence\\Contexts\"");
+                throw new UsageException($"No DbContexts found in \"{contextsPath}\".");
+            EnsureInteractive($"Missing <DBContextName> argument. Available: {FormatChoices(dbContexts)}.");
 
             DbContextName = AnsiConsole.Prompt(
                 new SelectionPrompt<string>().Title("What's your [green]DbContext[/]?").PageSize(5).AddChoices(dbContexts)
@@ -154,7 +121,8 @@ public partial class GenerateCrudCliCommand
             else
                 mechanismsToPrompt.Add("Menu Role");
 
-            if (mechanismsToPrompt.Count == 0)
+            // Without a terminal to ask, mechanisms that were not passed as flags stay off.
+            if (mechanismsToPrompt.Count == 0 || !IsInteractive)
             {
                 CheckCustomOperationClaimPath();
                 CheckOperationClaimType();
@@ -210,8 +178,8 @@ public partial class GenerateCrudCliCommand
                 return;
             }
 
-            // Non-interactive terminals (CI, scripts) cannot answer the confirm; the default configuration path is used.
-            if (!AnsiConsole.Profile.Capabilities.Interactive)
+            // Without a terminal to ask, the default configuration path is used.
+            if (!IsInteractive)
                 return;
 
             bool useCustomPath = AnsiConsole.Confirm("Do you want to use a [green]custom path[/] for Operation Claims Configuration?");
@@ -225,6 +193,10 @@ public partial class GenerateCrudCliCommand
 
         public void CheckOperationClaimType()
         {
+            // Without a terminal to ask, the default numeric claim ids are used.
+            if (!OperationClaimType.HasValue && !IsInteractive)
+                OperationClaimType = Domain.ValueObjects.OperationClaimType.Numeric;
+
             if (OperationClaimType.HasValue)
             {
                 AnsiConsole.MarkupLine($"Operation Claim Type: [blue]{OperationClaimType.Value}[/].");

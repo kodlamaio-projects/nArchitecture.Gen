@@ -7,6 +7,8 @@ public static class CSharpCodeInjector
     public static async Task AddCodeLinesToMethodAsync(string filePath, string methodName, string[] codeLines)
     {
         var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        if (isAlreadyInjected(fileContent, codeLines))
+            return;
         string methodStartRegex =
             @"((public|protected|internal|protected internal|private protected|private)\s+)?(static\s+)?(void|[a-zA-Z]+(<.*>)?)\s+\b"
             + methodName
@@ -83,6 +85,8 @@ public static class CSharpCodeInjector
     public static async Task AddCodeLinesAsPropertyAsync(string filePath, string[] codeLines)
     {
         string[] fileContent = await System.IO.File.ReadAllLinesAsync(filePath);
+        if (isAlreadyInjected(fileContent, codeLines))
+            return;
         const string propertyStartRegex =
             @"(public|protected|internal|protected internal|private protected|private)?\s*(?:const|static|required)?\s+(\w+(<.*>)?)\s+(\w+)\s*(?:\{.*\}|=.+;)";
 
@@ -199,6 +203,8 @@ public static class CSharpCodeInjector
     public static async Task AddMethodToClass(string filePath, string className, string[] codeLines)
     {
         var fileContent = (await System.IO.File.ReadAllLinesAsync(filePath)).ToList();
+        if (isAlreadyInjected(fileContent, codeLines))
+            return;
         Regex classStartRegex = new(
             @$"((public|protected|internal|protected internal|private protected|private)\s+)?(static\s+)?\s+\b{className}"
         );
@@ -252,5 +258,19 @@ public static class CSharpCodeInjector
 
         fileContent.InsertRange(classEndIndex, collection: codeLines.Select(line => new string(' ', minimumSpaceCountInClass) + line));
         await System.IO.File.WriteAllLinesAsync(filePath, contents: fileContent.ToArray());
+    }
+
+    /// <summary>
+    /// A snippet counts as injected when its first non-blank line is already in the file, so generating again (e.g. with
+    /// <c>--force</c>) does not add the same registration, seed or endpoint twice. The first line is used instead of the
+    /// whole snippet because later lines may differ between runs, such as newly generated Guid ids.
+    /// </summary>
+    private static bool isAlreadyInjected(IEnumerable<string> fileContent, IEnumerable<string> codeLines)
+    {
+        string? firstCodeLine = codeLines
+            .SelectMany(line => line.Split('\n'))
+            .Select(line => line.Trim())
+            .FirstOrDefault(line => line.Length > 0);
+        return firstCodeLine is not null && fileContent.Any(line => line.Trim() == firstCodeLine);
     }
 }

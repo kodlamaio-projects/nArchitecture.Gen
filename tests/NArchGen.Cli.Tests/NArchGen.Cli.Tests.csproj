@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Brings nArchGen.dll and its Templates folder next to the test binary so the tool can be run as a process. -->
+    <ProjectReference Include="..\..\src\nArchGen\ConsoleUI\ConsoleUI.csproj" />
+  </ItemGroup>
+</Project>
