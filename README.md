@@ -150,6 +150,16 @@ companion guide with the manual steps lives in the Core repo:
 dotnet restore --source https://api.nuget.org/v3/index.json --source ../nArchitecture.Core/artifacts/packages
 ```
 
+## 🆕 What's new in 2.2
+
+`nArchGen ai init` prepares a solution for AI coding agents (see [Setting up AI coding agents](#setting-up-ai-coding-agents)).
+
+- Writes an `AGENTS.md` built from the solution: projects, DbContexts, layout, conventions, and how agents should run nArchGen (`--dry-run --json` first, exit codes, no `--force` without consent).
+- Optional per-tool files for Claude, Copilot and Cursor that point to `AGENTS.md`, plus a custom file name of your choice. Codex reads `AGENTS.md` directly and needs no file of its own.
+- `--skills` adds the `add-entity`, `add-command`, `add-query` and `add-business-rule` skills and file-scoped rules for the Application, WebAPI and Persistence layers, in each tool's format.
+- Supports `--json`, `--dry-run` and `--force` like `generate`. Existing files are never overwritten without `--force` (exit code `3`).
+- `nArchGen new` now suggests `ai init` when the project has been created.
+
 ## 🆕 What's new in 2.1
 
 nArchGen can now be driven by scripts, CI and AI agents (see [Scripts, CI and AI agents](#scripts-ci-and-ai-agents)).
