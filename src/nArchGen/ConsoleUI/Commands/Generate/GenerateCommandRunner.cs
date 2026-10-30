@@ -12,13 +12,13 @@ public static class GenerateCommandRunner
     public static async Task<int> RunAsync<TResponse>(
         string command,
         string status,
-        GenerateCliCommandSettings settings,
+        bool dryRun,
         Func<IAsyncEnumerable<TResponse>> createStream
     )
         where TResponse : BaseStreamCommandResponse, IGeneratedFilesResponse
     {
         // Started here, around the whole run, because the recording flows with the async context into the handler.
-        using FileChangeSet? changeSet = settings.DryRun ? FileChangeSet.BeginRecording() : null;
+        using FileChangeSet? changeSet = dryRun ? FileChangeSet.BeginRecording() : null;
         TResponse? last = null;
 
         await CliOutput.RunWithStatusAsync(
@@ -88,7 +88,7 @@ public static class GenerateCommandRunner
 
     private static void writeFiles(string title, ICollection<string>? filePaths)
     {
-        if (filePaths is null)
+        if (filePaths is null || filePaths.Count == 0)
             return;
 
         AnsiConsole.MarkupLine(title);

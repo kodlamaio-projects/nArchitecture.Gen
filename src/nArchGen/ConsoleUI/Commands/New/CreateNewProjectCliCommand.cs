@@ -65,6 +65,11 @@ public partial class CreateNewProjectCliCommand : AsyncCommand<CreateNewProjectC
             }
         );
 
+        if (!CliOutput.IsJson)
+            AnsiConsole.MarkupLine(
+                $":robot: To set up AI coding agents for the project, run [blue]nArchGen ai init[/] in [blue]{settings.ProjectName!.EscapeMarkup()}[/]."
+            );
+
         return CliExitCodes.Success;
     }
 }

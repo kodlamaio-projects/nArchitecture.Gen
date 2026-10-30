@@ -43,7 +43,7 @@ public partial class GenerateCommandCliCommand : AsyncCommand<GenerateCommandCli
         return await GenerateCommandRunner.RunAsync(
             command: "generate command",
             status: "Generating...",
-            settings,
+            settings.DryRun,
             createStream: () => _mediator.CreateStream(request: generateCommandCommand, cancellationToken)
         );
     }

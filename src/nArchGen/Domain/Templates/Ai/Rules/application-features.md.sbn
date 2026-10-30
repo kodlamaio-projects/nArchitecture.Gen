@@ -1,0 +1,16 @@
+# Application features
+
+- One folder per feature under `Application/Features/<PluralEntity>/`: `Commands/<Name>/`, `Queries/<Name>/`,
+  `Constants/`, `Mappers/`, `Rules/`, `Resources/Locales/`. New commands and queries are generated with
+  `{{ generator_command }} generate command|query`; see AGENTS.md.
+- A request implements `IRequest<TResponse>` from `NArchitecture.Core.Mediator`; its handler is a nested class
+  implementing `IRequestHandler<TRequest, TResponse>`. Do not use MediatR.
+- Mechanisms are interfaces on the request: `ISecuredRequest` (`Roles`), `ICachableRequest` for queries,
+  `ICacheRemoverRequest` for commands that change cached data, `ILoggableRequest`, `ITransactionalRequest`.
+- Map with the feature's Mapperly mapper (`[Mapper]` static partial class in `Mappers/`): add a partial method instead
+  of mapping by hand. Do not use AutoMapper.
+- Input validation goes in the FluentValidation `*Validator` next to the request; checks that need data go in
+  `Rules/<Entity>BusinessRules.cs`.
+- Business errors are thrown only from the business rules class, with a key from `Constants/*BusinessMessages.cs` and
+  its text in every `Resources/Locales/*.yaml` file.
+- Handlers use repository and service interfaces from `Application/Services`, never the DbContext.

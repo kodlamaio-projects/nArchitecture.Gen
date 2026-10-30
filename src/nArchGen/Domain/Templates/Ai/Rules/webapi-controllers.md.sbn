@@ -1,0 +1,10 @@
+# WebAPI controllers
+
+- Controllers derive from `BaseController` and only build a request, send it with `Mediator.Send` and return the
+  response. No business logic, validation or data access here.
+- One controller per feature, named `<PluralEntity>Controller`, routed as `api/[controller]`.
+- Endpoints of generated commands and queries are added by nArchGen; keep their shape when adding one by hand:
+  `[FromBody]` commands, `[FromQuery]` queries and `PageRequest`, `[FromRoute]` ids.
+- Do not catch exceptions here: the exception middleware (`ConfigureCustomExceptionMiddleware` in `Program.cs`) turns
+  business, validation and authorization exceptions into responses. The starter enables it only in the Production
+  environment; check `Program.cs` before relying on it in other environments.

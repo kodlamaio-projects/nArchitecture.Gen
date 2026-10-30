@@ -1,0 +1,33 @@
+{{~ multiple = (projects | array.size) > 1 ~}}
+{{~ root = multiple ? "src/<project>" : ("src/" + (projects | array.first).name) ~}}
+---
+name: add-command
+description: Adds a command (an operation that changes data, such as complete, approve or assign) and its endpoint to an existing feature of this nArchitecture project with nArchGen. Use when the user wants a new action on an existing entity.
+---
+
+# Add a command to a feature
+
+1. Find the feature: the plural folder under `{{ root }}/Application/Features`, such as `TodoItems`. For an entity
+   that has no feature yet, use the `add-entity` skill instead.
+
+2. Pick the names and options:
+   - Command name without the `Command` suffix, in PascalCase: `CompleteTodoItem`.
+   - HTTP method: `-e Post`, `-e Put` or `-e Delete`. It is required when nArchGen cannot prompt.
+   - Mechanisms, if the user wants them: `-c` caching, `-l` logging, `-t` transaction, `-s` secured.
+
+3. Preview, then run without `--dry-run`:
+
+   ```bash
+   {{ generator_command }} generate command <Name> <PluralFeature> -e Put{{ if multiple }} --project <project>{{ end }} --dry-run --json
+   ```
+
+   It creates `Commands/<Name>/` (command with its handler, response, validator), adds the endpoint to
+   `<PluralFeature>Controller` and, when an operation claims file exists, the claim and its seed.
+
+4. Implement the handler: the generated `Handle` method only returns an empty response and has a `TODO`.
+   - Load the entity through the feature's repository interface (`Application/Services/Repositories`).
+   - Check business rules through `<Entity>BusinessRules`; do not throw from the handler directly.
+   - Map with the feature's Mapperly mapper; add a partial method to it when a new mapping is needed.
+   - Add the request fields to the command and their rules to the validator.
+
+5. `dotnet build`.

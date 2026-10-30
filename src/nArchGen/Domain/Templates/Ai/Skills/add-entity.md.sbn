@@ -1,0 +1,53 @@
+{{~ multiple = (projects | array.size) > 1 ~}}
+{{~ root = multiple ? "src/<project>" : ("src/" + (projects | array.first).name) ~}}
+{{~ db_context = ((projects | array.first)?.db_contexts | array.first) ?? "<DbContext>" ~}}
+---
+name: add-entity
+description: Adds a new entity with full CRUD (commands, queries, mapper, repository, controller, operation claims) to this nArchitecture project with nArchGen. Use when the user asks for a new entity, table, resource or CRUD endpoints.
+---
+
+# Add an entity with CRUD
+
+Do not write the CRUD code by hand: nArchGen generates about twenty files and registers them in the existing ones.
+
+1. Write the entity in `{{ root }}/Domain/Entities/<Entity>.cs`:
+
+   ```csharp
+   using NArchitecture.Core.Persistence.Repositories;
+
+   namespace Domain.Entities;
+
+   public class TodoItem : Entity<Guid>
+   {
+       public string Title { get; set; }
+       public DateTime? DueDate { get; set; }
+   }
+   ```
+
+   - Keep the `using NArchitecture.Core.Persistence.Repositories;` line and the `Entity<TId>` base class: nArchGen checks
+     both and reads the id type from it.
+   - Every public property becomes a field of the commands, responses and the table. A non-nullable property is
+     `required` and gets a `NotEmpty` validation rule; make optional ones nullable.
+
+2. Choose the mechanisms. Ask the user unless they already said which ones they want:
+   `-c` caching, `-l` logging, `-t` transaction, `-s` secured (operation claims and roles), `-d` dynamic query endpoint.
+
+3. Preview the change:
+
+   ```bash
+   {{ generator_command }} generate crud <Entity> {{ db_context }}{{ if multiple }} --project <project>{{ end }} <options> --dry-run --json
+   ```
+
+   `details.plannedCreated` lists the new files, `details.diffs` the lines added to existing ones. Exit code `3` means
+   the files already exist: ask the user before running again with `--force`, which overwrites them.
+
+4. Run the same command without `--dry-run`, then `dotnet build`.
+
+5. Finish the generated code:
+   - `Application/Features/<PluralEntity>/Commands/*/*Validator.cs`: add the real validation rules.
+   - `Application/Features/<PluralEntity>/Rules/<Entity>BusinessRules.cs`: add business rules (see the
+     `add-business-rule` skill).
+   - `Persistence/EntityConfigurations/<Entity>Configuration.cs`: column lengths, indexes, relations.
+
+6. If the project uses EF Core migrations (a `Migrations` folder in `Persistence`), add one:
+   `dotnet ef migrations add Add<Entity> --project {{ root }}/Persistence --startup-project {{ root }}/WebAPI`.

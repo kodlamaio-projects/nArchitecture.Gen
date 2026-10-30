@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Application;
 using ConsoleUI;
+using ConsoleUI.Commands.Ai.Init;
 using ConsoleUI.Commands.Generate.Command;
 using ConsoleUI.Commands.Generate.Crud;
 using ConsoleUI.Commands.Generate.DynamicQuery;
@@ -61,6 +62,20 @@ app.Configure(config =>
                 .AddCommand<GenerateDynamicQueryCliCommand>(name: "dynamic-query")
                 .WithDescription(description: "Generate dynamic query for an entity")
                 .WithExample(args: new[] { "generate", "dynamic-query", "User" });
+        }
+    );
+
+    config.AddBranch(
+        name: "ai",
+        action: config =>
+        {
+            config.SetDescription("Set up AI coding agents for the project");
+
+            config
+                .AddCommand<AiInitCliCommand>(name: "init")
+                .WithDescription(description: "Write AGENTS.md and the instruction files of the selected AI tools")
+                .WithExample(args: new[] { "ai", "init" })
+                .WithExample(args: new[] { "ai", "init", "--tools", "claude,cursor" });
         }
     );
 
