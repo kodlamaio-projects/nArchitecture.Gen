@@ -1,0 +1,137 @@
+{{~ project = projects | array.first ~}}
+# AGENTS.md
+
+This file guides AI coding agents working in this repository.
+
+{{ solution_name }} is built on the [nArchitecture](https://github.com/kodlamaio-projects/nArchitecture) starter: a Clean
+Architecture monolith with CQRS on `NArchitecture.Core.Mediator`, Mapperly mappers and the `NArchitecture.Core.*` packages.
+Feature code is generated with [nArchGen](https://github.com/kodlamaio-projects/nArchitecture.Gen); use it instead of
+writing that boilerplate by hand.
+
+## Commands
+
+```bash
+dotnet restore
+dotnet build
+{{~ if has_tests ~}}
+dotnet test
+{{~ end ~}}
+{{~ if has_tool_manifest ~}}
+dotnet tool restore{{ if has_csharpier }}
+dotnet csharpier format .{{ end }}
+{{~ end ~}}
+{{~ if project ~}}
+dotnet run --project src/{{ project.name }}/WebAPI
+{{~ end ~}}
+```
+
+## Layout
+
+{{~ if (projects | array.size) > 1 ~}}
+Projects under `src/`: {{ for p in projects }}`{{ p.name }}`{{ if !for.last }}, {{ end }}{{ end }}. Each has the layers below.
+{{~ else if project ~}}
+The application lives in `src/{{ project.name }}/`.
+{{~ end ~}}
+
+- `Domain/Entities` – entities, deriving from `Entity<TId>`.
+- `Application/Features/<PluralEntity>/` – one folder per feature:
+  - `Commands/<Name>/`, `Queries/<Name>/` – the request with its handler as a nested class, the response and a
+    FluentValidation validator.
+  - `Constants/` – operation claim names and business message keys.
+  - `Mappers/` – the Mapperly mapper of the feature.
+  - `Rules/` – business rules, deriving from `BaseBusinessRules`.
+  - `Resources/Locales/` – localized messages (`<Feature>.en.yaml`).
+- `Application/Services/` – services; repository interfaces are in `Services/Repositories`.
+- `Persistence/` – `Contexts` (DbContexts), `EntityConfigurations`, `Repositories`.
+- `Infrastructure/` – adapters for external services.
+- `WebAPI/Controllers` – controllers deriving from `BaseController`; they only send requests with `Mediator.Send`.
+{{~ if has_tests ~}}
+- `tests/` – test projects.
+{{~ end ~}}
+
+## Conventions
+
+- Requests implement `IRequest<TResponse>` and handlers `IRequestHandler<TRequest, TResponse>` from
+  `NArchitecture.Core.Mediator`. Do not add MediatR.
+- Map with Mapperly (`[Mapper]` static partial classes in `Mappers/`). Do not add AutoMapper.
+- Cross-cutting behavior is switched on by interfaces on the request: `ISecuredRequest` (roles), `ICachableRequest` /
+  `ICacheRemoverRequest`, `ILoggableRequest`, `ITransactionalRequest`.
+- Business errors are thrown from the feature's `*BusinessRules` class. Message keys live in
+  `Constants/*BusinessMessages.cs`, their texts in `Resources/Locales`.
+- Keep controllers thin: no business logic outside the Application layer.
+
+## Generating code with nArchGen
+
+Run nArchGen from the repository root{{ if is_generator_local_tool }}. It is installed as a local tool: run
+`dotnet tool restore` once, then call it as `dotnet nArchGen`{{ end }}.
+
+| Task | Command |
+|---|---|
+| CRUD for a new entity | Write `Domain/Entities/<Entity>.cs` first, then `{{ generator_command }} generate crud <Entity> <DbContext>` |
+| Command in a feature | `{{ generator_command }} generate command <Name> <PluralFeature> -e Post\|Put\|Delete` |
+| Query in a feature | `{{ generator_command }} generate query <Name> <PluralFeature>` |
+| Dynamic query for an entity | `{{ generator_command }} generate dynamic-query <Entity>` |
+
+`generate crud` options: `-c` caching, `-l` logging, `-t` transaction, `-s` secured (operation claims), `-d` dynamic
+query. Unset options stay off.
+
+{{~ for p in projects ~}}
+{{~ if (p.db_contexts | array.size) > 0 ~}}
+DbContexts{{ if (projects | array.size) > 1 }} of `{{ p.name }}`{{ end }}: {{ for c in p.db_contexts }}`{{ c }}`{{ if !for.last }}, {{ end }}{{ end }}.
+{{~ end ~}}
+{{~ end ~}}
+{{~ if (projects | array.size) > 1 ~}}
+Pass `--project <name>` to pick the project under `src/`.
+{{~ end ~}}
+
+Run it like this:
+
+1. Preview first: add `--dry-run --json`. Nothing is written; `details.plannedCreated`, `details.plannedUpdated` and
+   `details.diffs` show what would change.
+2. Run the same command without `--dry-run`. `created` and `updated` list the files it wrote.
+3. Read the exit code:
+
+   | Code | Meaning | What to do |
+   |---|---|---|
+   | `0` | Success | Build, then fill in the business logic. |
+   | `1` | A business rule failed | Report `error.message` to the user. |
+   | `2` | Missing or invalid argument | Fix the arguments from `error.message` and run again. |
+   | `3` | Files already exist, nothing written | Ask the user before running again with `--force`. |
+   | `4` | Unexpected error | Stop and report it. |
+
+4. Never pass `--force` without the user's consent: it overwrites the existing files.
+
+`--json` never prompts. Without it, pass `--no-interactive` so that a missing value fails instead of waiting for input.
+{{~ if (tool_files | array.size) > 0 || is_codex_selected ~}}
+
+## AI tool files
+
+This file is the single source of instructions. The files below only point here; change the rules in this file.
+
+{{~ if is_codex_selected ~}}
+- Codex reads this file directly.
+{{~ end ~}}
+{{~ for f in tool_files ~}}
+- `{{ f.path }}` ({{ f.tool }})
+{{~ end ~}}
+{{~ end ~}}
+{{~ if (skill_roots | array.size) > 0 ~}}
+
+## Skills and file-scoped rules
+
+Step-by-step procedures are skills; agents load one when its task comes up. Each is in
+{{ for r in skill_roots }}`{{ r }}/`{{ if !for.last }} and {{ end }}{{ end }}:
+{{~ for s in skill_names ~}}
+- `{{ s }}`
+{{~ end ~}}
+{{~ if (rule_files | array.size) > 0 ~}}
+
+Rules for one layer are loaded only while an agent works on its files:
+{{~ for f in rule_files ~}}
+- `{{ f.path }}` ({{ f.tool }})
+{{~ end ~}}
+{{~ end ~}}
+
+These files were written by `{{ generator_command }} ai init --skills`. Keep them in line with this file when the rules
+change.
+{{~ end ~}}

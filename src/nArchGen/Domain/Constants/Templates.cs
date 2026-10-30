@@ -11,5 +11,6 @@ public static class Templates
         public static string Command = PlatformHelper.SecuredPathJoin(Root, "Command");
         public static string Query = PlatformHelper.SecuredPathJoin(Root, "Query");
         public static string DynamicQuery = PlatformHelper.SecuredPathJoin(Root, "DynamicQuery");
+        public static string Ai = PlatformHelper.SecuredPathJoin(Root, "Ai");
     }
 }

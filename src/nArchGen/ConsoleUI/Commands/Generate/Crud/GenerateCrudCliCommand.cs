@@ -56,7 +56,7 @@ public partial class GenerateCrudCliCommand : AsyncCommand<GenerateCrudCliComman
         return await GenerateCommandRunner.RunAsync(
             command: "generate crud",
             status: "Generating...",
-            settings,
+            settings.DryRun,
             createStream: () => _mediator.CreateStream(request: generateCrudCommand, cancellationToken)
         );
     }

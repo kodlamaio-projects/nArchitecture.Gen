@@ -85,7 +85,7 @@ public static class CliOutput
         string[] words = args.TakeWhile(arg => !arg.StartsWith('-')).ToArray();
         return words switch
         {
-            ["generate", string subcommand, ..] => $"generate {subcommand}",
+            ["generate" or "ai", string subcommand, ..] => $"{words[0]} {subcommand}",
             [string command, ..] => command,
             _ => "nArchGen",
         };

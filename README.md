@@ -57,6 +57,7 @@ To get a local copy up and running follow these simple steps.
 | `nArchGen generate crud <Entity> <DbContext> [-c -l -t -s -d -m] [--force] [--dry-run]` | CRUD feature: commands, queries, Mapperly mapper, repository, controller, operation claims. |
 | `nArchGen generate command <Name> <Feature> [-e Post\|Put\|Delete]` / `generate query <Name> <Feature>` / `generate dynamic-query <Entity>` | Single command, query or dynamic query inside an existing feature. |
 | `nArchGen upgrade [--dry-run] [--project <name>] [--keep-test-framework] [--skip <steps>] [--no-build] [--force]` | Upgrades a 1.x solution to 2.0, see below. |
+| `nArchGen ai init [--tools <list>] [--custom-file <name>] [--skills] [--force] [--dry-run]` | Writes `AGENTS.md` and instruction files for AI coding tools, see below. |
 
 `generate` commands never overwrite files: if any file they would create already exists, nothing is written and the
 command lists the existing files. Pass `--force` to regenerate them; registrations, operation claim seeds and endpoints that
@@ -104,6 +105,31 @@ On failure `status` is `error` and `error` holds `type` (`usage`, `conflict`, `f
 `new`; `dryRun`, `plannedCreated`, `plannedUpdated` and `diffs` (unified diff per updated file) for `generate --dry-run`;
 `dryRun`, `changesPlanned`, `buildSucceeded`, `manualWorkCount` and `reportFile` for `upgrade`. A dry run leaves `created`
 and `updated` empty, since nothing is written.
+
+### Setting up AI coding agents
+
+Run `nArchGen ai init` in the solution folder to write an `AGENTS.md` for the project: its layout, conventions and how to
+generate code with nArchGen (`--dry-run --json` first, then the real run, and what each exit code means). It asks which AI
+tools should get a file of their own; each of these files only points to `AGENTS.md`, so the rules stay in one place.
+
+| Tool | File |
+|---|---|
+| `claude` | `CLAUDE.md` |
+| `codex` | none, Codex reads `AGENTS.md` |
+| `copilot` | `.github/copilot-instructions.md` |
+| `cursor` | `.cursor/rules/nArchitecture.mdc` |
+| `custom` | the name you give, written as `.md` (another extension is replaced, with a warning) |
+
+It then offers skills and file-scoped rules for those tools (`--skills` without a terminal):
+
+- Skills `add-entity`, `add-command`, `add-query` and `add-business-rule`: step-by-step procedures an agent loads when the
+  task comes up. They go to `.claude/skills/` for Claude and to `.agents/skills/` for Codex; Copilot and Cursor read
+  either folder.
+- Rules for the Application features, the WebAPI controllers and the Persistence layer, loaded only while an agent works
+  on those files: `.claude/rules/*.md`, `.github/instructions/*.instructions.md` and `.cursor/rules/*.mdc`.
+
+Without a terminal, pass the tools: `nArchGen ai init --tools claude,cursor --skills` or `--custom-file AI_RULES`; with
+neither, only `AGENTS.md` is written. Existing files are not overwritten without `--force` (exit code `3`).
 
 ### Upgrading a 1.x project
 

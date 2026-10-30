@@ -1,0 +1,42 @@
+{{~ multiple = (projects | array.size) > 1 ~}}
+{{~ root = multiple ? "src/<project>" : ("src/" + (projects | array.first).name) ~}}
+---
+name: add-business-rule
+description: Adds a business rule (a check that rejects an operation with a localized error, such as unique names or allowed state changes) to a feature of this nArchitecture project. Use when the user asks to validate against the database or enforce a domain rule.
+---
+
+# Add a business rule
+
+Input validation (required, length, format) belongs in the request's FluentValidation validator. Use a business rule for
+checks that need data or domain knowledge.
+
+All paths are under `{{ root }}/Application/Features/<PluralEntity>/`.
+
+1. Add the message key to `Constants/<PluralEntity>BusinessMessages.cs`:
+
+   ```csharp
+   public const string TodoItemTitleAlreadyExists = "TodoItemTitleAlreadyExists";
+   ```
+
+2. Add its text to every locale file in `Resources/Locales/` (`<PluralEntity>.en.yaml`, and the other languages
+   if there are any):
+
+   ```yaml
+   TodoItemTitleAlreadyExists: A todo item with this title already exists.
+   ```
+
+3. Add the rule to `Rules/<Entity>BusinessRules.cs`. Rules are `async Task` methods named after what must be true, and
+   fail through the class's `throwBusinessException`, which localizes the message:
+
+   ```csharp
+   public async Task TodoItemTitleShouldBeUnique(string title)
+   {
+       bool exists = await _todoItemRepository.AnyAsync(predicate: t => t.Title == title);
+       if (exists)
+           await throwBusinessException(TodoItemsBusinessMessages.TodoItemTitleAlreadyExists);
+   }
+   ```
+
+4. Call it from the handlers that need it, before changing any data.
+
+5. `dotnet build`, and add a test for the rule if the solution has tests for the feature.

@@ -1,0 +1,11 @@
+# Persistence
+
+- Each entity has a `DbSet` in its DbContext (`Persistence/Contexts`), an `IEntityTypeConfiguration<TEntity>` in
+  `Persistence/EntityConfigurations` and a repository in `Persistence/Repositories`. nArchGen adds all three with
+  `generate crud`.
+- Repositories derive from `EfRepositoryBase<TEntity, TId, TContext>` and implement the interface in
+  `Application/Services/Repositories`. Register new ones in `PersistenceServiceRegistration.cs`.
+- Entity configurations set the table name, column names and the soft delete query filter
+  (`HasQueryFilter(e => !e.DeletedDate.HasValue)`); keep the filter on every entity.
+- Use the repository methods (`GetAsync`, `GetListAsync`, `AnyAsync`, …) from the Application layer; do not use the
+  DbContext outside Persistence.

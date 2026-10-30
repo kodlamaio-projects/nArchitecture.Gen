@@ -40,7 +40,7 @@ public partial class GenerateQueryCliCommand : AsyncCommand<GenerateQueryCliComm
         return await GenerateCommandRunner.RunAsync(
             command: "generate query",
             status: "Generating...",
-            settings,
+            settings.DryRun,
             createStream: () => _mediator.CreateStream(request: generateQueryCommand, cancellationToken)
         );
     }

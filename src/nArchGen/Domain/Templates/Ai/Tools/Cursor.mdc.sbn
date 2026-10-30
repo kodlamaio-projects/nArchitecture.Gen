@@ -1,0 +1,6 @@
+---
+description: nArchitecture project rules
+alwaysApply: true
+---
+
+All project rules live in AGENTS.md at the repository root. Read it before changing code, and follow it.

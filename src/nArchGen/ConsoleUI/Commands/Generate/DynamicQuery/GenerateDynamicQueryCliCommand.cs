@@ -48,7 +48,7 @@ public partial class GenerateDynamicQueryCliCommand : AsyncCommand<GenerateDynam
         return await GenerateCommandRunner.RunAsync(
             command: "generate dynamic-query",
             status: "Generating Dynamic Query...",
-            settings,
+            settings.DryRun,
             createStream: () => _mediator.CreateStream(request: generateDynamicQueryCommand, cancellationToken)
         );
     }

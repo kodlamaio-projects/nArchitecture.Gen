@@ -1,0 +1,30 @@
+{{~ multiple = (projects | array.size) > 1 ~}}
+{{~ root = multiple ? "src/<project>" : ("src/" + (projects | array.first).name) ~}}
+---
+name: add-query
+description: Adds a query (a read-only operation, such as get by name or list overdue items) and its endpoint to an existing feature of this nArchitecture project with nArchGen. Use when the user wants to read data in a way the generated CRUD queries do not cover.
+---
+
+# Add a query to a feature
+
+1. Find the feature: the plural folder under `{{ root }}/Application/Features`, such as `TodoItems`.
+   - Filtering, sorting and paging by arbitrary fields is already covered by the dynamic query endpoint:
+     `{{ generator_command }} generate dynamic-query <Entity>`. Prefer it over a hand written list query.
+
+2. Pick the names and options:
+   - Query name without the `Query` suffix, in PascalCase: `GetOverdueTodoItems`.
+   - Mechanisms, if the user wants them: `-c` caching, `-l` logging, `-s` secured.
+
+3. Preview, then run without `--dry-run`:
+
+   ```bash
+   {{ generator_command }} generate query <Name> <PluralFeature>{{ if multiple }} --project <project>{{ end }} --dry-run --json
+   ```
+
+   It creates `Queries/<Name>/` (query with its handler, response, validator) and adds a GET endpoint to
+   `<PluralFeature>Controller`.
+
+4. Implement the handler: read through the feature's repository interface with `enableTracking: false`, map the result
+   with the feature's Mapperly mapper and fill the response. Queries never change data.
+
+5. `dotnet build`.
